@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent IA | Football Analyste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #1a2420;
+            --green-primary: #22c55e;
+            --green-secondary: #16a34a;
+            --green-dark: #14532d;
+            --gold: #fbbf24;
+            --text-primary: #f0fdf4;
+            --text-secondary: #a7f3d0;
+            --text-muted: #6b7280;
+            --border: #2d3b35;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--green-primary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 8px 16px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green-primary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-badge span {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+
+        .hero h2 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--green-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--green-primary);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--green-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--green-dark);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Leagues */
+        .leagues-section {
+            margin-bottom: 60px;
+        }
+
+        .leagues-section h3 {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .leagues-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .league-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 10px 16px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .league-badge .flag {
+            font-size: 1.1rem;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 60px;
+        }
+
+        .chat-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .chat-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .chat-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        #n8n-chat {
+            --chat--color-primary: #22c55e;
+            --chat--color-primary-shade-50: #16a34a;
+            --chat--color-primary-shade-100: #14532d;
+            --chat--color-secondary: #1a2420;
+            --chat--color-secondary-shade-50: #111916;
+            --chat--color-white: #f0fdf4;
+            --chat--color-light: #a7f3d0;
+            --chat--color-light-shade-50: #6b7280;
+            --chat--color-dark: #0a0f0d;
+            --chat--color-disabled: #2d3b35;
+            --chat--color-typing: #22c55e;
+            --chat--border-radius: 12px;
+            --chat--transition-duration: 0.2s;
+            --chat--window--width: 100%;
+            --chat--window--height: 500px;
+
+            /* Bot messages - green theme */
+            --chat--message--bot--background: #14291f;
+            --chat--message--bot--color: #f0fdf4;
+            --chat--message--bot--border: 2px solid #22c55e;
+
+            /* User messages - red/orange theme */
+            --chat--message--user--background: #dc2626;
+            --chat--message--user--color: #ffffff;
+            --chat--message--user--border: none;
+
+            --chat--message--text--color: #f0fdf4;
+            --chat--input--background: #e5e7eb;
+            --chat--input--border: 1px solid #d1d5db;
+            --chat--input--text-color: #1f2937;
+            --chat--header--background: #111916;
+            --chat--header--color: #f0fdf4;
+        }
+
+        /* Chat input full width & light gray */
+        #n8n-chat .chat-input,
+        #n8n-chat input[type="text"],
+        #n8n-chat textarea {
+            width: 100% !important;
+            background: #e5e7eb !important;
+            color: #1f2937 !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 12px !important;
+            padding: 16px !important;
+            font-size: 1rem !important;
+        }
+
+        #n8n-chat .chat-input::placeholder,
+        #n8n-chat input::placeholder,
+        #n8n-chat textarea::placeholder {
+            color: #6b7280 !important;
+        }
+
+        #n8n-chat .chat-input:focus,
+        #n8n-chat input:focus,
+        #n8n-chat textarea:focus {
+            outline: none !important;
+            border-color: #22c55e !important;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15) !important;
+        }
+
+        /* Input container full width */
+        #n8n-chat .chat-inputs-container,
+        #n8n-chat .chat-input-wrapper,
+        #n8n-chat form {
+            width: 100% !important;
+            padding: 0 !important;
+        }
+
+        /* Spinning ball animation */
+        @keyframes spin-ball {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Bot messages */
+        .chat-message.chat-message-from-bot {
+            background: #14291f !important;
+            border-left: 4px solid #22c55e !important;
+            border-radius: 4px 12px 12px 12px !important;
+            color: #f0fdf4 !important;
+            padding: 16px !important;
+            margin-right: 50px !important;
+        }
+
+        /* User messages */
+        .chat-message.chat-message-from-user {
+            background: #2d1810 !important;
+            border-left: 4px solid #ef4444 !important;
+            border-radius: 4px 12px 12px 12px !important;
+            color: #f0fdf4 !important;
+            padding: 16px !important;
+            margin-left: 50px !important;
+        }
+
+        /* Typing indicator with spinning ball */
+        .chat-message-typing,
+        .chat-message.chat-message-typing {
+            background: #14291f !important;
+            border-left: 4px solid #22c55e !important;
+            border-radius: 4px 12px 12px 12px !important;
+            padding: 16px !important;
+            margin-right: 50px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+
+        .chat-message-typing::before,
+        .chat-message.chat-message-typing::before {
+            content: '\26BD' !important;
+            font-size: 1.5rem !important;
+            display: inline-block !important;
+            animation: spin-ball 1s linear infinite !important;
+        }
+
+        .chat-message-typing::after,
+        .chat-message.chat-message-typing::after {
+            content: 'Analyse en cours...' !important;
+            font-size: 0.9rem !important;
+            color: #a7f3d0 !important;
+            display: inline-block !important;
+        }
+
+        /* Hide default typing dots */
+        .chat-message-typing > *,
+        .chat-message.chat-message-typing > * {
+            display: none !important;
+        }
+
+        /* Footer */
+        footer {
+            padding: 32px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--green-primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Message counter */
+        .msg-counter {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .msg-counter .badge {
+            display: inline-block;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .msg-counter .badge.warn {
+            border-color: #f59e0b;
+            color: #fbbf24;
+        }
+
+        .msg-counter .badge.limit {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .msg-limit-overlay {
+            background: var(--bg-card);
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .msg-limit-overlay p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .msg-limit-overlay p strong {
+            color: #ef4444;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .hero {
+                padding: 40px 0;
+            }
+
+            .chat-section {
+                padding: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">&#9917;</div>
+                    <div class="logo-text">
+                        <h1>Agent IA | Football Analyste</h1>
+                        <span>Powered by RAG SQL</span>
+                    </div>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span>En ligne</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h2>Analyse Football Intelligente</h2>
+                <p>
+                    Un agent IA conversationnel connecte a une base de donnees SQL en temps reel.
+                    Posez vos questions sur les equipes, classements, statistiques et obtenez
+                    des analyses detaillees basees sur des donnees reelles.
+                </p>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Championnats europeens</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">160+</div>
+                        <div class="stat-label">Equipes analysees</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">35+</div>
+                        <div class="stat-label">Metriques par equipe</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Disponibilite</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128202;</div>
+                    <h3>RAG SQL en temps reel</h3>
+                    <p>L'agent interroge directement la base PostgreSQL pour des reponses basees sur les donnees actuelles, sans hallucination.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9878;</div>
+                    <h3>Analyse de matchs</h3>
+                    <p>Comparez deux equipes avec des metriques avancees : taux de victoire, efficacite offensive, profil defensif, forme recente.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128200;</div>
+                    <h3>Indicateurs avances</h3>
+                    <p>Draw Index, Indice de Finition, detection des pieges... Des algorithmes proprietaires pour une analyse approfondie.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container leagues-section">
+            <h3>Championnats disponibles</h3>
+            <div class="leagues-grid">
+                <div class="league-badge"><span class="flag">&#127467;&#127479;</span> Ligue 1</div>
+                <div class="league-badge"><span class="flag">&#127466;&#127480;</span> La Liga</div>
+                <div class="league-badge"><span class="flag">&#127468;&#127463;</span> Premier League</div>
+                <div class="league-badge"><span class="flag">&#127470;&#127481;</span> Serie A</div>
+                <div class="league-badge"><span class="flag">&#127465;&#127466;</span> Bundesliga</div>
+                <div class="league-badge"><span class="flag">&#127481;&#127479;</span> Super Lig</div>
+                <div class="league-badge"><span class="flag">&#127477;&#127481;</span> Liga Portugal</div>
+                <div class="league-badge"><span class="flag">&#127475;&#127473;</span> Eredivisie</div>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="chat-section">
+                <div class="chat-header">
+                    <h3>Demarrer une analyse</h3>
+                    <p>Exemples : "Analyse PSG vs Marseille" | "Top 5 Ligue 1" | "Statistiques Real Madrid"</p>
+                </div>
+                <div class="msg-counter" id="msg-counter">
+                    <span class="badge" id="msg-badge">10/10 messages restants</span>
+                </div>
+                <div id="n8n-chat"></div>
+                <div class="msg-limit-overlay" id="msg-limit" style="display:none;">
+                    <p><strong>Limite atteinte</strong></p>
+                    <p>Vous avez utilise vos 10 messages pour cette session. Ouvrez un nouvel onglet pour recommencer.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Projet RAG SQL &mdash; Agent IA conversationnel</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+        const MAX_MESSAGES = 10;
+        const countKey = 'chatMsgCount';
+        let msgCount = parseInt(sessionStorage.getItem(countKey) || '0', 10);
+
+        function updateBadge() {
+            const remaining = MAX_MESSAGES - msgCount;
+            const badge = document.getElementById('msg-badge');
+            badge.textContent = `${remaining}/10 messages restants`;
+            badge.classList.remove('warn', 'limit');
+            if (remaining <= 0) {
+                badge.classList.add('limit');
+            } else if (remaining <= 3) {
+                badge.classList.add('warn');
+            }
+        }
+
+        function disableChat() {
+            document.getElementById('msg-limit').style.display = 'block';
+            const chatEl = document.getElementById('n8n-chat');
+            const inputs = chatEl.querySelectorAll('input, textarea, button[type="submit"]');
+            inputs.forEach(el => { el.disabled = true; el.style.opacity = '0.5'; });
+            // Also try to catch shadow DOM or future inputs
+            const form = chatEl.querySelector('form');
+            if (form) form.addEventListener('submit', e => e.preventDefault(), true);
+        }
+
+        updateBadge();
+        if (msgCount >= MAX_MESSAGES) {
+            // Defer disable until chat is rendered
+            setTimeout(disableChat, 1500);
+        }
+
+        createChat({
+            mode: 'fullscreen',
+            target: '#n8n-chat',
+            webhookUrl: 'https://delaine-precursory-berenice.ngrok-free.dev/webhook/95136399-71e5-42f8-991a-c87fa543fbae/chat',
+            showWelcomeScreen: false,
+            initialMessages: [
+                'Bonjour ! Je suis votre analyste football IA.',
+                'Je peux analyser des matchs, comparer des equipes ou vous donner des statistiques detaillees sur les 8 grands championnats europeens.',
+                'Que souhaitez-vous analyser ?'
+            ],
+            i18n: {
+                fr: {
+                    title: 'Football Analyste IA',
+                    subtitle: 'Analyse basee sur donnees reelles',
+                    getStarted: 'Demarrer',
+                    inputPlaceholder: 'Posez votre question...',
+                    footer: ''
+                }
+            },
+            metadata: {},
+            webhookConfig: {
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            }
+        });
+
+        // Observe user messages to increment counter
+        const chatTarget = document.getElementById('n8n-chat');
+        const observer = new MutationObserver(() => {
+            const userMessages = chatTarget.querySelectorAll('.chat-message-from-user, .chat-message.chat-message-from-user');
+            const currentCount = userMessages.length;
+            if (currentCount > msgCount) {
+                msgCount = currentCount;
+                sessionStorage.setItem(countKey, String(msgCount));
+                updateBadge();
+                if (msgCount >= MAX_MESSAGES) {
+                    disableChat();
+                }
+            }
+        });
+        observer.observe(chatTarget, { childList: true, subtree: true });
+    </script>
+</body>
+</html>
