@@ -419,6 +419,149 @@
             display: none !important;
         }
 
+        /* ===== Bot message HTML content styling ===== */
+        .chat-message-from-bot p,
+        .chat-message.chat-message-from-bot p {
+            margin: 8px 0;
+            line-height: 1.7;
+        }
+
+        .chat-message-from-bot h1,
+        .chat-message-from-bot h2,
+        .chat-message-from-bot h3,
+        .chat-message-from-bot h4,
+        .chat-message.chat-message-from-bot h1,
+        .chat-message.chat-message-from-bot h2,
+        .chat-message.chat-message-from-bot h3,
+        .chat-message.chat-message-from-bot h4 {
+            color: #22c55e !important;
+            margin: 16px 0 8px;
+            font-weight: 600;
+        }
+
+        .chat-message-from-bot h1,
+        .chat-message.chat-message-from-bot h1 { font-size: 1.3rem; }
+        .chat-message-from-bot h2,
+        .chat-message.chat-message-from-bot h2 { font-size: 1.15rem; }
+        .chat-message-from-bot h3,
+        .chat-message.chat-message-from-bot h3 { font-size: 1.05rem; }
+
+        .chat-message-from-bot strong,
+        .chat-message.chat-message-from-bot strong {
+            color: #4ade80;
+        }
+
+        .chat-message-from-bot em,
+        .chat-message.chat-message-from-bot em {
+            color: #a7f3d0;
+        }
+
+        /* Tables */
+        .chat-message-from-bot table,
+        .chat-message.chat-message-from-bot table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.88rem;
+            background: #0d1a14;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .chat-message-from-bot thead th,
+        .chat-message.chat-message-from-bot thead th {
+            background: #1a3a2a;
+            color: #22c55e;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 2px solid #22c55e40;
+            white-space: nowrap;
+        }
+
+        .chat-message-from-bot tbody td,
+        .chat-message.chat-message-from-bot tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #2d3b35;
+            color: #f0fdf4;
+        }
+
+        .chat-message-from-bot tbody tr:last-child td,
+        .chat-message.chat-message-from-bot tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .chat-message-from-bot tbody tr:hover,
+        .chat-message.chat-message-from-bot tbody tr:hover {
+            background: #14291f;
+        }
+
+        /* Lists */
+        .chat-message-from-bot ul,
+        .chat-message-from-bot ol,
+        .chat-message.chat-message-from-bot ul,
+        .chat-message.chat-message-from-bot ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .chat-message-from-bot li,
+        .chat-message.chat-message-from-bot li {
+            margin: 4px 0;
+            line-height: 1.6;
+        }
+
+        .chat-message-from-bot li::marker,
+        .chat-message.chat-message-from-bot li::marker {
+            color: #22c55e;
+        }
+
+        /* Code */
+        .chat-message-from-bot code,
+        .chat-message.chat-message-from-bot code {
+            background: #0d1a14;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            color: #4ade80;
+        }
+
+        .chat-message-from-bot pre,
+        .chat-message.chat-message-from-bot pre {
+            background: #0d1a14;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+            border: 1px solid #2d3b35;
+        }
+
+        .chat-message-from-bot pre code,
+        .chat-message.chat-message-from-bot pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Horizontal rule */
+        .chat-message-from-bot hr,
+        .chat-message.chat-message-from-bot hr {
+            border: none;
+            border-top: 1px solid #2d3b35;
+            margin: 16px 0;
+        }
+
+        /* Blockquote */
+        .chat-message-from-bot blockquote,
+        .chat-message.chat-message-from-bot blockquote {
+            border-left: 3px solid #22c55e;
+            padding: 8px 16px;
+            margin: 8px 0;
+            background: #0d1a14;
+            border-radius: 0 8px 8px 0;
+            color: #a7f3d0;
+        }
+
         /* Footer */
         footer {
             padding: 32px 0;
