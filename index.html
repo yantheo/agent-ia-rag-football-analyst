@@ -362,7 +362,12 @@
         async function loadMatches() {
             const container = document.getElementById('matches-container');
             try {
-                const matches = await supabaseGet('calendrier', 'order=championnat.asc,heure.asc');
+                // Filtre par date du jour (format: YYYY-MM-DD)
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0]; // ex: "2026-02-03"
+                const tomorrowStr = new Date(today.getTime() + 86400000).toISOString().split('T')[0];
+
+                const matches = await supabaseGet('calendrier', `date_match=gte.${todayStr}&date_match=lt.${tomorrowStr}&order=championnat.asc,heure.asc`);
 
                 if (!matches.length) {
                     container.innerHTML = `
