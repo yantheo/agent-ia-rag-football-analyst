@@ -84,6 +84,20 @@ Un `.shift()` copie tel quel depuis la logique Python supprimait donc le premier
 chaque fois. Repere grace aux self-tests (`bankroll.html?debug=1`, assertions dans la console) — a
 lancer apres toute modification du parseur.
 
+**Piege n°2 (corrige le 2026-11-01)** : `bwinDateToISO` lisait les dates au format `D/M/YY`
+(commentaire d'origine), alors que bwin utilise en realite le format americain `M/D/YY`. Comme pour le
+piege n°1, aucune erreur n'etait levee — le format etait juste mal devine, et le resultat avait l'air
+correct. Mesure sur un export reel de 100 tickets : 76% des dates donnaient une chaine ISO invalide
+(mois > 12, ex. `2026-31-10`), et les 24% restants etaient silencieusement faux mais plausibles
+(`10/12/26` = 12 octobre, stocke comme `2026-12-10` = 10 decembre). **Le self-test lui-meme validait le
+bug** (`paris[0].date === '2026-02-09'` au lieu de `'2026-09-02'`) — a verifier systematiquement qu'un
+self-test teste le bon comportement, pas juste "ce que le code produit actuellement".
+Pas de migration automatique des paris deja stockes : seules les dates avec mois > 12 sont detectables
+apres coup, les ~24% silencieusement plausibles sont indiscernables une fois converties en ISO (le
+format brut bwin n'est plus disponible). Une migration partielle donnerait une fausse confiance que tout
+est corrige — un avertissement conditionnel (`#date-fix-notice`, affiche si un pari avec `betslipId`
+existe et que `bankroll_date_fix_ack` n'est pas pose) invite a tout effacer et reimporter a la place.
+
 ## Page Meilleurs Paris (meilleurs-paris.html)
 
 Pas de nouveau prompt ni de nouveau workflow n8n : reutilise tel quel le webhook `/webhook/football-analyze`

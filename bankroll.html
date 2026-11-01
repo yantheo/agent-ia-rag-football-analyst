@@ -455,6 +455,10 @@
             <div class="block-head"><span class="n">03</span><h3>Importer un historique bwin</h3></div>
             <p class="block-intro">Sauvegarde ta page &laquo; Mes paris &raquo; bwin en HTML (Ctrl/Cmd+S depuis le navigateur), puis dépose le fichier ici. Rien n'est envoyé nulle part : tout reste dans ton navigateur (localStorage).</p>
             <div class="panel">
+                <div id="date-fix-notice" class="msg err" style="display:none; margin-bottom:14px">
+                    Un bug de format de date (jour/mois inversés) a été corrigé le 1er novembre 2026. Les paris déjà importés avant cette date peuvent avoir une date fausse. Clique sur « Tout effacer » en bas de page puis réimporte ton fichier bwin pour les corriger.
+                    <button type="button" id="date-fix-ack" class="btn secondary" style="margin-top:10px; padding:5px 12px; font-size:0.78rem">J'ai compris</button>
+                </div>
                 <label class="filebox" id="filebox" for="bwin-file">
                     <input type="file" id="bwin-file" accept=".html,.htm">
                     <p class="big">&#128193; Déposer ou choisir le fichier .html</p>
@@ -565,11 +569,13 @@
   }
 
   function bwinDateToISO(dateStr) {
-    // dateStr format bwin: D/M/YY ou DD/MM/YY
+    // bwin utilise le format US M/D/YY.
+    // Preuve : sur un export reel, le 2e composant atteint 31 (impossible
+    // comme mois) et le 1er ne depasse jamais 12.
     var m = /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/.exec(dateStr || '');
     if (!m) return null;
-    var day = m[1].padStart(2, '0');
-    var month = m[2].padStart(2, '0');
+    var month = m[1].padStart(2, '0');
+    var day = m[2].padStart(2, '0');
     var year = '20' + m[3];
     return year + '-' + month + '-' + day;
   }
@@ -829,7 +835,26 @@
   document.getElementById('clear-all').addEventListener('click', function () {
     if (!confirm('Effacer tous les paris enregistrés localement ? Cette action est irréversible.')) return;
     saveBets([]);
+    localStorage.setItem('bankroll_date_fix_ack', '1');
     render();
+  });
+
+  // ---------- Avertissement dates bwin potentiellement fausses ----------
+  // Pas de migration : seules les dates avec mois > 12 sont detectables
+  // (~76% du cas reel observe), les ~24% restantes sont silencieusement
+  // plausibles (jour et mois tous deux <= 12) et indiscernables une fois
+  // converties en ISO — une migration partielle donnerait une fausse
+  // confiance que tout est corrige. Un reimport complet est plus honnete.
+  (function checkDateFixNotice() {
+    var ack = localStorage.getItem('bankroll_date_fix_ack') === '1';
+    var hasBwinBets = loadBets().some(function (b) { return !!b.betslipId; });
+    if (hasBwinBets && !ack) {
+      document.getElementById('date-fix-notice').style.display = 'block';
+    }
+  })();
+  document.getElementById('date-fix-ack').addEventListener('click', function () {
+    localStorage.setItem('bankroll_date_fix_ack', '1');
+    document.getElementById('date-fix-notice').style.display = 'none';
   });
 
   // ---------- Self-tests (mode debug uniquement, ?debug=1) ----------
@@ -846,11 +871,14 @@
     console.assert(paris[0].mise === 10.00, 'self-test: mise 10.00 attendue, trouvé ' + paris[0].mise);
     console.assert(paris[0].coteTotale === 3.50, 'self-test: cote 3.50 attendue, trouvé ' + paris[0].coteTotale);
     console.assert(paris[0].retour === 35.00, 'self-test: retour 35.00 attendu, trouvé ' + paris[0].retour);
-    console.assert(paris[0].date === '2026-02-09', 'self-test: date ISO 2026-02-09 attendue, trouvé ' + paris[0].date);
+    console.assert(paris[0].date === '2026-09-02',
+      'self-test: date ISO 2026-09-02 attendue (9/2/26 = 2 septembre, format US), trouvé ' + paris[0].date);
     console.assert(paris[1].statut === 'Lost', 'self-test: statut Lost attendu pour ticket 2, trouvé ' + paris[1].statut);
     console.assert(paris[1].mise === 5.00, 'self-test: mise 5.00 attendue pour ticket 2, trouvé ' + paris[1].mise);
     console.assert(paris[1].live === true, 'self-test: ticket 2 doit être live');
     console.assert(paris[1].retour === 0, 'self-test: retour 0 par défaut si absent');
+    console.assert(bwinDateToISO('10/31/26') === '2026-10-31',
+      'self-test: 10/31/26 doit donner 2026-10-31 (31 ne peut pas être un mois)');
     console.log('[bankroll] self-tests terminés — voir assertions ci-dessus (pas de message = OK)');
   }
 
