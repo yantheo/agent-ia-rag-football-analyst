@@ -134,9 +134,24 @@
         .confidence-badge.faible { background: rgba(239,68,68,0.15); color: var(--red); }
         .badges-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
         .ia-badge {
-            font-size: 0.68rem; color: var(--text-muted); white-space: nowrap;
-            max-width: 110px; overflow: hidden; text-overflow: ellipsis;
+            position: relative; font-size: 0.68rem; color: var(--text-muted); white-space: nowrap;
+            cursor: help; border-bottom: 1px dotted var(--border); outline: none;
         }
+        .ia-badge::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: calc(100% + 8px); right: 0;
+            width: 220px; max-width: 70vw; white-space: normal;
+            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4;
+            padding: 10px 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            opacity: 0; visibility: hidden; transform: translateY(4px);
+            transition: opacity 0.15s, transform 0.15s;
+            pointer-events: none; z-index: 20;
+        }
+        .ia-badge:hover::after, .ia-badge:focus-visible::after {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+        @media (max-width: 600px) { .ia-badge::after { right: -16px; width: 180px; } }
         .rank-arrow { color: var(--text-muted); font-size: 1.2rem; transition: transform 0.2s; }
         .rank-card.expanded .rank-arrow { transform: rotate(90deg); color: var(--green-primary); }
 
@@ -274,6 +289,13 @@
   function extractConfidence(html) {
     const m = /Indice de confiance\s*:?\s*<\/strong>\s*(Faible|Moyen|Élevé|Eleve)/i.exec(html || '');
     return m ? m[1] : null;
+  }
+
+  // Justification complète (après le tiret), affichée en tooltip au survol
+  // du badge IA plutôt que dans le badge lui-même (voir extractConfidence).
+  function extractConfidenceDetail(html) {
+    const m = /Indice de confiance\s*:?\s*<\/strong>\s*(?:Faible|Moyen|Élevé|Eleve)\s*[—\-–]\s*([^<]+)/i.exec(html || '');
+    return m ? m[1].trim().replace(/[.,:;]+$/, '') : null;
   }
 
   function extractSignal(html) {
@@ -509,6 +531,7 @@
             output,
             confidence,
             confidenceRank: CONFIDENCE_RANK[confidence] || 0,
+            confidenceDetail: extractConfidenceDetail(output),
             signal: extractSignal(output),
             preGap,
           });
@@ -557,9 +580,16 @@
     const when = meta.generatedAt ? new Date(meta.generatedAt).toLocaleString('fr-FR') : '';
     cachedNote.textContent = `${results.length} match(s) retenu(s)` + (meta.analyzedCount ? ` sur ${meta.analyzedCount} analysé(s)` : '') + (when ? ` — généré le ${when}` : '');
 
+    function escapeAttr(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
     resultsEl.innerHTML = '';
     results.forEach((r, idx) => {
       const flag = FLAG_MAP[r.match.country] || '';
+      const iaTooltip = r.confidenceDetail
+        ? escapeAttr(r.confidenceDetail)
+        : "Avis narratif de l'IA, non calibré contre des résultats réels";
       const card = document.createElement('div');
       card.className = 'rank-card';
       card.innerHTML = `
@@ -571,13 +601,16 @@
           </div>
           <div class="badges-col">
             <span class="confidence-badge ${probabilityClass(r.preGap)}" title="Probabilité du favori — modèle statistique Poisson">${r.preGap != null ? (r.preGap * 100).toFixed(0) + '%' : '—'}</span>
-            <span class="ia-badge" title="Avis narratif de l'IA, non calibré contre des résultats réels">IA : ${r.confidence}</span>
+            <span class="ia-badge" tabindex="0" data-tooltip="${iaTooltip}">IA : ${r.confidence}</span>
           </div>
           <span class="rank-arrow">&#8250;</span>
         </div>
         <div class="rank-detail"><div class="analysis-content">${r.output}</div></div>
       `;
-      card.addEventListener('click', () => card.classList.toggle('expanded'));
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.ia-badge')) return;
+        card.classList.toggle('expanded');
+      });
       resultsEl.appendChild(card);
     });
   }
