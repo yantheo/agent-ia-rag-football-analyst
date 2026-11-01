@@ -185,6 +185,30 @@
                 </div>
             </div>
         </div>
+
+        <div id="tables-dominantes" class="tables-grid" style="display:none; margin-bottom:48px">
+            <div class="table-block">
+                <h3>&#128165; Buteurs d'équipes dominantes</h3>
+                <p class="sub">Score combinant forme, taux de victoire, qualité d'attaque et de défense de l'équipe — min. 3 buts, un seul joueur par équipe (son meilleur buteur)</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Buts</th><th>Score équipe</th></tr></thead>
+                        <tbody id="tbl-dominantes"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#128165; Passeurs d'équipes dominantes</h3>
+                <p class="sub">Même score d'équipe (forme, taux de victoire, attaque, défense) — min. 2 passes, un seul joueur par équipe (son meilleur passeur)</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Passes D.</th><th>Score équipe</th></tr></thead>
+                        <tbody id="tbl-dominantes-passeurs"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>
@@ -202,6 +226,8 @@
   const TOP_N = 10;
   const MIN_BUTS_IMPORTANCE = 3;
   const MIN_PASSES_IMPORTANCE = 2;
+  const MIN_BUTS_DOMINANTES = 3;
+  const MIN_PASSES_DOMINANTES = 2;
 
   async function supabaseGet(table, params = '') {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
@@ -209,6 +235,57 @@
     });
     if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
     return res.json();
+  }
+
+  // ---------- Score de qualité d'équipe (même logique que meilleurs-paris.html) ----------
+  // Les données du scraper mélangent deux générations de l'algorithme
+  // (ex: "DOMINANCE" vs "DOMINANCE (Profil Équilibré)"), on matche par
+  // mots-clés normalisés (sans accents) plutôt que par égalité stricte.
+  function norm(s) {
+    return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  }
+
+  function reliabilityRank(etatFiabilite) {
+    const t = norm(etatFiabilite);
+    if (t.indexOf('DOMINANCE') !== -1) return 4;
+    if (t.indexOf('FORCE') !== -1) return 3;
+    if (t.indexOf('SOLID') !== -1) return 2;
+    if (t.indexOf('FRAGIL') !== -1) return 1;
+    if (t.indexOf('DETRESSE') !== -1 || t.indexOf('SOUFFRANCE') !== -1) return 0;
+    return 2;
+  }
+
+  function offensiveRank(profilOffensif) {
+    const t = norm(profilOffensif);
+    if (t.indexOf('EXPLOSIVE') !== -1 || t.indexOf('TRES PERFORMANTE') !== -1 || t.indexOf('EXCALIBUR') !== -1) return 3;
+    if (t.indexOf('EFFICACE') !== -1 || t.indexOf('GLAIVE') !== -1) return 2;
+    if (t.indexOf('LIMITEE') !== -1 || t.indexOf('OUTSIDER') !== -1) return 1;
+    if (t.indexOf('STERILE') !== -1) return 0;
+    return 1.5;
+  }
+
+  function defensiveRank(profilDefensif) {
+    const t = norm(profilDefensif);
+    if (t.indexOf('IMPENETRABLE') !== -1 || t.indexOf('ELITE') !== -1 || t.indexOf('BOUCLIER') !== -1) return 3;
+    if (t.indexOf('SOLIDE') !== -1) return 2;
+    if (t.indexOf('MOYENNE') !== -1) return 1.5;
+    if (t.indexOf('VULNERABLE') !== -1 || t.indexOf('DETRESSE') !== -1 || t.indexOf('EPAVE') !== -1) return 0;
+    return 1.5;
+  }
+
+  // Score de forme récente (sur les 5 derniers matchs) : +1 par victoire, +0 nul, -1 défaite.
+  function formeScore(forme) {
+    if (!Array.isArray(forme) || !forme.length) return 0;
+    return forme.reduce((s, r) => s + (r === 'V' ? 1 : r === 'D' ? -1 : 0), 0);
+  }
+
+  // Score global de qualité d'équipe : forme + fiabilité + attaque + défense.
+  function teamQualityScore(team) {
+    return (team.taux_victoire || 0) * 0.3
+      + formeScore(team.forme_recente_championnat) * 8
+      + reliabilityRank(team.etat_fiabilite) * 6
+      + offensiveRank(team.profil_offensif) * 6
+      + defensiveRank(team.profil_defensif) * 6;
   }
 
   function flatten(teams, field) {
@@ -244,10 +321,28 @@
     `).join('');
   }
 
+  function renderDominantesTable(tbodyId, rows) {
+    const tbody = document.getElementById(tbodyId);
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);text-align:center">Pas assez de données</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map((r, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="player">${r.nom}</td>
+        <td class="team">${r.equipe}</td>
+        <td class="val">${r.valeur}</td>
+        <td class="val">${r.qualityScore.toFixed(0)}</td>
+      </tr>
+    `).join('');
+  }
+
   async function init() {
     try {
       const teams = await supabaseGet('classements_foot',
-        'select=team_id,equipe,championnat,buts_pour,meilleurs_buteurs,meilleurs_passeurs');
+        'select=team_id,equipe,championnat,buts_pour,meilleurs_buteurs,meilleurs_passeurs,' +
+        'taux_victoire,etat_fiabilite,profil_offensif,profil_defensif,forme_recente_championnat');
 
       const buteurs = flatten(teams, 'meilleurs_buteurs');
       const passeurs = flatten(teams, 'meilleurs_passeurs');
@@ -267,13 +362,42 @@
         .sort((a, b) => b.pct - a.pct)
         .slice(0, TOP_N);
 
+      // Meilleur joueur (>= seuil) de chaque équipe sur un champ donné (buteurs ou passeurs),
+      // classé par qualité globale de l'équipe (forme récente + fiabilité + attaque + défense)
+      // — pas juste son nombre de buts/passes brut.
+      function topDominantes(field, minVal) {
+        return teams
+          .map(t => {
+            const meilleur = (t[field] || [])
+              .filter(p => p && p.nom && p.stats >= minVal)
+              .sort((a, b) => b.stats - a.stats)[0];
+            if (!meilleur) return null;
+            return {
+              nom: meilleur.nom,
+              valeur: meilleur.stats,
+              equipe: t.equipe,
+              championnat: t.championnat,
+              qualityScore: teamQualityScore(t),
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.qualityScore - a.qualityScore)
+          .slice(0, TOP_N);
+      }
+
+      const dominantesButeurs = topDominantes('meilleurs_buteurs', MIN_BUTS_DOMINANTES);
+      const dominantesPasseurs = topDominantes('meilleurs_passeurs', MIN_PASSES_DOMINANTES);
+
       renderTable('tbl-buteurs', topButeurs, r => r.valeur);
       renderTable('tbl-passeurs', topPasseurs, r => r.valeur);
       renderTable('tbl-buteurs-importance', importanceButeurs, r => (r.pct * 100).toFixed(0) + '%');
       renderTable('tbl-passeurs-importance', importancePasseurs, r => (r.pct * 100).toFixed(0) + '%');
+      renderDominantesTable('tbl-dominantes', dominantesButeurs);
+      renderDominantesTable('tbl-dominantes-passeurs', dominantesPasseurs);
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('tables').style.display = 'grid';
+      document.getElementById('tables-dominantes').style.display = 'grid';
     } catch (err) {
       console.error(err);
       document.getElementById('loading').style.display = 'none';
