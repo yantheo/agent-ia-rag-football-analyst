@@ -135,6 +135,21 @@ Calcule 6 classements cote client a partir d'une seule requete Supabase sur `cla
   `taux_victoire`) ne sont plus utilises dans le score : ils sont derives des memes stats brutes par le
   scraper, les reutiliser aurait compte deux fois le meme signal.
 
+## Etat au 2026-11-01 (a reprendre a la prochaine session)
+
+- Le modele Poisson ci-dessus est commite en local (`dd9b9df`) mais **pas encore pousse sur GitHub** —
+  donc pas encore sur le site en ligne. Attendre validation avant de pousser.
+- Changement lie cote backend : les algorithmes du scraper (`scraper_league_team.py`,
+  `scraper_detail_team.py`, voir le repo backend mentionne plus haut) ont ete revus le meme jour pour
+  utiliser le meme principe (seuils relatifs au championnat + shrinkage, au lieu de seuils absolus fixes)
+  — voir le CLAUDE.md de ce repo pour le detail et un piege important rencontre (le conteneur
+  scraper-python doit etre redemarre apres toute modif de fichier `.py`, sinon l'ancien code reste actif
+  en memoire). A valider et pousser en meme temps que ce repo, les deux changements partagent la meme
+  philosophie (eviter de compter un signal deux fois entre labels qualitatifs et stats brutes).
+- Si vous reprenez cette session : verifier d'abord l'etat du scrape de validation lance sur le VPS,
+  puis tester les pages localement (`python3 -m http.server` a la racine du repo) avant de pousser quoi
+  que ce soit.
+
 ## Historique git
 
 L'historique de ce repo a ete force-push/reecrit a un moment (plusieurs versions du frontend ont
