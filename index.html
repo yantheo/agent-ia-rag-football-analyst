@@ -114,6 +114,44 @@
         .match-team-name { font-size: 0.95rem; font-weight: 500; min-width: 120px; }
         .match-team-name.home { text-align: right; }
         .match-team-name.away { text-align: left; }
+
+        /* Player alert badge — ⚡ buteur / 🎯 passeur, seuils calibrés sur
+           les donnees reelles (voir computeAlert dans le script) */
+        .player-alert {
+            position: relative; display: inline-block; margin-left: 4px;
+            font-size: 0.78rem; cursor: help; vertical-align: middle;
+        }
+        .player-alert::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px);
+            width: 220px; max-width: 70vw; white-space: normal;
+            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4;
+            padding: 10px 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            opacity: 0; visibility: hidden; transition: opacity 0.15s, transform 0.15s;
+            pointer-events: none; z-index: 20;
+        }
+        .player-alert:hover::after, .player-alert:focus-visible::after {
+            opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+        }
+        .player-alert-block {
+            display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px;
+        }
+        .player-alert-chip {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 10px 14px; font-size: 0.85rem;
+        }
+        .player-alert-chip.eleve { border-color: var(--gold); }
+        .player-alert-chip .icon { font-size: 1.1rem; }
+        .player-alert-chip .txt { color: var(--text-secondary); }
+        .player-alert-chip .txt strong { color: var(--text-primary); }
+        .player-alert-chip .lvl {
+            font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700;
+            padding: 2px 8px; border-radius: 100px;
+        }
+        .player-alert-chip.eleve .lvl { background: rgba(251,191,36,0.18); color: var(--gold); }
+        .player-alert-chip.moyen .lvl { background: rgba(34,197,94,0.18); color: var(--green-primary); }
         .match-vs {
             font-size: 0.75rem; color: var(--text-muted); font-weight: 700;
             padding: 4px 10px; background: var(--bg-secondary); border-radius: 6px;
@@ -354,6 +392,82 @@
             return res.json();
         }
 
+        // --- ALERTES BUTEUR / PASSEUR ---
+        // Seuils calibres sur la distribution reelle (166 equipes, nov. 2026) :
+        // le meilleur buteur d'une equipe pese en moyenne (mediane) 29% des buts
+        // de son equipe, p75 = 39%, p90 = 56%. "Moyen" vise le dessus de la
+        // moyenne, "Eleve" vise le top ~10%. Double seuil (buts bruts ET part
+        // relative) pour qu'un joueur a 1 but sur une equipe qui n'en a marque
+        // qu'1 (100% mais insignifiant) ne declenche jamais rien.
+        const ALERT_MIN_BUTS_MOYEN = 3;
+        const ALERT_MIN_PCT_MOYEN = 0.30;
+        const ALERT_MIN_BUTS_ELEVE = 5;
+        const ALERT_MIN_PCT_ELEVE = 0.50;
+
+        function computeAlert(joueurs, butsEquipe) {
+            if (!Array.isArray(joueurs) || !joueurs.length || !butsEquipe) return null;
+            const top = [...joueurs].sort((a, b) => (b.stats || 0) - (a.stats || 0))[0];
+            if (!top || !top.stats) return null;
+            const pct = top.stats / butsEquipe;
+            if (top.stats >= ALERT_MIN_BUTS_ELEVE && pct >= ALERT_MIN_PCT_ELEVE) {
+                return { level: 'eleve', nom: top.nom, stats: top.stats, pct };
+            }
+            if (top.stats >= ALERT_MIN_BUTS_MOYEN && pct >= ALERT_MIN_PCT_MOYEN) {
+                return { level: 'moyen', nom: top.nom, stats: top.stats, pct };
+            }
+            return null;
+        }
+
+        function teamAlerts(team) {
+            if (!team) return { buteur: null, passeur: null };
+            return {
+                buteur: computeAlert(team.meilleurs_buteurs, team.buts_pour),
+                passeur: computeAlert(team.meilleurs_passeurs, team.buts_pour),
+            };
+        }
+
+        function escapeAttr(s) {
+            return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        }
+
+        // Badge compact pour les cartes de la liste du calendrier.
+        function alertBadgesHTML(alerts) {
+            let html = '';
+            if (alerts.buteur) {
+                const a = alerts.buteur;
+                const tip = `Alerte Buteur (${a.level === 'eleve' ? 'Élevé' : 'Moyen'}) : ${a.nom} — ${a.stats} buts, ${(a.pct * 100).toFixed(0)}% des buts de l'équipe`;
+                html += `<span class="player-alert" tabindex="0" data-tooltip="${escapeAttr(tip)}">&#9889;</span>`;
+            }
+            if (alerts.passeur) {
+                const a = alerts.passeur;
+                const tip = `Alerte Passeur (${a.level === 'eleve' ? 'Élevé' : 'Moyen'}) : ${a.nom} — ${a.stats} passes D., contribue à ${(a.pct * 100).toFixed(0)}% des buts de l'équipe`;
+                html += `<span class="player-alert" tabindex="0" data-tooltip="${escapeAttr(tip)}">&#127919;</span>`;
+            }
+            return html;
+        }
+
+        // Bloc détaillé pour la vue match (home/away avec nom d'équipe).
+        function alertChipsHTML(alerts, teamLabel) {
+            let html = '';
+            if (alerts.buteur) {
+                const a = alerts.buteur;
+                html += `<div class="player-alert-chip ${a.level}">
+                    <span class="icon">&#9889;</span>
+                    <span class="txt">Alerte Buteur — <strong>${a.nom}</strong> (${teamLabel}) : ${a.stats} buts, ${(a.pct * 100).toFixed(0)}% des buts de l'équipe</span>
+                    <span class="lvl">${a.level === 'eleve' ? 'Élevé' : 'Moyen'}</span>
+                </div>`;
+            }
+            if (alerts.passeur) {
+                const a = alerts.passeur;
+                html += `<div class="player-alert-chip ${a.level}">
+                    <span class="icon">&#127919;</span>
+                    <span class="txt">Alerte Passeur — <strong>${a.nom}</strong> (${teamLabel}) : ${a.stats} passes D., contribue à ${(a.pct * 100).toFixed(0)}% des buts de l'équipe</span>
+                    <span class="lvl">${a.level === 'eleve' ? 'Élevé' : 'Moyen'}</span>
+                </div>`;
+            }
+            return html;
+        }
+
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             const now = new Date();
@@ -384,6 +498,22 @@
                     return;
                 }
 
+                // Une seule requête groupée pour les stats buteurs/passeurs de
+                // toutes les équipes du jour, plutôt qu'une requête par match.
+                const teamIds = Array.from(new Set(
+                    matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur]).filter(Boolean)
+                ));
+                const teamStatsMap = {};
+                if (teamIds.length) {
+                    try {
+                        const rows = await supabaseGet('classements_foot',
+                            `team_id=in.(${teamIds.map(encodeURIComponent).join(',')})&select=team_id,meilleurs_buteurs,meilleurs_passeurs,buts_pour`);
+                        rows.forEach(r => { teamStatsMap[r.team_id] = r; });
+                    } catch (e) {
+                        console.error('Chargement des alertes buteur/passeur échoué', e);
+                    }
+                }
+
                 // Group by league
                 const grouped = {};
                 matches.forEach(m => {
@@ -404,12 +534,14 @@
 
                     data.matches.forEach(m => {
                         const chaines = (m.chaines || []).join(', ') || '';
+                        const homeAlerts = teamAlerts(teamStatsMap[m.team_id_domicile]);
+                        const awayAlerts = teamAlerts(teamStatsMap[m.team_id_exterieur]);
                         html += `
                             <div class="match-card" onclick='openMatch(${JSON.stringify(m).replace(/'/g, "&#39;")})'>
                                 <div class="match-teams">
-                                    <span class="match-team-name home">${m.equipe_domicile}</span>
+                                    <span class="match-team-name home">${m.equipe_domicile}${alertBadgesHTML(homeAlerts)}</span>
                                     <span class="match-vs">VS</span>
-                                    <span class="match-team-name away">${m.equipe_exterieur}</span>
+                                    <span class="match-team-name away">${m.equipe_exterieur}${alertBadgesHTML(awayAlerts)}</span>
                                 </div>
                                 <div class="match-info">
                                     <span class="match-time">${m.heure || '--:--'}</span>
@@ -637,7 +769,10 @@
                 </div>`;
             }
 
+            const alertsHTML = alertChipsHTML(teamAlerts(home), homeName) + alertChipsHTML(teamAlerts(away), awayName);
+
             return `
+                ${alertsHTML ? `<div class="player-alert-block">${alertsHTML}</div>` : ''}
                 <div class="comparison-grid">
                     ${card('Possession & Jeu', possStats)}
                     ${card('Defense & Discipline', defStats)}
