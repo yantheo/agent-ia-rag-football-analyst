@@ -180,6 +180,72 @@
         @media (max-width: 768px) {
             .header-content { flex-direction: column; gap: 16px; }
         }
+
+        /* --- Calculatrice de valeur --- */
+        .calc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; }
+        @media (max-width: 760px) { .calc-grid { grid-template-columns: minmax(0, 1fr); } }
+
+        .outrow {
+            display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+            padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem;
+        }
+        .outrow:last-child { border-bottom: none; }
+        .outrow .k { color: var(--text-secondary); min-width: 0; }
+        .outrow .v { font-family: 'JetBrains Mono', monospace; font-weight: 500; white-space: nowrap; }
+        .outrow.lead .k { color: var(--text-primary); font-weight: 600; }
+        .outrow.lead .v { font-size: 1.05rem; }
+
+        .verdict {
+            margin-top: 18px; padding: 14px 16px; border-radius: 10px;
+            font-size: 0.88rem; line-height: 1.55; border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .verdict strong { display: block; margin-bottom: 4px; font-size: 0.95rem; }
+        .verdict.go { border-color: var(--green-primary); background: rgba(34, 197, 94, 0.07); }
+        .verdict.go strong { color: var(--green-primary); }
+        .verdict.no { border-color: var(--red); background: rgba(239, 68, 68, 0.07); }
+        .verdict.no strong { color: var(--red); }
+        .verdict.wait { border-color: var(--gold); background: rgba(251, 191, 36, 0.07); }
+        .verdict.wait strong { color: var(--gold); }
+
+        .field .hint { display: block; font-size: 0.74rem; color: var(--text-muted); margin-top: 5px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+        .calc-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 18px; line-height: 1.6; }
+
+        /* --- FAQ --- */
+        .faq-item { border-bottom: 1px solid var(--border); }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-item summary {
+            cursor: pointer; padding: 16px 0; font-weight: 600; font-size: 0.97rem;
+            list-style: none; display: flex; align-items: baseline; gap: 12px;
+            transition: color 0.15s;
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary:hover { color: var(--green-primary); }
+        .faq-item summary::before {
+            content: '+'; font-family: 'JetBrains Mono', monospace; color: var(--green-primary);
+            font-weight: 400; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+        .faq-item[open] summary::before { content: '−'; }
+        .faq-item[open] summary { color: var(--green-primary); }
+        .faq-body { padding: 0 0 20px 26px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.65; }
+        .faq-body p + p { margin-top: 12px; }
+        .faq-body table { min-width: 0; max-width: 480px; margin-top: 14px; font-size: 0.82rem; }
+        .faq-body th, .faq-body td { padding: 7px 10px 7px 0; }
+        .faq-body th:last-child, .faq-body td:last-child { padding-right: 0; }
+
+        .tag {
+            display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 0.66rem;
+            font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-left: auto;
+            flex-shrink: 0; border: 1px solid var(--border);
+        }
+        .tag.proof { color: var(--green-primary); border-color: rgba(34, 197, 94, 0.4); }
+        .tag.market { color: var(--gold); border-color: rgba(251, 191, 36, 0.4); }
+        .tag.rule { color: var(--text-muted); }
+        @media (max-width: 560px) { .tag { display: none; } }
+
+        .legend-tags { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.78rem; color: var(--text-muted); margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .legend-tags span { display: inline-flex; align-items: center; gap: 7px; }
+        .legend-tags i { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; font-style: normal; }
     </style>
 </head>
 <body>
@@ -209,11 +275,184 @@
     <main class="container">
         <div class="page-title">
             <h2>Bankroll &amp; Performance</h2>
-            <p>Module A &mdash; Import et stockage de l'historique de paris</p>
+            <p>Calculatrice de valeur, règles de gestion et suivi personnel de tes paris</p>
         </div>
 
+        <section class="block" id="sec-calc">
+            <div class="block-head"><span class="n">01</span><h3>Calculatrice de valeur</h3></div>
+            <p class="block-intro">Avant de miser : la cote proposée et ta propre estimation de probabilité. La calculatrice en déduit si le pari a de la valeur, et combien y mettre. Elle ne prédit rien — elle met un chiffre sur ce que tu crois déjà.</p>
+
+            <div class="panel">
+                <div class="calc-grid">
+                    <div>
+                        <label class="field">
+                            <span>Cote décimale</span>
+                            <input type="number" id="c-cote" step="0.01" min="1.01" value="1.85" inputmode="decimal">
+                            <span class="hint">La cote affichée par le bookmaker.</span>
+                        </label>
+                        <label class="field">
+                            <span>Ta probabilité estimée (%)</span>
+                            <input type="number" id="c-proba" step="0.5" min="1" max="99" value="62" inputmode="decimal">
+                            <span class="hint">Ce que tu penses vraiment, pas ce que tu espères.</span>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="field">
+                            <span>Bankroll (€) &mdash; optionnel</span>
+                            <input type="number" id="c-bankroll" step="10" min="0" placeholder="laisse vide pour un résultat en %" inputmode="decimal">
+                            <span class="hint">La somme réservée au jeu. Sans elle, tout s'affiche en % de bankroll.</span>
+                        </label>
+                        <div class="row">
+                            <label class="field">
+                                <span>Unité de mise</span>
+                                <select id="c-unite">
+                                    <option value="0.5">0,5 % &mdash; prudent</option>
+                                    <option value="1" selected>1 % &mdash; standard</option>
+                                    <option value="2">2 % &mdash; agressif</option>
+                                </select>
+                            </label>
+                            <label class="field">
+                                <span>Seuil d'écart (points)</span>
+                                <input type="number" id="c-seuil" step="1" min="0" max="50" value="5" inputmode="numeric">
+                                <span class="hint">En dessous, on passe.</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:8px">
+                    <div class="outrow"><span class="k">Probabilité implicite de la cote</span><span class="v" id="c-imp">—</span></div>
+                    <div class="outrow"><span class="k">Ton écart sur le marché</span><span class="v" id="c-ecart">—</span></div>
+                    <div class="outrow"><span class="k">Espérance par euro misé</span><span class="v" id="c-ev">—</span></div>
+                    <div class="outrow"><span class="k">Kelly complet <span style="color:var(--text-muted)">(jamais à utiliser tel quel)</span></span><span class="v" id="c-kf">—</span></div>
+                    <div class="outrow lead"><span class="k">Mise conseillée &mdash; quart de Kelly plafonné</span><span class="v" id="c-mise">—</span></div>
+                </div>
+
+                <div class="verdict" id="c-verdict"></div>
+
+                <p class="calc-note">
+                    La mise est plafonnée à 2 unités, soit <span id="c-plafond">2 %</span> de la bankroll. Kelly complet mène à la ruine dès que l'estimation de probabilité est trop optimiste, ce qui est le cas de la quasi-totalité des parieurs : il suppose une probabilité connue, pas estimée. Le quart de Kelly réduit la croissance théorique d'un quart et divise la volatilité par quatre.
+                </p>
+            </div>
+        </section>
+
+        <section class="block" id="sec-faq">
+            <div class="block-head"><span class="n">02</span><h3>Gérer sa bankroll &mdash; les questions qui comptent</h3></div>
+            <p class="block-intro">Sept règles et ce qui les justifie. Chacune porte une étiquette qui dit sur quoi elle repose : certaines sont de l'arithmétique vérifiable, d'autres sont des garde-fous assumés. La différence est volontairement affichée.</p>
+
+            <div class="panel" style="padding-top:8px;padding-bottom:8px">
+
+                <details class="faq-item">
+                    <summary>Pourquoi éviter les combinés longs ?<span class="tag proof">Arithmétique</span></summary>
+                    <div class="faq-body">
+                        <p>Parce que la marge du bookmaker se multiplie à chaque sélection ajoutée. Sur les grands championnats elle tourne autour de 6 % par sélection. Un combiné de <em>n</em> sélections rend donc en moyenne 0,94<sup>n</sup> de la mise, même avec des pronostics parfaitement neutres.</p>
+                        <table>
+                            <thead><tr><th>Sélections</th><th>Retour moyen</th><th>Perte attendue</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td class="num">94 %</td><td class="num down">−6 %</td></tr>
+                                <tr><td>2</td><td class="num">88 %</td><td class="num down">−12 %</td></tr>
+                                <tr><td>3</td><td class="num">83 %</td><td class="num down">−17 %</td></tr>
+                                <tr><td>5</td><td class="num">73 %</td><td class="num down">−27 %</td></tr>
+                                <tr><td>10</td><td class="num">54 %</td><td class="num down">−46 %</td></tr>
+                            </tbody>
+                        </table>
+                        <p>Un ticket à 10 sélections rend donc à peu près la moitié de la mise sur la durée. Aucune qualité de pronostic ne rattrape ça : il faudrait avoir raison bien plus souvent que le marché sur <em>chacune</em> des dix lignes.</p>
+                        <p>Et les « boosts » de cote ne renversent pas le calcul. Un boost de 16 % appliqué à un ticket qui rend 65 % le ramène à 75 % : moins mauvais, toujours perdant.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Quelle part de ma bankroll miser sur un pari ?<span class="tag proof">Arithmétique</span></summary>
+                    <div class="faq-body">
+                        <p>Une unité par défaut, deux au maximum. L'unité vaut 0,5 à 2 % de la bankroll selon le profil, 1 % étant un point de départ raisonnable.</p>
+                        <p>La raison est la survie, pas la performance. Une série de huit paris perdus d'affilée n'a rien d'exceptionnel : avec un taux de réussite de 50 %, elle survient au moins une fois dans plus d'un cas sur deux sur 200 paris. Avec un taux plus bas, elle devient la norme.</p>
+                        <table>
+                            <thead><tr><th>Mise par pari</th><th>Coût d'une série de 8</th><th>Suite</th></tr></thead>
+                            <tbody>
+                                <tr><td class="num">1 %</td><td class="num">8 % de la bankroll</td><td>on continue</td></tr>
+                                <tr><td class="num">2 %</td><td class="num">16 %</td><td>on continue</td></tr>
+                                <tr><td class="num">5 %</td><td class="num">40 %</td><td>difficile à rattraper</td></tr>
+                                <tr><td class="num">10 %</td><td class="num">80 %</td><td class="down">partie terminée</td></tr>
+                            </tbody>
+                        </table>
+                        <p>Un parieur qui a un avantage réel mais mise 10 % par pari fait faillite avant que son avantage ait eu le temps de s'exprimer. La taille de mise ne crée pas la rentabilité : elle décide seulement si tu restes en jeu assez longtemps pour le savoir.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Faut-il se méfier des grosses cotes ?<span class="tag market">Biais de marché</span></summary>
+                    <div class="faq-body">
+                        <p>Oui, et pas seulement à cause de la variance. Les bookmakers appliquent une marge <em>plus élevée</em> sur les outsiders que sur les favoris — c'est le <em>favourite-longshot bias</em>, observé de façon constante sur les marchés de paris depuis des décennies.</p>
+                        <p>Concrètement : un pari à cote 1,50 est vendu avec une marge plus faible qu'un pari à cote 10,00. Jouer les grosses cotes, c'est donc payer le prix le plus fort pour le produit le plus incertain. Plus la cote monte, plus la part de marge augmente, et plus il faut de paris pour que les résultats disent quoi que ce soit.</p>
+                        <p>Ça n'interdit pas les grosses cotes : ça impose de les miser petit et d'avoir une raison précise d'y aller, pas une intuition.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Comment savoir si j'ai vraiment un avantage ?<span class="tag proof">Arithmétique</span></summary>
+                    <div class="faq-body">
+                        <p>En misant le même montant sur chaque pari, pendant plusieurs centaines de paris. C'est le seul protocole qui répond à la question.</p>
+                        <p>À mises variables, un bilan positif ne prouve rien : il peut venir entièrement du fait que les grosses mises sont tombées du bon côté. Un vrai avantage sur les pronostics, lui, survit à la mise fixe par construction — si chaque pari rapporte en moyenne, le total rapporte quel que soit le montant unitaire.</p>
+                        <p>Le test est donc simple : recalcule ton ROI comme si chaque pari avait été joué au même montant. Si le résultat change de signe, ce que tu mesurais, c'était ton dosage, pas ta lecture du jeu. Et note ta probabilité estimée avant chaque pari — sans elle, impossible de savoir plus tard si tes estimations valaient quelque chose.</p>
+                        <p>Attention aux petits échantillons : en dessous de deux cents paris environ, un ROI positif ou négatif ne permet de conclure dans aucun sens.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Pourquoi un budget mensuel et un seuil d'arrêt ?<span class="tag proof">Arithmétique</span></summary>
+                    <div class="faq-body">
+                        <p>Parce qu'une décision prise à froid vaut mieux qu'une décision prise après une perte. Le budget et le seuil se fixent à l'avance, quand rien n'est en jeu.</p>
+                        <p>Un cadre qui fonctionne : un budget de mises d'environ 25 unités par mois, et un arrêt jusqu'au mois suivant si la perte atteint 10 % de la bankroll. Le seuil n'est pas là pour limiter les dégâts d'un mois — il est là pour empêcher le réflexe de se refaire, qui est le mécanisme par lequel une mauvaise série devient un problème.</p>
+                        <p>Un signal à surveiller dans ton propre historique : compare ta mise moyenne après une perte et après un gain. Si la première est plus élevée, la pente est déjà là.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Combien de paris par jour ?<span class="tag rule">Garde-fou</span></summary>
+                    <div class="faq-body">
+                        <p>Trois au maximum. Contrairement aux règles précédentes, celle-ci n'a pas de démonstration arithmétique derrière elle — c'est une limite de discipline, et elle est présentée comme telle.</p>
+                        <p>Le raisonnement : le nombre de matchs sur lesquels on a une opinion argumentée dans une journée est petit. Au-delà, on ne sélectionne plus, on remplit des tickets. Le plafond quotidien de cinq unités d'exposition joue le même rôle par un autre bout.</p>
+                        <p>Si tu veux une version mesurable : regarde ton ROI sur les jours où tu as joué un à trois paris, et sur les jours où tu en as joué plus de cinq. L'écart répondra mieux que n'importe quelle règle générale.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Et les paris en live ?<span class="tag rule">Garde-fou</span></summary>
+                    <div class="faq-body">
+                        <p>À éviter tant qu'on n'a pas démontré un avantage en prématch. Là encore, c'est un garde-fou, pas une loi.</p>
+                        <p>Deux raisons. Les marges appliquées en live sont généralement plus élevées qu'en prématch, parce que le bookmaker se couvre contre un flux d'information rapide. Et le live supprime le temps de réflexion, qui est précisément la seule ressource dont dispose un parieur amateur face à un modèle de trading automatisé.</p>
+                        <p>Le live n'est pas injouable en soi. Il est injouable sans méthode, et personne n'arrive avec une méthode en live sans en avoir eu une en prématch d'abord.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Pourquoi le quart de Kelly et pas Kelly complet ?<span class="tag proof">Arithmétique</span></summary>
+                    <div class="faq-body">
+                        <p>Le critère de Kelly donne la fraction de bankroll qui maximise la croissance à long terme : <code>(p × cote − 1) / (cote − 1)</code>, où <em>p</em> est la probabilité réelle de gagner.</p>
+                        <p>Le piège est dans ce mot, <em>réelle</em>. Kelly suppose que la probabilité est connue. En pratique elle est estimée, et une estimation trop optimiste de quelques points produit une mise très supérieure à l'optimum — assez pour transformer un avantage réel en ruine. La formule est d'autant plus agressive que la cote est basse.</p>
+                        <p>Diviser par quatre coûte un quart de la croissance théorique et divise la volatilité par quatre. C'est un échange très favorable quand l'entrée du calcul est incertaine, ce qui est toujours le cas. Le plafond de deux unités ferme la porte restante : il empêche une erreur d'estimation de devenir une erreur de mise.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Est-ce que tout ça fait gagner ?<span class="tag rule">Non</span></summary>
+                    <div class="faq-body">
+                        <p>Non. Aucune méthode de mise ne rend rentable un pari qui ne l'est pas. La gestion de bankroll ne crée pas d'avantage : elle décide de la vitesse à laquelle un avantage, s'il existe, se matérialise — et de la vitesse à laquelle un désavantage vide le compte.</p>
+                        <p>Le pari sportif reste, pour la très grande majorité des joueurs, une activité à espérance négative. Ce qui est sur cette page sert à borner les pertes et à mesurer honnêtement ce qui se passe. Rien de plus, et c'est déjà beaucoup plus que ce que fait la plupart des parieurs.</p>
+                        <p>Si le jeu cesse d'être un loisir : Juego Responsable 900 200 225 (Espagne), Joueurs Info Service 09 74 75 13 13 (France).</p>
+                    </div>
+                </details>
+
+                <div class="legend-tags">
+                    <span><i style="background:var(--green-primary)"></i>Arithmétique &mdash; vérifiable, indépendant de toute donnée</span>
+                    <span><i style="background:var(--gold)"></i>Biais de marché &mdash; effet documenté sur les marchés de paris</span>
+                    <span><i style="background:var(--text-muted)"></i>Garde-fou &mdash; discipline assumée, pas une démonstration</span>
+                </div>
+            </div>
+        </section>
+
         <section class="block" id="sec-import">
-            <div class="block-head"><span class="n">01</span><h3>Importer un historique bwin</h3></div>
+            <div class="block-head"><span class="n">03</span><h3>Importer un historique bwin</h3></div>
             <p class="block-intro">Sauvegarde ta page &laquo; Mes paris &raquo; bwin en HTML (Ctrl/Cmd+S depuis le navigateur), puis dépose le fichier ici. Rien n'est envoyé nulle part : tout reste dans ton navigateur (localStorage).</p>
             <div class="panel">
                 <label class="filebox" id="filebox" for="bwin-file">
@@ -226,7 +465,7 @@
         </section>
 
         <section class="block" id="sec-manual">
-            <div class="block-head"><span class="n">02</span><h3>Saisie manuelle</h3></div>
+            <div class="block-head"><span class="n">04</span><h3>Saisie manuelle</h3></div>
             <p class="block-intro">Pour les bookmakers non supportés par l'import automatique.</p>
             <div class="panel">
                 <form id="manual-form">
@@ -265,7 +504,7 @@
         </section>
 
         <section class="block" id="sec-list">
-            <div class="block-head"><span class="n">03</span><h3>Mes paris</h3></div>
+            <div class="block-head"><span class="n">05</span><h3>Mes paris</h3></div>
             <div id="strip" class="strip"></div>
             <div class="tbl-scroll">
                 <table>
@@ -620,6 +859,94 @@
   }
 
   render();
+})();
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var elCote = $('c-cote'), elProba = $('c-proba'), elBank = $('c-bankroll'),
+      elUnite = $('c-unite'), elSeuil = $('c-seuil');
+
+  function nb(v, d) {
+    return v.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function signe(v, d, suffixe) {
+    var s = (v > 0 ? '+' : '') + nb(v, d);
+    return s.replace('-', '−') + (suffixe || '');
+  }
+  function set(id, txt, cls) {
+    var el = $(id);
+    el.textContent = txt;
+    el.className = 'v' + (cls ? ' ' + cls : '');
+  }
+
+  function calculer() {
+    var cote = parseFloat(elCote.value);
+    var p = parseFloat(elProba.value) / 100;
+    var bankroll = parseFloat(elBank.value);
+    var pctUnite = parseFloat(elUnite.value) / 100;
+    var seuil = parseFloat(elSeuil.value);
+
+    if (!isFinite(seuil) || seuil < 0) seuil = 0;
+    var aBankroll = isFinite(bankroll) && bankroll > 0;
+
+    $('c-plafond').textContent = nb(pctUnite * 200, pctUnite * 200 % 1 === 0 ? 0 : 1) + ' %';
+
+    var verdict = $('c-verdict');
+
+    // --- Entrées invalides ---
+    if (!isFinite(cote) || cote <= 1 || !isFinite(p) || p <= 0 || p >= 1) {
+      ['c-imp', 'c-ecart', 'c-ev', 'c-kf', 'c-mise'].forEach(function (id) { set(id, '—'); });
+      verdict.className = 'verdict';
+      verdict.innerHTML = '<strong>En attente</strong>Entre une cote supérieure à 1,00 et une probabilité comprise entre 1 et 99 %.';
+      return;
+    }
+
+    var implicite = 1 / cote;
+    var ecart = (p - implicite) * 100;          // en points de pourcentage
+    var esperance = p * cote - 1;               // par euro misé
+    var kellyComplet = (p * cote - 1) / (cote - 1);
+    var kellyQuart = kellyComplet / 4;
+
+    var plafondPct = pctUnite * 2;
+    var misePct = Math.min(Math.max(kellyQuart, 0), plafondPct);
+
+    set('c-imp', nb(implicite * 100, 1) + ' %');
+    set('c-ecart', signe(ecart, 1, ' pts'), ecart > 0 ? 'up' : 'down');
+    set('c-ev', signe(esperance, 3, ' €'), esperance > 0 ? 'up' : 'down');
+    set('c-kf', kellyComplet > 0 ? nb(kellyComplet * 100, 1) + ' %' : '0 %');
+
+    var miseTxt = nb(misePct * 100, 2) + ' % de la bankroll';
+    if (aBankroll) miseTxt = nb(misePct * bankroll, 2) + ' €  ·  ' + nb(misePct * 100, 2) + ' %';
+    set('c-mise', misePct > 0 ? miseTxt : '0 €', misePct > 0 ? 'up' : 'down');
+
+    // --- Verdict ---
+    if (esperance <= 0) {
+      verdict.className = 'verdict no';
+      verdict.innerHTML = '<strong>Ne pas jouer</strong>Ton estimation est en dessous de la probabilité implicite : chaque euro misé perd ' +
+        nb(Math.abs(esperance), 3) + ' € en moyenne. Pour que ce pari ait de la valeur, il faudrait une cote d’au moins <strong style="display:inline;color:inherit">' +
+        nb(1 / p, 2) + '</strong>.';
+    } else if (ecart < seuil) {
+      verdict.className = 'verdict wait';
+      verdict.innerHTML = '<strong>Écart insuffisant — passer</strong>' + signe(ecart, 1, ' points') +
+        ' d’écart, sous le seuil de ' + nb(seuil, 0) + '. À cette marge, l’erreur de ton estimation est probablement plus grande que l’avantage supposé.';
+    } else {
+      var brut = kellyQuart;
+      var plafonne = brut > plafondPct;
+      verdict.className = 'verdict go';
+      verdict.innerHTML = '<strong>Pari à valeur — ' + (aBankroll ? nb(misePct * bankroll, 2) + ' €' : nb(misePct * 100, 2) + ' % de la bankroll') + '</strong>' +
+        signe(ecart, 1, ' points') + ' d’écart sur le marché. Le quart de Kelly demande ' + nb(brut * 100, 2) + ' %' +
+        (plafonne ? ', ramené au plafond de 2 unités' : '') +
+        '. Cet écart ne vaut que ce que vaut ton estimation de ' + nb(p * 100, 1) + ' % : la calculatrice ne la vérifie pas.';
+    }
+  }
+
+  [elCote, elProba, elBank, elSeuil].forEach(function (el) { el.addEventListener('input', calculer); });
+  elUnite.addEventListener('change', calculer);
+  calculer();
 })();
 </script>
 </body>
