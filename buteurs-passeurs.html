@@ -82,6 +82,26 @@
         .table-block h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
         .table-block .sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
 
+        /* Icône "joue aujourd'hui" — memo visuel pour reperer vite les
+           equipes/joueurs du classement qui ont un match le jour meme */
+        .playing-today {
+            position: relative; display: inline-block; margin-left: 6px;
+            font-size: 0.82rem; cursor: help; vertical-align: middle;
+        }
+        .playing-today::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: calc(100% + 8px); left: 0;
+            width: 200px; max-width: 70vw; white-space: normal;
+            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4;
+            padding: 10px 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            opacity: 0; visibility: hidden; transition: opacity 0.15s, transform 0.15s;
+            transform: translateY(4px); pointer-events: none; z-index: 20;
+        }
+        .playing-today:hover::after, .playing-today:focus-visible::after {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+
         .tbl-scroll { overflow-x: auto; }
         table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
         th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -238,6 +258,32 @@
     return res.json();
   }
 
+  function escapeAttr(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  // ---------- "Joue aujourd'hui" (memo visuel, calendrier étant quotidien) ----------
+  async function fetchTodayMatchMap() {
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    const tomorrowStr = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
+    const matches = await supabaseGet('calendrier',
+      `date_match=gte.${todayStr}&date_match=lt.${tomorrowStr}&` +
+      'select=team_id_domicile,team_id_exterieur,equipe_domicile,equipe_exterieur,heure');
+    const map = {};
+    matches.forEach(m => {
+      if (m.team_id_domicile) map[m.team_id_domicile] = { heure: m.heure, adversaire: m.equipe_exterieur, home: true };
+      if (m.team_id_exterieur) map[m.team_id_exterieur] = { heure: m.heure, adversaire: m.equipe_domicile, home: false };
+    });
+    return map;
+  }
+
+  function playingTodayBadge(teamId, todayMap) {
+    const info = todayMap[teamId];
+    if (!info) return '';
+    const tip = `Joue aujourd'hui${info.heure ? ' à ' + info.heure : ''} ${info.home ? 'vs' : '@'} ${info.adversaire}`;
+    return `<span class="playing-today" tabindex="0" data-tooltip="${escapeAttr(tip)}">&#9917;</span>`;
+  }
+
   // ---------- Score de qualité d'équipe ----------
   // Indices d'attaque/défense (même modèle que meilleurs-paris.html) : buts
   // marqués/encaissés par match, rapportés à la moyenne du championnat et
@@ -304,6 +350,7 @@
           nom: p.nom,
           valeur: p.stats,
           equipe: t.equipe,
+          teamId: t.team_id,
           championnat: t.championnat,
           butsEquipe: t.buts_pour || 0,
         });
@@ -312,7 +359,7 @@
     return rows;
   }
 
-  function renderTable(tbodyId, rows, valueFormatter) {
+  function renderTable(tbodyId, rows, valueFormatter, todayMap) {
     const tbody = document.getElementById(tbodyId);
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center">Pas assez de données</td></tr>';
@@ -322,13 +369,13 @@
       <tr>
         <td class="rank">${i + 1}</td>
         <td class="player">${r.nom}</td>
-        <td class="team">${r.equipe}</td>
+        <td class="team">${r.equipe}${playingTodayBadge(r.teamId, todayMap)}</td>
         <td class="val">${valueFormatter(r)}</td>
       </tr>
     `).join('');
   }
 
-  function renderDominantesTable(tbodyId, rows) {
+  function renderDominantesTable(tbodyId, rows, todayMap) {
     const tbody = document.getElementById(tbodyId);
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);text-align:center">Pas assez de données</td></tr>';
@@ -338,7 +385,7 @@
       <tr>
         <td class="rank">${i + 1}</td>
         <td class="player">${r.nom}</td>
-        <td class="team">${r.equipe}</td>
+        <td class="team">${r.equipe}${playingTodayBadge(r.teamId, todayMap)}</td>
         <td class="val">${r.valeur}</td>
         <td class="val">${r.qualityScore >= 0 ? '+' : ''}${r.qualityScore.toFixed(2)}</td>
       </tr>
@@ -347,9 +394,12 @@
 
   async function init() {
     try {
-      const teams = await supabaseGet('classements_foot',
-        'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,' +
-        'meilleurs_buteurs,meilleurs_passeurs,forme_recente_championnat');
+      const [teams, todayMap] = await Promise.all([
+        supabaseGet('classements_foot',
+          'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,' +
+          'meilleurs_buteurs,meilleurs_passeurs,forme_recente_championnat'),
+        fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
+      ]);
       const leagueAvg = computeLeagueAverages(teams);
 
       const buteurs = flatten(teams, 'meilleurs_buteurs');
@@ -384,6 +434,7 @@
               nom: meilleur.nom,
               valeur: meilleur.stats,
               equipe: t.equipe,
+              teamId: t.team_id,
               championnat: t.championnat,
               qualityScore: teamQualityScore(t, leagueAvg),
             };
@@ -396,12 +447,12 @@
       const dominantesButeurs = topDominantes('meilleurs_buteurs', MIN_BUTS_DOMINANTES);
       const dominantesPasseurs = topDominantes('meilleurs_passeurs', MIN_PASSES_DOMINANTES);
 
-      renderTable('tbl-buteurs', topButeurs, r => r.valeur);
-      renderTable('tbl-passeurs', topPasseurs, r => r.valeur);
-      renderTable('tbl-buteurs-importance', importanceButeurs, r => (r.pct * 100).toFixed(0) + '%');
-      renderTable('tbl-passeurs-importance', importancePasseurs, r => (r.pct * 100).toFixed(0) + '%');
-      renderDominantesTable('tbl-dominantes', dominantesButeurs);
-      renderDominantesTable('tbl-dominantes-passeurs', dominantesPasseurs);
+      renderTable('tbl-buteurs', topButeurs, r => r.valeur, todayMap);
+      renderTable('tbl-passeurs', topPasseurs, r => r.valeur, todayMap);
+      renderTable('tbl-buteurs-importance', importanceButeurs, r => (r.pct * 100).toFixed(0) + '%', todayMap);
+      renderTable('tbl-passeurs-importance', importancePasseurs, r => (r.pct * 100).toFixed(0) + '%', todayMap);
+      renderDominantesTable('tbl-dominantes', dominantesButeurs, todayMap);
+      renderDominantesTable('tbl-dominantes-passeurs', dominantesPasseurs, todayMap);
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('tables').style.display = 'grid';

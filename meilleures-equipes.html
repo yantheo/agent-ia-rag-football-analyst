@@ -83,6 +83,26 @@
         .table-block h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
         .table-block .sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
 
+        /* Icône "joue aujourd'hui" — memo visuel pour reperer vite les
+           equipes du classement qui ont un match le jour meme */
+        .playing-today {
+            position: relative; display: inline-block; margin-left: 6px;
+            font-size: 0.82rem; cursor: help; vertical-align: middle;
+        }
+        .playing-today::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: calc(100% + 8px); left: 0;
+            width: 200px; max-width: 70vw; white-space: normal;
+            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4;
+            padding: 10px 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            opacity: 0; visibility: hidden; transition: opacity 0.15s, transform 0.15s;
+            transform: translateY(4px); pointer-events: none; z-index: 20;
+        }
+        .playing-today:hover::after, .playing-today:focus-visible::after {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+
         .tbl-scroll { overflow-x: auto; }
         table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
         th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -237,6 +257,32 @@
     return res.json();
   }
 
+  function escapeAttr(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  // ---------- "Joue aujourd'hui" (memo visuel, calendrier étant quotidien) ----------
+  async function fetchTodayMatchMap() {
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    const tomorrowStr = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
+    const matches = await supabaseGet('calendrier',
+      `date_match=gte.${todayStr}&date_match=lt.${tomorrowStr}&` +
+      'select=team_id_domicile,team_id_exterieur,equipe_domicile,equipe_exterieur,heure');
+    const map = {};
+    matches.forEach(m => {
+      if (m.team_id_domicile) map[m.team_id_domicile] = { heure: m.heure, adversaire: m.equipe_exterieur, home: true };
+      if (m.team_id_exterieur) map[m.team_id_exterieur] = { heure: m.heure, adversaire: m.equipe_domicile, home: false };
+    });
+    return map;
+  }
+
+  function playingTodayBadge(teamId, todayMap) {
+    const info = todayMap[teamId];
+    if (!info) return '';
+    const tip = `Joue aujourd'hui${info.heure ? ' à ' + info.heure : ''} ${info.home ? 'vs' : '@'} ${info.adversaire}`;
+    return `<span class="playing-today" tabindex="0" data-tooltip="${escapeAttr(tip)}">&#9917;</span>`;
+  }
+
   // ---------- Moyennes de championnat (pondérées par matchs joués) ----------
   function weightedLeagueAvg(teams, field, weightField) {
     const byLeague = {};
@@ -296,7 +342,7 @@
     return sumW ? sumWV / sumW : 0;
   }
 
-  function renderTable(tbodyId, rows, valueFormatter, valueClass) {
+  function renderTable(tbodyId, rows, valueFormatter, valueClass, todayMap) {
     const tbody = document.getElementById(tbodyId);
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center">Pas assez de données</td></tr>';
@@ -305,7 +351,7 @@
     tbody.innerHTML = rows.map((r, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
-        <td class="team">${r.equipe}</td>
+        <td class="team">${r.equipe}${playingTodayBadge(r.teamId || r.team_id, todayMap || {})}</td>
         <td class="league">${r.championnat}</td>
         <td class="val ${valueClass ? valueClass(r) : ''}">${valueFormatter(r)}</td>
       </tr>
@@ -314,10 +360,13 @@
 
   async function init() {
     try {
-      const teams = await supabaseGet('classements_foot',
-        'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,points,' +
-        'ratio_conversion_num,possession_en_pourcentage,taux_victoire,' +
-        'forme_recente_championnat,forme_recente_globale,updated_at');
+      const [teams, todayMap] = await Promise.all([
+        supabaseGet('classements_foot',
+          'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,points,' +
+          'ratio_conversion_num,possession_en_pourcentage,taux_victoire,' +
+          'forme_recente_championnat,forme_recente_globale,updated_at'),
+        fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
+      ]);
 
       // Le scraper laisse parfois des lignes orphelines d'une saison précédente
       // (ex: matchs_joues=34 alors que le reste de la ligue est à 7-8, avec
@@ -342,6 +391,7 @@
       const forme = eligibles
         .map(t => ({
           equipe: t.equipe,
+          teamId: t.team_id,
           championnat: t.championnat,
           score: formRecencyScore(t.forme_recente_championnat) + 0.3 * formRecencyScore(t.forme_recente_globale),
         }))
@@ -358,6 +408,7 @@
         .filter(t => t.ratio_conversion_num > 0 && leagueAvgRatio[t.championnat])
         .map(t => ({
           equipe: t.equipe,
+          teamId: t.team_id,
           championnat: t.championnat,
           ratioVsLigue: t.ratio_conversion_num / leagueAvgRatio[t.championnat],
         }))
@@ -370,7 +421,7 @@
         .map(t => {
           const possVsLigue = t.possession_en_pourcentage / leagueAvgPossession[t.championnat] - 1;
           const victVsLigue = (t.taux_victoire || 0) / leagueAvgTauxVictoire[t.championnat] - 1;
-          return { equipe: t.equipe, championnat: t.championnat, score: possVsLigue + victVsLigue };
+          return { equipe: t.equipe, teamId: t.team_id, championnat: t.championnat, score: possVsLigue + victVsLigue };
         })
         .sort((a, b) => b.score - a.score)
         .slice(0, TOP_N);
@@ -386,17 +437,17 @@
           const bc = Math.pow(t.buts_contre || 0, 1.3);
           const expectedPct = (bp + bc) > 0 ? bp / (bp + bc) : 0.5;
           const actualPct = t.points / (t.matchs_joues * 3);
-          return { equipe: t.equipe, championnat: t.championnat, ecart: (actualPct - expectedPct) * 100 };
+          return { equipe: t.equipe, teamId: t.team_id, championnat: t.championnat, ecart: (actualPct - expectedPct) * 100 };
         })
         .sort((a, b) => b.ecart - a.ecart)
         .slice(0, TOP_N);
 
-      renderTable('tbl-forme', forme, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2));
-      renderTable('tbl-attaque', attaque, r => r.attackIndex.toFixed(2) + '×');
-      renderTable('tbl-defense', defense, r => r.defenseIndex.toFixed(2) + '×');
-      renderTable('tbl-efficacite', efficacite, r => r.ratioVsLigue.toFixed(2) + '×');
-      renderTable('tbl-possession', possession, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2));
-      renderTable('tbl-chance', chance, r => (r.ecart >= 0 ? '+' : '') + r.ecart.toFixed(1) + ' pts', r => r.ecart < 0 ? 'down' : '');
+      renderTable('tbl-forme', forme, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2), null, todayMap);
+      renderTable('tbl-attaque', attaque, r => r.attackIndex.toFixed(2) + '×', null, todayMap);
+      renderTable('tbl-defense', defense, r => r.defenseIndex.toFixed(2) + '×', null, todayMap);
+      renderTable('tbl-efficacite', efficacite, r => r.ratioVsLigue.toFixed(2) + '×', null, todayMap);
+      renderTable('tbl-possession', possession, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2), null, todayMap);
+      renderTable('tbl-chance', chance, r => (r.ecart >= 0 ? '+' : '') + r.ecart.toFixed(1) + ' pts', r => r.ecart < 0 ? 'down' : '', todayMap);
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('tables').style.display = 'grid';
