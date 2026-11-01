@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buteurs &amp; Passeurs | Football Analyste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #1a2420;
+            --green-primary: #22c55e;
+            --green-secondary: #16a34a;
+            --green-dark: #14532d;
+            --gold: #fbbf24;
+            --text-primary: #f0fdf4;
+            --text-secondary: #a7f3d0;
+            --text-muted: #6b7280;
+            --border: #2d3b35;
+            --red: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            pointer-events: none; z-index: 0;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        header { padding: 24px 0; border-bottom: 1px solid var(--border); }
+        .header-content { display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .logo-text h1 { font-size: 1.5rem; font-weight: 700; }
+        .logo-text span { font-size: 0.75rem; color: var(--green-primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+        .nav-links a {
+            padding: 8px 16px; border-radius: 100px; font-size: 0.875rem;
+            color: var(--text-secondary); text-decoration: none;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark);
+        }
+
+        .page-title { padding: 40px 0 24px; text-align: center; }
+        .page-title h2 {
+            font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary), var(--green-primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .page-title p { color: var(--text-muted); font-size: 0.95rem; }
+
+        .tables-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 24px 0 48px; }
+        @media (max-width: 900px) { .tables-grid { grid-template-columns: 1fr; } }
+
+        .table-block {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 22px; min-width: 0;
+        }
+        .table-block h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
+        .table-block .sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+
+        .tbl-scroll { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+        th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th:last-child, td:last-child { text-align: right; }
+        thead th {
+            font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600;
+        }
+        tbody tr:hover { background: var(--bg-secondary); }
+        tbody tr:last-child td { border-bottom: none; }
+        td.rank { font-family: 'JetBrains Mono', monospace; color: var(--gold); font-weight: 700; width: 28px; }
+        td.player { font-weight: 600; }
+        td.team { color: var(--text-muted); font-size: 0.8rem; }
+        td.val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--green-primary); text-align: right; }
+
+        .loading-state, .empty-state, .error-state { text-align: center; padding: 40px 0; color: var(--text-muted); font-size: 0.9rem; }
+        .error-state { color: var(--red); }
+        .spinner { display: inline-block; animation: spin 1s linear infinite; font-size: 1.4rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); text-align: center; }
+        footer p { font-size: 0.875rem; color: var(--text-muted); }
+
+        @media (max-width: 768px) { .header-content { flex-direction: column; gap: 16px; } }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">&#9917;</div>
+                    <div class="logo-text">
+                        <h1>Football Analyste IA</h1>
+                        <span>Powered by RAG SQL</span>
+                    </div>
+                </a>
+                <nav class="nav-links">
+                    <a href="index.html" id="nav-calendar">Calendrier</a>
+                    <a href="bankroll.html" id="nav-bankroll">Bankroll</a>
+                    <a href="meilleurs-paris.html" id="nav-best">Meilleurs Paris</a>
+                    <a href="buteurs-passeurs.html" id="nav-scorers" class="active">Buteurs &amp; Passeurs</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-title">
+            <h2>Buteurs &amp; Passeurs</h2>
+            <p>Classements sur les 8 championnats europeens suivis</p>
+        </div>
+
+        <div id="loading" class="loading-state"><span class="spinner">&#9917;</span><p style="margin-top:10px">Chargement des statistiques…</p></div>
+        <div id="error" class="error-state" style="display:none"></div>
+
+        <div id="tables" class="tables-grid" style="display:none">
+            <div class="table-block">
+                <h3>&#9917; Top 10 Buteurs</h3>
+                <p class="sub">Classement brut, tous championnats confondus</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Buts</th></tr></thead>
+                        <tbody id="tbl-buteurs"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#127919; Top 10 Passeurs</h3>
+                <p class="sub">Classement brut, tous championnats confondus</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Passes D.</th></tr></thead>
+                        <tbody id="tbl-passeurs"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#127942; Buteurs les plus importants</h3>
+                <p class="sub">Part des buts de leur équipe — min. 3 buts marqués</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>% des buts</th></tr></thead>
+                        <tbody id="tbl-buteurs-importance"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#127942; Passeurs les plus importants</h3>
+                <p class="sub">Part des buts de leur équipe (via passe décisive) — min. 2 passes</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>% des buts</th></tr></thead>
+                        <tbody id="tbl-passeurs-importance"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Projet par <a href="https://github.com/yantheo" style="color: var(--green-primary); text-decoration: none;">yantheo</a></p>
+        </div>
+    </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
+  const TOP_N = 10;
+  const MIN_BUTS_IMPORTANCE = 3;
+  const MIN_PASSES_IMPORTANCE = 2;
+
+  async function supabaseGet(table, params = '') {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+    return res.json();
+  }
+
+  function flatten(teams, field) {
+    const rows = [];
+    teams.forEach(t => {
+      (t[field] || []).forEach(p => {
+        if (!p || !p.nom || p.stats == null) return;
+        rows.push({
+          nom: p.nom,
+          valeur: p.stats,
+          equipe: t.equipe,
+          championnat: t.championnat,
+          butsEquipe: t.buts_pour || 0,
+        });
+      });
+    });
+    return rows;
+  }
+
+  function renderTable(tbodyId, rows, valueFormatter) {
+    const tbody = document.getElementById(tbodyId);
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center">Pas assez de données</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map((r, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="player">${r.nom}</td>
+        <td class="team">${r.equipe}</td>
+        <td class="val">${valueFormatter(r)}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function init() {
+    try {
+      const teams = await supabaseGet('classements_foot',
+        'select=team_id,equipe,championnat,buts_pour,meilleurs_buteurs,meilleurs_passeurs');
+
+      const buteurs = flatten(teams, 'meilleurs_buteurs');
+      const passeurs = flatten(teams, 'meilleurs_passeurs');
+
+      const topButeurs = [...buteurs].sort((a, b) => b.valeur - a.valeur).slice(0, TOP_N);
+      const topPasseurs = [...passeurs].sort((a, b) => b.valeur - a.valeur).slice(0, TOP_N);
+
+      const importanceButeurs = buteurs
+        .filter(r => r.valeur >= MIN_BUTS_IMPORTANCE && r.butsEquipe > 0)
+        .map(r => ({ ...r, pct: r.valeur / r.butsEquipe }))
+        .sort((a, b) => b.pct - a.pct)
+        .slice(0, TOP_N);
+
+      const importancePasseurs = passeurs
+        .filter(r => r.valeur >= MIN_PASSES_IMPORTANCE && r.butsEquipe > 0)
+        .map(r => ({ ...r, pct: r.valeur / r.butsEquipe }))
+        .sort((a, b) => b.pct - a.pct)
+        .slice(0, TOP_N);
+
+      renderTable('tbl-buteurs', topButeurs, r => r.valeur);
+      renderTable('tbl-passeurs', topPasseurs, r => r.valeur);
+      renderTable('tbl-buteurs-importance', importanceButeurs, r => (r.pct * 100).toFixed(0) + '%');
+      renderTable('tbl-passeurs-importance', importancePasseurs, r => (r.pct * 100).toFixed(0) + '%');
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('tables').style.display = 'grid';
+    } catch (err) {
+      console.error(err);
+      document.getElementById('loading').style.display = 'none';
+      const errEl = document.getElementById('error');
+      errEl.style.display = 'block';
+      errEl.textContent = 'Erreur de chargement : ' + err.message;
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
