@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meilleures Équipes | Football Analyste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #1a2420;
+            --green-primary: #22c55e;
+            --green-secondary: #16a34a;
+            --green-dark: #14532d;
+            --gold: #fbbf24;
+            --text-primary: #f0fdf4;
+            --text-secondary: #a7f3d0;
+            --text-muted: #6b7280;
+            --border: #2d3b35;
+            --red: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            pointer-events: none; z-index: 0;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        header { padding: 24px 0; border-bottom: 1px solid var(--border); }
+        .header-content { display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .logo-text h1 { font-size: 1.5rem; font-weight: 700; }
+        .logo-text span { font-size: 0.75rem; color: var(--green-primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+        .nav-links a {
+            padding: 8px 16px; border-radius: 100px; font-size: 0.875rem;
+            color: var(--text-secondary); text-decoration: none;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark);
+        }
+
+        .page-title { padding: 40px 0 24px; text-align: center; }
+        .page-title h2 {
+            font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary), var(--green-primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .page-title p { color: var(--text-muted); font-size: 0.95rem; }
+        .page-title .note { font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; max-width: 60ch; margin-left: auto; margin-right: auto; }
+
+        .tables-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 24px 0 48px; }
+        @media (max-width: 900px) { .tables-grid { grid-template-columns: 1fr; } }
+
+        .table-block {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 22px; min-width: 0;
+        }
+        .table-block h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
+        .table-block .sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+
+        .tbl-scroll { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+        th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th:last-child, td:last-child { text-align: right; }
+        thead th {
+            font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600;
+        }
+        tbody tr:hover { background: var(--bg-secondary); }
+        tbody tr:last-child td { border-bottom: none; }
+        td.rank { font-family: 'JetBrains Mono', monospace; color: var(--gold); font-weight: 700; width: 28px; }
+        td.team { font-weight: 600; }
+        td.league { color: var(--text-muted); font-size: 0.8rem; }
+        td.val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--green-primary); text-align: right; }
+        td.val.down { color: var(--red); }
+
+        .loading-state, .empty-state, .error-state { text-align: center; padding: 40px 0; color: var(--text-muted); font-size: 0.9rem; }
+        .error-state { color: var(--red); }
+        .spinner { display: inline-block; animation: spin 1s linear infinite; font-size: 1.4rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); text-align: center; }
+        footer p { font-size: 0.875rem; color: var(--text-muted); }
+
+        @media (max-width: 768px) { .header-content { flex-direction: column; gap: 16px; } }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">&#9917;</div>
+                    <div class="logo-text">
+                        <h1>Football Analyste IA</h1>
+                        <span>Powered by RAG SQL</span>
+                    </div>
+                </a>
+                <nav class="nav-links">
+                    <a href="index.html" id="nav-calendar">Calendrier</a>
+                    <a href="bankroll.html" id="nav-bankroll">Bankroll</a>
+                    <a href="meilleurs-paris.html" id="nav-best">Meilleurs Paris</a>
+                    <a href="buteurs-passeurs.html" id="nav-scorers">Buteurs &amp; Passeurs</a>
+                    <a href="meilleures-equipes.html" id="nav-teams" class="active">Meilleures Équipes</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-title">
+            <h2>Meilleures Équipes</h2>
+            <p>Classements sur les 8 championnats européens suivis</p>
+            <p class="note">Tous les indices sont relatifs à la moyenne du championnat de chaque équipe (une Bundesliga haut-scoring et une Ligue 1 ne sont pas jugées sur la même échelle brute), avec un lissage statistique pour les équipes ayant peu joué. Seules les équipes avec au moins 5 matchs joués sont classées.</p>
+        </div>
+
+        <div id="loading" class="loading-state"><span class="spinner">&#9917;</span><p style="margin-top:10px">Chargement des statistiques…</p></div>
+        <div id="error" class="error-state" style="display:none"></div>
+
+        <div id="tables" class="tables-grid" style="display:none">
+            <div class="table-block">
+                <h3>&#128293; Meilleure forme</h3>
+                <p class="sub">Forme récente (championnat) pondérée par récence + bonus forme globale (toutes compétitions)</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Score</th></tr></thead>
+                        <tbody id="tbl-forme"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#9876; Meilleures attaques</h3>
+                <p class="sub">Buts marqués/match, relatif à la moyenne du championnat</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Indice</th></tr></thead>
+                        <tbody id="tbl-attaque"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#128737; Meilleures défenses</h3>
+                <p class="sub">Buts encaissés/match, relatif à la moyenne du championnat (plus bas = meilleur)</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Indice</th></tr></thead>
+                        <tbody id="tbl-defense"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#127919; Plus efficaces</h3>
+                <p class="sub">Ratio buts / tirs cadrés estimés, relatif à la moyenne du championnat</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Indice</th></tr></thead>
+                        <tbody id="tbl-efficacite"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#9917; Possession dominante &amp; victorieuse</h3>
+                <p class="sub">Possession ET taux de victoire combinés, relatifs à la moyenne du championnat — distingue la vraie maîtrise de la possession stérile</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Score</th></tr></thead>
+                        <tbody id="tbl-possession"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-block">
+                <h3>&#127808; Performance vs attendu</h3>
+                <p class="sub">Écart entre points réels et points attendus (expectation pythagoricienne sur la différence de buts) — positif = surperforme son jeu, candidate à la régression</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Écart</th></tr></thead>
+                        <tbody id="tbl-chance"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Projet par <a href="https://github.com/yantheo" style="color: var(--green-primary); text-decoration: none;">yantheo</a></p>
+        </div>
+    </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
+  const TOP_N = 10;
+  const MIN_MATCHS = 5;
+  const SHRINK_K = 6;
+
+  async function supabaseGet(table, params = '') {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+    return res.json();
+  }
+
+  // ---------- Moyennes de championnat (pondérées par matchs joués) ----------
+  function weightedLeagueAvg(teams, field, weightField) {
+    const byLeague = {};
+    teams.forEach(t => {
+      const w = t[weightField];
+      if (!t.championnat || !w || t[field] == null) return;
+      if (!byLeague[t.championnat]) byLeague[t.championnat] = { sum: 0, weight: 0 };
+      byLeague[t.championnat].sum += t[field] * w;
+      byLeague[t.championnat].weight += w;
+    });
+    const avg = {};
+    Object.keys(byLeague).forEach(lg => {
+      avg[lg] = byLeague[lg].weight ? byLeague[lg].sum / byLeague[lg].weight : null;
+    });
+    return avg;
+  }
+
+  // Moyenne de buts/match par championnat (déjà utilisée côté meilleurs-paris.html
+  // / buteurs-passeurs.html pour attackIndex/defenseIndex) — recalculée ici
+  // directement depuis buts_pour/matchs_joues car plus robuste qu'une moyenne de
+  // moyennes déjà arrondies.
+  function computeLeagueGoalAverages(teams) {
+    const byLeague = {};
+    teams.forEach(t => {
+      if (!t.championnat || !t.matchs_joues) return;
+      if (!byLeague[t.championnat]) byLeague[t.championnat] = { buts: 0, matchs: 0 };
+      byLeague[t.championnat].buts += t.buts_pour || 0;
+      byLeague[t.championnat].matchs += t.matchs_joues || 0;
+    });
+    const avg = {};
+    Object.keys(byLeague).forEach(lg => {
+      avg[lg] = byLeague[lg].matchs ? byLeague[lg].buts / byLeague[lg].matchs : 1.3;
+    });
+    return avg;
+  }
+
+  function teamIndices(team, leagueAvgGoals) {
+    const avg = leagueAvgGoals[team.championnat] || 1.3;
+    const n = team.matchs_joues || 0;
+    const attackRate = ((team.buts_pour || 0) + SHRINK_K * avg) / (n + SHRINK_K);
+    const defenseRate = ((team.buts_contre || 0) + SHRINK_K * avg) / (n + SHRINK_K);
+    return { attackIndex: attackRate / avg, defenseIndex: defenseRate / avg };
+  }
+
+  // Forme pondérée par récence sur les 5 derniers résultats : le plus récent
+  // (index 0) pèse le plus (poids [5,4,3,2,1]). V=+1, N=0, D=-1 -> [-1,1].
+  function formRecencyScore(forme) {
+    if (!Array.isArray(forme) || !forme.length) return 0;
+    const weights = [5, 4, 3, 2, 1];
+    let sumW = 0, sumWV = 0;
+    forme.slice(0, 5).forEach((r, i) => {
+      const w = weights[i] || 1;
+      const v = r === 'V' ? 1 : r === 'D' ? -1 : 0;
+      sumW += w;
+      sumWV += w * v;
+    });
+    return sumW ? sumWV / sumW : 0;
+  }
+
+  function renderTable(tbodyId, rows, valueFormatter, valueClass) {
+    const tbody = document.getElementById(tbodyId);
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center">Pas assez de données</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map((r, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="team">${r.equipe}</td>
+        <td class="league">${r.championnat}</td>
+        <td class="val ${valueClass ? valueClass(r) : ''}">${valueFormatter(r)}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function init() {
+    try {
+      const teams = await supabaseGet('classements_foot',
+        'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,points,' +
+        'ratio_conversion_num,possession_en_pourcentage,taux_victoire,' +
+        'forme_recente_championnat,forme_recente_globale,updated_at');
+
+      // Le scraper laisse parfois des lignes orphelines d'une saison précédente
+      // (ex: matchs_joues=34 alors que le reste de la ligue est à 7-8, avec
+      // ratio_conversion_num=0) quand une équipe n'a plus été rescrapée depuis
+      // des mois. Non filtrées, ces lignes polluent les moyennes de championnat
+      // (un ratio à 0 pondéré par 34 matchs tire fortement la moyenne vers le
+      // bas) — exclues ici via la fraîcheur de updated_at plutôt que par nom
+      // d'équipe en dur.
+      const FRESHNESS_MS = 3 * 24 * 60 * 60 * 1000;
+      const freshCutoff = Date.now() - FRESHNESS_MS;
+      const eligibles = teams.filter(t =>
+        (t.matchs_joues || 0) >= MIN_MATCHS &&
+        t.updated_at && new Date(t.updated_at).getTime() >= freshCutoff
+      );
+
+      const leagueAvgGoals = computeLeagueGoalAverages(eligibles);
+      const leagueAvgRatio = weightedLeagueAvg(eligibles, 'ratio_conversion_num', 'matchs_joues');
+      const leagueAvgPossession = weightedLeagueAvg(eligibles, 'possession_en_pourcentage', 'matchs_joues');
+      const leagueAvgTauxVictoire = weightedLeagueAvg(eligibles, 'taux_victoire', 'matchs_joues');
+
+      // ---------- 1. Meilleure forme ----------
+      const forme = eligibles
+        .map(t => ({
+          equipe: t.equipe,
+          championnat: t.championnat,
+          score: formRecencyScore(t.forme_recente_championnat) + 0.3 * formRecencyScore(t.forme_recente_globale),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, TOP_N);
+
+      // ---------- 2 & 3. Attaque / Défense ----------
+      const withIndices = eligibles.map(t => ({ ...t, ...teamIndices(t, leagueAvgGoals) }));
+      const attaque = [...withIndices].sort((a, b) => b.attackIndex - a.attackIndex).slice(0, TOP_N);
+      const defense = [...withIndices].sort((a, b) => a.defenseIndex - b.defenseIndex).slice(0, TOP_N);
+
+      // ---------- 4. Efficacité (conversion tirs -> buts) ----------
+      const efficacite = eligibles
+        .filter(t => t.ratio_conversion_num > 0 && leagueAvgRatio[t.championnat])
+        .map(t => ({
+          equipe: t.equipe,
+          championnat: t.championnat,
+          ratioVsLigue: t.ratio_conversion_num / leagueAvgRatio[t.championnat],
+        }))
+        .sort((a, b) => b.ratioVsLigue - a.ratioVsLigue)
+        .slice(0, TOP_N);
+
+      // ---------- 5. Possession dominante & victorieuse ----------
+      const possession = eligibles
+        .filter(t => t.possession_en_pourcentage && leagueAvgPossession[t.championnat] && leagueAvgTauxVictoire[t.championnat])
+        .map(t => {
+          const possVsLigue = t.possession_en_pourcentage / leagueAvgPossession[t.championnat] - 1;
+          const victVsLigue = (t.taux_victoire || 0) / leagueAvgTauxVictoire[t.championnat] - 1;
+          return { equipe: t.equipe, championnat: t.championnat, score: possVsLigue + victVsLigue };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, TOP_N);
+
+      // ---------- 6. Performance vs attendu (expectation pythagoricienne) ----------
+      // expectedPct = buts_pour^1.3 / (buts_pour^1.3 + buts_contre^1.3) — formule
+      // standard en analytics football pour estimer le % de points "mérité" par
+      // la différence de buts, sans besoin de connaître les adversaires affrontés.
+      const chance = eligibles
+        .filter(t => t.points != null && (t.buts_pour || t.buts_contre))
+        .map(t => {
+          const bp = Math.pow(t.buts_pour || 0, 1.3);
+          const bc = Math.pow(t.buts_contre || 0, 1.3);
+          const expectedPct = (bp + bc) > 0 ? bp / (bp + bc) : 0.5;
+          const actualPct = t.points / (t.matchs_joues * 3);
+          return { equipe: t.equipe, championnat: t.championnat, ecart: (actualPct - expectedPct) * 100 };
+        })
+        .sort((a, b) => b.ecart - a.ecart)
+        .slice(0, TOP_N);
+
+      renderTable('tbl-forme', forme, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2));
+      renderTable('tbl-attaque', attaque, r => r.attackIndex.toFixed(2) + '×');
+      renderTable('tbl-defense', defense, r => r.defenseIndex.toFixed(2) + '×');
+      renderTable('tbl-efficacite', efficacite, r => r.ratioVsLigue.toFixed(2) + '×');
+      renderTable('tbl-possession', possession, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2));
+      renderTable('tbl-chance', chance, r => (r.ecart >= 0 ? '+' : '') + r.ecart.toFixed(1) + ' pts', r => r.ecart < 0 ? 'down' : '');
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('tables').style.display = 'grid';
+    } catch (err) {
+      console.error(err);
+      document.getElementById('loading').style.display = 'none';
+      const errEl = document.getElementById('error');
+      errEl.style.display = 'block';
+      errEl.textContent = 'Erreur de chargement : ' + err.message;
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
