@@ -216,7 +216,7 @@
             <div class="controls">
                 <label class="field">
                     <span>Matchs à analyser (max)</span>
-                    <input type="number" id="max-matches" value="12" min="3" max="30">
+                    <input type="number" id="max-matches" value="10" min="3" max="10">
                 </label>
                 <button class="btn" id="generate-btn">&#9889; Générer les meilleurs paris</button>
                 <button class="btn secondary" id="cancel-btn" style="display:none">Annuler</button>
@@ -618,12 +618,12 @@
   }
 
   document.getElementById('generate-btn').addEventListener('click', () => {
-    const max = Math.max(MIN_RESULTS, Math.min(30, parseInt(document.getElementById('max-matches').value, 10) || 12));
+    const max = Math.max(MIN_RESULTS, Math.min(10, parseInt(document.getElementById('max-matches').value, 10) || 10));
     generate(max);
   });
 
   document.getElementById('regenerate-btn').addEventListener('click', () => {
-    const max = Math.max(MIN_RESULTS, Math.min(30, parseInt(document.getElementById('max-matches').value, 10) || 12));
+    const max = Math.max(MIN_RESULTS, Math.min(10, parseInt(document.getElementById('max-matches').value, 10) || 10));
     generate(max);
   });
 
