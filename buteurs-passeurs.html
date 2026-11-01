@@ -165,7 +165,7 @@
 
             <div class="table-block">
                 <h3>&#127942; Buteurs les plus importants</h3>
-                <p class="sub">Part des buts de leur équipe — min. 3 buts marqués</p>
+                <p class="sub">Part des buts de leur équipe — min. 3 buts marqués. Non ajusté au temps de jeu (données indisponibles).</p>
                 <div class="tbl-scroll">
                     <table>
                         <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>% des buts</th></tr></thead>
@@ -176,7 +176,7 @@
 
             <div class="table-block">
                 <h3>&#127942; Passeurs les plus importants</h3>
-                <p class="sub">Part des buts de leur équipe (via passe décisive) — min. 2 passes</p>
+                <p class="sub">Part des buts de leur équipe (via passe décisive) — min. 2 passes. Non ajusté au temps de jeu (données indisponibles).</p>
                 <div class="tbl-scroll">
                     <table>
                         <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>% des buts</th></tr></thead>
@@ -189,7 +189,7 @@
         <div id="tables-dominantes" class="tables-grid" style="display:none; margin-bottom:48px">
             <div class="table-block">
                 <h3>&#128165; Buteurs d'équipes dominantes</h3>
-                <p class="sub">Score combinant forme, taux de victoire, qualité d'attaque et de défense de l'équipe — min. 3 buts, un seul joueur par équipe (son meilleur buteur)</p>
+                <p class="sub">Écart attaque/défense (modèle de buts attendus, vs moyenne du championnat) + forme récente pondérée — min. 3 buts, un seul joueur par équipe (son meilleur buteur)</p>
                 <div class="tbl-scroll">
                     <table>
                         <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Buts</th><th>Score équipe</th></tr></thead>
@@ -200,7 +200,7 @@
 
             <div class="table-block">
                 <h3>&#128165; Passeurs d'équipes dominantes</h3>
-                <p class="sub">Même score d'équipe (forme, taux de victoire, attaque, défense) — min. 2 passes, un seul joueur par équipe (son meilleur passeur)</p>
+                <p class="sub">Même score d'équipe (attaque/défense + forme) — min. 2 passes, un seul joueur par équipe (son meilleur passeur)</p>
                 <div class="tbl-scroll">
                     <table>
                         <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Passes D.</th><th>Score équipe</th></tr></thead>
@@ -237,55 +237,61 @@
     return res.json();
   }
 
-  // ---------- Score de qualité d'équipe (même logique que meilleurs-paris.html) ----------
-  // Les données du scraper mélangent deux générations de l'algorithme
-  // (ex: "DOMINANCE" vs "DOMINANCE (Profil Équilibré)"), on matche par
-  // mots-clés normalisés (sans accents) plutôt que par égalité stricte.
-  function norm(s) {
-    return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  // ---------- Score de qualité d'équipe ----------
+  // Indices d'attaque/défense (même modèle que meilleurs-paris.html) : buts
+  // marqués/encaissés par match, rapportés à la moyenne du championnat et
+  // corrigés par shrinkage bayésien (SHRINK_K équivalent-matchs de prior) pour
+  // ne pas sur-pondérer les équipes avec peu de matchs joués. Les anciens
+  // labels qualitatifs (etat_fiabilite, profil_offensif...) sont dérivés de
+  // ces mêmes stats par le scraper — les réutiliser en plus aurait compté le
+  // même signal deux fois, donc on ne garde que les nombres primaires.
+  const SHRINK_K = 6;
+  const FORM_WEIGHT = 0.5;
+
+  function computeLeagueAverages(teams) {
+    const byLeague = {};
+    teams.forEach(t => {
+      if (!t.championnat || !t.matchs_joues) return;
+      if (!byLeague[t.championnat]) byLeague[t.championnat] = { buts: 0, matchs: 0 };
+      byLeague[t.championnat].buts += t.buts_pour || 0;
+      byLeague[t.championnat].matchs += t.matchs_joues || 0;
+    });
+    const avgByLeague = {};
+    Object.keys(byLeague).forEach(lg => {
+      avgByLeague[lg] = byLeague[lg].matchs ? byLeague[lg].buts / byLeague[lg].matchs : 1.3;
+    });
+    return avgByLeague;
   }
 
-  function reliabilityRank(etatFiabilite) {
-    const t = norm(etatFiabilite);
-    if (t.indexOf('DOMINANCE') !== -1) return 4;
-    if (t.indexOf('FORCE') !== -1) return 3;
-    if (t.indexOf('SOLID') !== -1) return 2;
-    if (t.indexOf('FRAGIL') !== -1) return 1;
-    if (t.indexOf('DETRESSE') !== -1 || t.indexOf('SOUFFRANCE') !== -1) return 0;
-    return 2;
+  function teamIndices(team, leagueAvg) {
+    const avg = leagueAvg[team.championnat] || 1.3;
+    const n = team.matchs_joues || 0;
+    const attackRate = ((team.buts_pour || 0) + SHRINK_K * avg) / (n + SHRINK_K);
+    const defenseRate = ((team.buts_contre || 0) + SHRINK_K * avg) / (n + SHRINK_K);
+    return { attackIndex: attackRate / avg, defenseIndex: defenseRate / avg };
   }
 
-  function offensiveRank(profilOffensif) {
-    const t = norm(profilOffensif);
-    if (t.indexOf('EXPLOSIVE') !== -1 || t.indexOf('TRES PERFORMANTE') !== -1 || t.indexOf('EXCALIBUR') !== -1) return 3;
-    if (t.indexOf('EFFICACE') !== -1 || t.indexOf('GLAIVE') !== -1) return 2;
-    if (t.indexOf('LIMITEE') !== -1 || t.indexOf('OUTSIDER') !== -1) return 1;
-    if (t.indexOf('STERILE') !== -1) return 0;
-    return 1.5;
-  }
-
-  function defensiveRank(profilDefensif) {
-    const t = norm(profilDefensif);
-    if (t.indexOf('IMPENETRABLE') !== -1 || t.indexOf('ELITE') !== -1 || t.indexOf('BOUCLIER') !== -1) return 3;
-    if (t.indexOf('SOLIDE') !== -1) return 2;
-    if (t.indexOf('MOYENNE') !== -1) return 1.5;
-    if (t.indexOf('VULNERABLE') !== -1 || t.indexOf('DETRESSE') !== -1 || t.indexOf('EPAVE') !== -1) return 0;
-    return 1.5;
-  }
-
-  // Score de forme récente (sur les 5 derniers matchs) : +1 par victoire, +0 nul, -1 défaite.
-  function formeScore(forme) {
+  // Forme pondérée par récence sur les 5 derniers matchs : le résultat le
+  // plus récent (index 0, cf. prompt de l'agent IA) pèse le plus.
+  // V=+1, N=0, D=-1, pondération [5,4,3,2,1] normalisée -> valeur dans [-1,1].
+  function formRecencyScore(forme) {
     if (!Array.isArray(forme) || !forme.length) return 0;
-    return forme.reduce((s, r) => s + (r === 'V' ? 1 : r === 'D' ? -1 : 0), 0);
+    const weights = [5, 4, 3, 2, 1];
+    let sumW = 0, sumWV = 0;
+    forme.slice(0, 5).forEach((r, i) => {
+      const w = weights[i] || 1;
+      const v = r === 'V' ? 1 : r === 'D' ? -1 : 0;
+      sumW += w;
+      sumWV += w * v;
+    });
+    return sumW ? sumWV / sumW : 0;
   }
 
-  // Score global de qualité d'équipe : forme + fiabilité + attaque + défense.
-  function teamQualityScore(team) {
-    return (team.taux_victoire || 0) * 0.3
-      + formeScore(team.forme_recente_championnat) * 8
-      + reliabilityRank(team.etat_fiabilite) * 6
-      + offensiveRank(team.profil_offensif) * 6
-      + defensiveRank(team.profil_defensif) * 6;
+  // Score de force d'équipe : écart attaque/défense (indices centrés sur 1.0)
+  // + forme récente pondérée. Pas de score composite arbitraire de labels.
+  function teamQualityScore(team, leagueAvg) {
+    const idx = teamIndices(team, leagueAvg);
+    return (idx.attackIndex - idx.defenseIndex) + FORM_WEIGHT * formRecencyScore(team.forme_recente_championnat);
   }
 
   function flatten(teams, field) {
@@ -333,7 +339,7 @@
         <td class="player">${r.nom}</td>
         <td class="team">${r.equipe}</td>
         <td class="val">${r.valeur}</td>
-        <td class="val">${r.qualityScore.toFixed(0)}</td>
+        <td class="val">${r.qualityScore >= 0 ? '+' : ''}${r.qualityScore.toFixed(2)}</td>
       </tr>
     `).join('');
   }
@@ -341,8 +347,9 @@
   async function init() {
     try {
       const teams = await supabaseGet('classements_foot',
-        'select=team_id,equipe,championnat,buts_pour,meilleurs_buteurs,meilleurs_passeurs,' +
-        'taux_victoire,etat_fiabilite,profil_offensif,profil_defensif,forme_recente_championnat');
+        'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,' +
+        'meilleurs_buteurs,meilleurs_passeurs,forme_recente_championnat');
+      const leagueAvg = computeLeagueAverages(teams);
 
       const buteurs = flatten(teams, 'meilleurs_buteurs');
       const passeurs = flatten(teams, 'meilleurs_passeurs');
@@ -377,7 +384,7 @@
               valeur: meilleur.stats,
               equipe: t.equipe,
               championnat: t.championnat,
-              qualityScore: teamQualityScore(t),
+              qualityScore: teamQualityScore(t, leagueAvg),
             };
           })
           .filter(Boolean)

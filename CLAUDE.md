@@ -90,29 +90,50 @@ Pas de nouveau prompt ni de nouveau workflow n8n : reutilise tel quel le webhook
 existant, match par match. La valeur ajoutee est un **pre-filtre statistique local** (gratuit, sans IA)
 qui choisit quels matchs du jour envoyer a l'agent, plutot que les N premiers par ordre chronologique :
 
-- Score de "force" par equipe = `taux_victoire` (poids principal, 0-100) + bonus ponderes sur
-  `etat_fiabilite` / `profil_offensif` / `profil_defensif`, matches par mots-cles normalises (sans
-  accents) car ces champs melangent deux generations de l'algorithme du scraper (ex: `"DOMINANCE"` vs
-  `"DOMINANCE (Profil Équilibré)"`, `"EXCALIBUR"` vs `"ATTAQUE EXPLOSIVE"`) — voir fonctions
-  `reliabilityRank` / `offensiveRank` / `defensiveRank` dans le fichier.
-- Les matchs sont tries par ecart de score entre les deux equipes (plus l'ecart est grand, plus le
-  match est juge desequilibre) ; seuls les `maxMatches` premiers de ce tri sont envoyes a l'IA.
+- **Modele de buts attendus (Poisson)**, pas un score composite de labels qualitatifs : pour chaque
+  equipe, `attackIndex` = buts marques/match rapportes a la moyenne de SON championnat (1.0 = dans la
+  moyenne), `defenseIndex` = buts encaisses/match, meme logique. Buts attendus d'un match = moyenne du
+  championnat x attackIndex x defenseIndex adverse (+ leger bonus domicile 1.08 / malus exterieur 0.94).
+  P(victoire domicile/nul/victoire exterieur) calculee par sommation de Poisson sur chaque score possible
+  (tronque a 8 buts). Voir `computeLeagueAverages` / `buildTeamIndices` / `matchProbabilities`.
+- **Shrinkage bayesien** : les moyennes de buts sont tirees vers la moyenne du championnat avec un poids
+  de `SHRINK_K = 6` matchs-equivalents, pour qu'une equipe a 2-3 matchs joues ne paraisse pas
+  artificiellement extreme. Les anciens labels qualitatifs (`etat_fiabilite`, `profil_offensif`,
+  `profil_defensif`) ne sont PLUS utilises ici : ils sont deja derives de ces memes stats par le scraper,
+  les reutiliser en plus aurait compte le meme signal deux fois.
+- Les matchs sont tries par probabilite du favori (`max(pHome, pDraw, pAway)`) decroissante ; seuls les
+  `maxMatches` premiers de ce tri sont envoyes a l'IA.
 - L'**indice de confiance** affiche vient du rapport IA lui-meme (deja present dans son prompt existant,
-  `Faible / Moyen / Élevé`), extrait par regex sur le HTML retourne — pas une metrique inventee cote
-  frontend.
+  `Faible / Moyen / Élevé`), extrait par regex sur le HTML retourne — **non calibre** : rien dans
+  l'architecture actuelle (pas de table de resultats reels en base, pas d'acces en ecriture Supabase
+  depuis le frontend) ne permet de verifier que "Élevé" correspond a un vrai taux de reussite superieur.
+  Mention explicite de cette limite dans l'UI. Pour vraiment calibrer, il faudrait un scraper de
+  resultats + une table dediee + un acces en ecriture — evolution backend, pas frontend.
 - Resultats mis en cache en `localStorage` (cle `meilleurs_paris_cache_v1`) par date du jour, pour ne
   pas re-declencher des appels OpenAI a chaque visite.
 
 ## Page Buteurs & Passeurs (buteurs-passeurs.html)
 
-Calcule 4 classements cote client a partir d'une seule requete Supabase sur `classements_foot`
-(`meilleurs_buteurs`, `meilleurs_passeurs`, `buts_pour`). Chaque equipe stocke son top 3 buteurs/passeurs
-sous forme `[{nom, stats}]` (`stats` = nombre de buts ou de passes). Pas de colonne "total de passes
-decisives de l'equipe" en base : le classement "passeurs les plus importants" utilise donc `buts_pour`
-(buts totaux de l'equipe) comme denominateur, pas un total de passes — logique car une passe decisive
-contribue directement a un but, mais a garder en tete si ce tableau est etendu. Seuils minimums
-(3 buts / 2 passes) pour eviter qu'un joueur avec 1 but sur une equipe qui n'en a marque qu'1 ressorte
-a 100%.
+Calcule 6 classements cote client a partir d'une seule requete Supabase sur `classements_foot`
+(`meilleurs_buteurs`, `meilleurs_passeurs`, `buts_pour`, `buts_contre`, `matchs_joues`,
+`forme_recente_championnat`). Chaque equipe stocke son top 3 buteurs/passeurs sous forme `[{nom, stats}]`
+(`stats` = nombre de buts ou de passes).
+
+- **Top brut** (buteurs/passeurs) et **par importance** (% des buts de l'equipe, min. 3 buts / 2 passes) :
+  inchange. Pas de colonne "total de passes decisives de l'equipe" en base, donc le tableau "passeurs les
+  plus importants" utilise `buts_pour` comme denominateur (une passe decisive contribue directement a un
+  but). **Non ajuste au temps de jeu** (donnee absente de la base) — mentionne explicitement dans l'UI,
+  un joueur avec peu de matchs peut ressortir artificiellement haut.
+- **Equipes dominantes** (buteurs + passeurs, meme principe x2) : meme modele de buts attendus que
+  `meilleurs-paris.html` (voir cette section) — `attackIndex` / `defenseIndex` par rapport a la moyenne
+  du championnat, shrinkage bayesien (`SHRINK_K = 6`). Le score de force d'une equipe est
+  `(attackIndex - defenseIndex) + 0.5 x formRecencyScore`, ou `formRecencyScore` pondere les 5 derniers
+  resultats par recence (le plus recent pese le plus, poids `[5,4,3,2,1]`) plutot qu'une simple somme
+  plate V/N/D. Un seul joueur par equipe (son meilleur buteur/passeur), classe par ce score d'equipe
+  decroissant — pas par buts/passes bruts.
+- Les anciens labels qualitatifs (`etat_fiabilite`, `profil_offensif`, `profil_defensif`,
+  `taux_victoire`) ne sont plus utilises dans le score : ils sont derives des memes stats brutes par le
+  scraper, les reutiliser aurait compte deux fois le meme signal.
 
 ## Historique git
 

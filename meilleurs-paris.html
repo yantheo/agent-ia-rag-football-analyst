@@ -187,6 +187,7 @@
         <div class="page-title">
             <h2>Meilleurs Paris du Jour</h2>
             <p>Les matchs avec l'indice de confiance le plus élevé, analysés par l'IA</p>
+            <p style="font-size:0.78rem;margin-top:6px">Indice de confiance auto-évalué par l'IA, non calibré contre des résultats réels — à prendre comme narration, pas comme probabilité</p>
         </div>
 
         <div class="panel">
@@ -198,7 +199,7 @@
                 <button class="btn" id="generate-btn">&#9889; Générer les meilleurs paris</button>
                 <button class="btn secondary" id="cancel-btn" style="display:none">Annuler</button>
             </div>
-            <p class="field hint">Un pré-filtre statistique (taux de victoire, fiabilité, profils offensif/défensif — sans IA, instantané) sélectionne d'abord les matchs les plus déséquilibrés du jour. Seuls ceux-là sont envoyés à l'agent IA (crédits OpenAI, quelques secondes chacun). Résultat mis en cache pour la journée.</p>
+            <p class="field hint">Un modèle de buts attendus (Poisson, basé sur l'attaque/la défense de chaque équipe par rapport à la moyenne de son championnat — sans IA, instantané) calcule la probabilité du favori pour chaque match du jour et sélectionne les plus déséquilibrés. Seuls ceux-là sont envoyés à l'agent IA (crédits OpenAI, quelques secondes chacun). Résultat mis en cache pour la journée.</p>
             <div class="progress-wrap" id="progress-wrap">
                 <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
                 <div class="progress-label" id="progress-label"></div>
@@ -288,76 +289,109 @@
   }
 
   // ---------- Pré-filtre statistique (gratuit, pas d'appel IA) ----------
-  // Les données du scraper mélangent deux générations de l'algorithme
-  // (ex: "DOMINANCE" vs "DOMINANCE (Profil Équilibré)", "EXCALIBUR" vs
-  // "ATTAQUE EXPLOSIVE"). On matche par mots-clés normalisés (sans accents)
-  // plutôt que par égalité stricte, pour couvrir les deux formats.
-  function norm(s) {
-    return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  // Modèle de buts attendus (Poisson), pas un score composite de labels
+  // qualitatifs. Principe standard en analyse sportive :
+  //   1. attackIndex d'une équipe = ses buts marqués/match, rapportés à la
+  //      moyenne de SON championnat (1.0 = dans la moyenne) ;
+  //   2. defenseIndex = ses buts encaissés/match, même logique ;
+  //   3. buts attendus d'une équipe dans un match = moyenne du championnat
+  //      × son attackIndex × le defenseIndex adverse (+ petit bonus domicile) ;
+  //   4. on en tire P(victoire domicile) / P(nul) / P(victoire extérieur) via
+  //      une distribution de Poisson sur chaque score possible.
+  // Correction d'échantillon : avec peu de matchs joués, les moyennes sont
+  // tirées vers la moyenne du championnat (shrinkage bayésien simple) pour
+  // éviter qu'une équipe à 2 matchs joués ne paraisse artificiellement
+  // extrême. Les anciens labels qualitatifs (etat_fiabilite, profil_offensif,
+  // profil_defensif) sont eux-mêmes dérivés de ces mêmes stats par le
+  // scraper — les réutiliser en plus aurait compté le même signal deux fois.
+  const SHRINK_K = 6; // poids du "prior" ligue, en équivalent-matchs
+  const HOME_ADV = 1.08;
+  const AWAY_ADV = 0.94;
+  const MAX_GOALS = 8; // troncature de la distribution de Poisson
+
+  function poissonPmf(lambda, k) {
+    let logP = -lambda + k * Math.log(lambda);
+    for (let i = 2; i <= k; i++) logP -= Math.log(i);
+    return Math.exp(logP);
   }
 
-  function reliabilityRank(etatFiabilite) {
-    const t = norm(etatFiabilite);
-    if (t.indexOf('DOMINANCE') !== -1) return 4;
-    if (t.indexOf('FORCE') !== -1) return 3;
-    if (t.indexOf('SOLID') !== -1) return 2; // SOLIDE / SOLIDITE
-    if (t.indexOf('FRAGIL') !== -1) return 1; // FRAGILE / FRAGILITE
-    if (t.indexOf('DETRESSE') !== -1 || t.indexOf('SOUFFRANCE') !== -1) return 0;
-    return 2; // neutre si valeur inconnue
+  function computeLeagueAverages(teams) {
+    const byLeague = {};
+    teams.forEach(t => {
+      if (!t.championnat || !t.matchs_joues) return;
+      if (!byLeague[t.championnat]) byLeague[t.championnat] = { buts: 0, matchs: 0 };
+      byLeague[t.championnat].buts += t.buts_pour || 0;
+      byLeague[t.championnat].matchs += t.matchs_joues || 0;
+    });
+    const avgByLeague = {};
+    Object.keys(byLeague).forEach(lg => {
+      avgByLeague[lg] = byLeague[lg].matchs ? byLeague[lg].buts / byLeague[lg].matchs : 1.3;
+    });
+    return avgByLeague;
   }
 
-  function offensiveRank(profilOffensif) {
-    const t = norm(profilOffensif);
-    if (t.indexOf('EXPLOSIVE') !== -1 || t.indexOf('TRES PERFORMANTE') !== -1 || t.indexOf('EXCALIBUR') !== -1) return 3;
-    if (t.indexOf('EFFICACE') !== -1 || t.indexOf('GLAIVE') !== -1) return 2;
-    if (t.indexOf('LIMITEE') !== -1 || t.indexOf('OUTSIDER') !== -1) return 1;
-    if (t.indexOf('STERILE') !== -1) return 0;
-    return 1.5; // neutre
-  }
-
-  function defensiveRank(profilDefensif) {
-    const t = norm(profilDefensif);
-    if (t.indexOf('IMPENETRABLE') !== -1 || t.indexOf('ELITE') !== -1 || t.indexOf('BOUCLIER') !== -1) return 3;
-    if (t.indexOf('SOLIDE') !== -1) return 2;
-    if (t.indexOf('MOYENNE') !== -1) return 1.5;
-    if (t.indexOf('VULNERABLE') !== -1 || t.indexOf('DETRESSE') !== -1 || t.indexOf('EPAVE') !== -1) return 0;
-    return 1.5; // neutre
-  }
-
-  // Score de "force" d'une équipe sur une échelle approx. 0-150.
-  // taux_victoire pèse le plus (signal le plus fiable et le plus régulièrement
-  // présent dans les données), les profils qualitatifs ajustent en complément.
-  function teamStrength(stats) {
-    if (!stats) return null;
-    return (stats.taux_victoire || 0)
-      + reliabilityRank(stats.etat_fiabilite) * 6
-      + offensiveRank(stats.profil_offensif) * 5
-      + defensiveRank(stats.profil_defensif) * 5;
-  }
-
-  async function fetchStatsByTeamIds(teamIds) {
-    const uniq = Array.from(new Set(teamIds.filter(Boolean)));
-    if (!uniq.length) return {};
-    const rows = await supabaseGet('classements_foot',
-      `team_id=in.(${uniq.map(encodeURIComponent).join(',')})&select=team_id,taux_victoire,etat_fiabilite,profil_offensif,profil_defensif`);
+  // Indices d'attaque/défense avec shrinkage vers la moyenne du championnat.
+  function buildTeamIndices(teams, leagueAvg) {
     const map = {};
-    rows.forEach(r => { map[r.team_id] = r; });
+    teams.forEach(t => {
+      const avg = leagueAvg[t.championnat] || 1.3;
+      const n = t.matchs_joues || 0;
+      const attackRate = ((t.buts_pour || 0) + SHRINK_K * avg) / (n + SHRINK_K);
+      const defenseRate = ((t.buts_contre || 0) + SHRINK_K * avg) / (n + SHRINK_K);
+      map[t.team_id] = {
+        attackIndex: attackRate / avg,
+        defenseIndex: defenseRate / avg,
+        leagueAvg: avg,
+      };
+    });
     return map;
   }
 
-  // Écart de niveau entre les deux équipes : plus il est grand, plus le match
-  // est statistiquement déséquilibré (donc plus susceptible de donner une
-  // analyse IA à confiance élevée). Matchs sans stats dispo → exclus du tri
-  // (envoyés en dernier) plutôt que favorisés par défaut.
+  // P(victoire domicile) / P(nul) / P(victoire extérieur) via Poisson sur les
+  // buts attendus de chaque équipe, tronqué à MAX_GOALS buts chacun.
+  function matchProbabilities(home, away) {
+    if (!home || !away) return null;
+    const avg = (home.leagueAvg + away.leagueAvg) / 2;
+    const lambdaHome = avg * home.attackIndex * away.defenseIndex * HOME_ADV;
+    const lambdaAway = avg * away.attackIndex * home.defenseIndex * AWAY_ADV;
+
+    let pHome = 0, pDraw = 0, pAway = 0;
+    for (let i = 0; i <= MAX_GOALS; i++) {
+      const pi = poissonPmf(lambdaHome, i);
+      for (let j = 0; j <= MAX_GOALS; j++) {
+        const pj = poissonPmf(lambdaAway, j);
+        const p = pi * pj;
+        if (i > j) pHome += p;
+        else if (i === j) pDraw += p;
+        else pAway += p;
+      }
+    }
+    const total = pHome + pDraw + pAway; // proche de 1, troncature mineure
+    return {
+      pHome: pHome / total,
+      pDraw: pDraw / total,
+      pAway: pAway / total,
+      lambdaHome, lambdaAway,
+    };
+  }
+
+  async function fetchAllTeams() {
+    return supabaseGet('classements_foot',
+      'select=team_id,championnat,buts_pour,buts_contre,matchs_joues');
+  }
+
+  // Écart de niveau = probabilité du favori (plus c'est proche de 1, plus le
+  // match est déséquilibré donc statistiquement "prévisible"). Matchs sans
+  // stats dispo → exclus du tri (envoyés en dernier) plutôt que favorisés.
   async function preRankMatches(matches) {
-    const statsMap = await fetchStatsByTeamIds(
-      matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur])
-    );
+    const teams = await fetchAllTeams();
+    const leagueAvg = computeLeagueAverages(teams);
+    const indices = buildTeamIndices(teams, leagueAvg);
+
     const scored = matches.map(m => {
-      const sHome = teamStrength(statsMap[m.team_id_domicile]);
-      const sAway = teamStrength(statsMap[m.team_id_exterieur]);
-      const gap = (sHome != null && sAway != null) ? Math.abs(sHome - sAway) : null;
-      return { match: m, preGap: gap };
+      const probs = matchProbabilities(indices[m.team_id_domicile], indices[m.team_id_exterieur]);
+      const gap = probs ? Math.max(probs.pHome, probs.pDraw, probs.pAway) : null;
+      return { match: m, preGap: gap, probs };
     });
     scored.sort((a, b) => {
       if (a.preGap == null && b.preGap == null) return 0;
@@ -513,7 +547,7 @@
           <div class="rank-num">#${idx + 1}</div>
           <div class="rank-teams">
             <div class="vs">${r.match.equipe_domicile} <span style="color:var(--text-muted)">vs</span> ${r.match.equipe_exterieur}</div>
-            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${r.preGap != null ? ' &middot; écart stats ' + r.preGap.toFixed(0) : ''}</div>
+            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${r.preGap != null ? ' &middot; favori à ' + (r.preGap * 100).toFixed(0) + '%' : ''}</div>
           </div>
           <span class="confidence-badge ${confidenceClass(r.confidence)}">${r.confidence}</span>
           <span class="rank-arrow">&#8250;</span>
