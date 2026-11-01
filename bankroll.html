@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bankroll &amp; Performance | Football Analyste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #1a2420;
+            --green-primary: #22c55e;
+            --green-secondary: #16a34a;
+            --green-dark: #14532d;
+            --gold: #fbbf24;
+            --text-primary: #f0fdf4;
+            --text-secondary: #a7f3d0;
+            --text-muted: #6b7280;
+            --border: #2d3b35;
+            --red: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            pointer-events: none; z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px; margin: 0 auto; padding: 0 24px;
+            position: relative; z-index: 1;
+        }
+
+        /* Header */
+        header { padding: 24px 0; border-bottom: 1px solid var(--border); }
+        .header-content { display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .logo-text h1 { font-size: 1.5rem; font-weight: 700; }
+        .logo-text span { font-size: 0.75rem; color: var(--green-primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a {
+            padding: 8px 16px; border-radius: 100px; font-size: 0.875rem;
+            color: var(--text-secondary); text-decoration: none;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark);
+        }
+
+        /* Page title */
+        .page-title { padding: 40px 0 24px; text-align: center; }
+        .page-title h2 {
+            font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary), var(--green-primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .page-title p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* Section */
+        section.block { margin: 32px 0; }
+        .block-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+        .block-head .n { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--gold); font-weight: 600; }
+        .block-head h3 { font-size: 1.2rem; font-weight: 700; }
+        .block-intro { color: var(--text-muted); font-size: 0.9rem; margin-top: 6px; max-width: 62ch; }
+
+        .panel {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 24px; margin-top: 16px;
+        }
+
+        /* File drop */
+        .filebox {
+            border: 2px dashed var(--border); border-radius: 12px; padding: 32px;
+            text-align: center; cursor: pointer; transition: border-color 0.2s;
+        }
+        .filebox:hover, .filebox.drag { border-color: var(--green-primary); }
+        .filebox input { display: none; }
+        .filebox .big { font-size: 0.95rem; color: var(--text-primary); margin-bottom: 4px; font-weight: 600; }
+        .filebox p.sub { color: var(--text-muted); font-size: 0.85rem; }
+
+        .msg { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 0.85rem; border: 1px solid var(--border); }
+        .msg.ok { border-color: var(--green-primary); color: var(--green-primary); background: rgba(34,197,94,0.08); }
+        .msg.err { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.08); }
+
+        /* Form */
+        .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0 14px; }
+        .field { display: block; margin-bottom: 14px; }
+        .field > span:first-child {
+            display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600; margin-bottom: 6px;
+        }
+        .field input, .field select {
+            width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+            padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-secondary); color: var(--text-primary);
+        }
+        .field input:focus, .field select:focus { outline: none; border-color: var(--green-primary); }
+        .checkline { display: flex; align-items: center; gap: 8px; padding: 10px 0; font-size: 0.88rem; color: var(--text-secondary); }
+        .checkline input { width: auto; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 12px 28px; border: none; border-radius: 10px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            color: #fff; transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(34, 197, 94, 0.25); }
+        .btn.secondary {
+            background: none; color: var(--text-secondary); border: 1px solid var(--border);
+        }
+        .btn.secondary:hover { border-color: var(--red); color: var(--red); box-shadow: none; transform: none; }
+        .btn.danger-sm {
+            background: none; color: var(--red); border: 1px solid var(--border);
+            padding: 5px 12px; font-size: 0.78rem; border-radius: 100px;
+        }
+        .btn.danger-sm:hover { border-color: var(--red); box-shadow: none; transform: none; }
+
+        /* Stats strip */
+        .strip {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        .strip div { padding: 16px 16px 16px 0; min-width: 0; }
+        .strip .v { font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 600; line-height: 1.1; }
+        .strip .k { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+        /* Table */
+        .tbl-scroll { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.84rem; min-width: 640px; }
+        th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th:first-child, td:first-child { text-align: left; white-space: normal; }
+        thead th {
+            font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600;
+        }
+        tbody td.num { font-family: 'JetBrains Mono', monospace; }
+        tbody tr:hover { background: var(--bg-secondary); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 100px;
+            font-size: 0.72rem; font-weight: 600;
+        }
+        .badge.won { background: rgba(34,197,94,0.15); color: var(--green-primary); }
+        .badge.lost { background: rgba(239,68,68,0.15); color: var(--red); }
+        .badge.cashedout { background: rgba(251,191,36,0.18); color: var(--gold); }
+        .badge.other { background: var(--bg-secondary); color: var(--text-muted); }
+
+        .up { color: var(--green-primary); }
+        .down { color: var(--red); }
+
+        .empty-state { text-align: center; padding: 48px 0; color: var(--text-muted); font-size: 0.9rem; }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); text-align: center; }
+        footer p { font-size: 0.875rem; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; gap: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">&#9917;</div>
+                    <div class="logo-text">
+                        <h1>Football Analyste IA</h1>
+                        <span>Powered by RAG SQL</span>
+                    </div>
+                </a>
+                <nav class="nav-links">
+                    <a href="index.html" id="nav-calendar">Calendrier</a>
+                    <a href="bankroll.html" id="nav-bankroll" class="active">Bankroll</a>
+                    <a href="meilleurs-paris.html" id="nav-best">Meilleurs Paris</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-title">
+            <h2>Bankroll &amp; Performance</h2>
+            <p>Module A &mdash; Import et stockage de l'historique de paris</p>
+        </div>
+
+        <section class="block" id="sec-import">
+            <div class="block-head"><span class="n">01</span><h3>Importer un historique bwin</h3></div>
+            <p class="block-intro">Sauvegarde ta page &laquo; Mes paris &raquo; bwin en HTML (Ctrl/Cmd+S depuis le navigateur), puis dépose le fichier ici. Rien n'est envoyé nulle part : tout reste dans ton navigateur (localStorage).</p>
+            <div class="panel">
+                <label class="filebox" id="filebox" for="bwin-file">
+                    <input type="file" id="bwin-file" accept=".html,.htm">
+                    <p class="big">&#128193; Déposer ou choisir le fichier .html</p>
+                    <p class="sub">Export de la page &laquo; Mes paris &raquo; bwin</p>
+                </label>
+                <div id="import-msg"></div>
+            </div>
+        </section>
+
+        <section class="block" id="sec-manual">
+            <div class="block-head"><span class="n">02</span><h3>Saisie manuelle</h3></div>
+            <p class="block-intro">Pour les bookmakers non supportés par l'import automatique.</p>
+            <div class="panel">
+                <form id="manual-form">
+                    <div class="row">
+                        <label class="field"><span>Date</span><input type="date" id="m-date" required></label>
+                        <label class="field"><span>Bookmaker</span><input type="text" id="m-bookmaker" placeholder="ex: Winamax" required></label>
+                        <label class="field"><span>Statut</span>
+                            <select id="m-statut" required>
+                                <option value="Won">Won</option>
+                                <option value="Lost">Lost</option>
+                                <option value="Cashed Out">Cashed Out</option>
+                                <option value="Void">Void</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="row">
+                        <label class="field"><span>Match</span><input type="text" id="m-match" placeholder="ex: PSG - Marseille"></label>
+                        <label class="field"><span>Marché</span><input type="text" id="m-marche" placeholder="ex: 1X2, Over 2.5..."></label>
+                        <label class="field"><span>Sélection</span><input type="text" id="m-selection" placeholder="ex: PSG"></label>
+                    </div>
+                    <div class="row">
+                        <label class="field"><span>Cote totale</span><input type="number" step="0.01" min="1.01" id="m-cote" required></label>
+                        <label class="field"><span>Mise (&euro;)</span><input type="number" step="0.01" min="0" id="m-mise" required></label>
+                        <label class="field"><span>Retour (&euro;)</span><input type="number" step="0.01" min="0" id="m-retour" placeholder="0 si perdu"></label>
+                    </div>
+                    <div class="row">
+                        <label class="field"><span>Probabilité estimée (%)</span><input type="number" step="0.1" min="0" max="100" id="m-proba" placeholder="optionnel"></label>
+                        <label class="field"><span>&nbsp;</span>
+                            <span class="checkline"><input type="checkbox" id="m-live"> Pari live</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn">Enregistrer ce pari</button>
+                    <div id="manual-msg"></div>
+                </form>
+            </div>
+        </section>
+
+        <section class="block" id="sec-list">
+            <div class="block-head"><span class="n">03</span><h3>Mes paris</h3></div>
+            <div id="strip" class="strip"></div>
+            <div class="tbl-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th><th>Bookmaker</th><th>Sélections</th><th>Cote</th>
+                            <th>Mise</th><th>Retour</th><th>Statut</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bets-tbody"></tbody>
+                </table>
+            </div>
+            <div id="list-empty" class="empty-state" style="display:none">Aucun pari enregistré pour l'instant.</div>
+            <button class="btn secondary" id="clear-all" style="margin-top:20px">Tout effacer</button>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Projet par <a href="https://github.com/yantheo" style="color: var(--green-primary); text-decoration: none;">yantheo</a></p>
+        </div>
+    </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'bankroll_bets_v1';
+  var STATUTS = ['Cashed Out', 'Lost', 'Won', 'Void', 'Half Won', 'Half Lost', 'Open'];
+
+  // ---------- Stockage ----------
+  function loadBets() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.error('Lecture localStorage échouée', e);
+      return [];
+    }
+  }
+
+  function saveBets(bets) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bets));
+  }
+
+  function uid() {
+    return 'b_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  }
+
+  // ---------- Modèle unifié ----------
+  // { id, date (ISO), bookmaker, selections:[{match?, marche?, label?, cote?}],
+  //   nbSelections, coteTotale, mise, statut, retour, boost, live, probaEstimee?, pronosticId? }
+
+  // ---------- Parseur bwin (port de parse_bwin.py) ----------
+  function texte(fragmentHtml) {
+    var t = fragmentHtml.replace(/<[^>]+>/g, '|');
+    return t.replace(/\|+/g, '|');
+  }
+
+  function bwinDateToISO(dateStr) {
+    // dateStr format bwin: D/M/YY ou DD/MM/YY
+    var m = /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/.exec(dateStr || '');
+    if (!m) return null;
+    var day = m[1].padStart(2, '0');
+    var month = m[2].padStart(2, '0');
+    var year = '20' + m[3];
+    return year + '-' + month + '-' + day;
+  }
+
+  function parseTicket(card) {
+    var t = texte(card);
+
+    var mId = /Betslip ID:\s*(\S+?)\|/.exec(t);
+    var betslipId = mId ? mId[1] : null;
+
+    var mDate = /(\d{1,2}\/\d{1,2}\/\d{2})\s+(\d{1,2}:\d{2}\s*[AP]M)/.exec(t);
+    var date = mDate ? mDate[1] : null;
+    var heure = mDate ? mDate[2] : null;
+
+    var statut = null;
+    for (var i = 0; i < STATUTS.length; i++) {
+      var re = new RegExp('ds-badge-text">\\s*' + STATUTS[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*</');
+      if (re.test(card)) { statut = STATUTS[i]; break; }
+    }
+
+    var mPicks = /-\s*(\d+)\s*picks/.exec(t);
+    var nbSelections = mPicks ? parseInt(mPicks[1], 10) : 1;
+
+    var montants = t.match(/€([\d,]+\.\d\d)/g) || [];
+    montants = montants.map(function (s) { return parseFloat(s.replace('€', '').replace(/,/g, '')); });
+    var mise = montants.length > 0 ? montants[0] : null;
+    var retour = montants.length > 1 ? montants[1] : 0.0;
+
+    var mCote = /€[\d,]+\.\d\d\|\s*(\d+\.\d+)\s*\|/.exec(t);
+    var cote = mCote ? parseFloat(mCote[1]) : null;
+
+    var mBoost = /\+(\d+)% Acca Boost/.exec(t);
+    var boost = mBoost ? parseInt(mBoost[1], 10) : null;
+
+    var selections = [];
+    var mSel = /picks\|(.*?)\|\s*Stake/.exec(t);
+    if (mSel) {
+      selections = mSel[1].split('|')
+        .map(function (s) { return s.trim(); })
+        .filter(function (s) { return s && s !== 'Live'; });
+    }
+
+    var isLive = t.split('|').map(function (s) { return s.trim(); }).indexOf('Live') !== -1;
+
+    return {
+      id: uid(),
+      betslipId: betslipId,
+      date: bwinDateToISO(date) || date,
+      heure: heure,
+      bookmaker: 'bwin',
+      statut: statut,
+      nbSelections: nbSelections,
+      coteTotale: cote,
+      mise: mise,
+      retour: retour,
+      boost: boost,
+      live: isLive,
+      selections: selections.map(function (label) { return { label: label }; }),
+      probaEstimee: null,
+      pronosticId: null,
+    };
+  }
+
+  function parseBwinExport(html) {
+    // Chaque ticket commence par <ds-card surface...>. Contrairement à Python
+    // re.split (qui préfixe toujours une entrée vide), JS String.split avec un
+    // lookahead ne le fait QUE si le texte avant le premier match est non vide.
+    var cartes = html.split(/(?=<ds-card surface)/).filter(function (c) {
+      return c.trim().length > 0 && c.indexOf('<ds-card surface') !== -1;
+    });
+    return cartes.map(parseTicket);
+  }
+
+  function controlerImport(paris) {
+    var manquants = paris.filter(function (p) {
+      return !p.mise || !p.coteTotale || !p.statut;
+    });
+    var misé = paris.reduce(function (s, p) { return s + (p.mise || 0); }, 0);
+    var retourné = paris.reduce(function (s, p) { return s + (p.retour || 0); }, 0);
+    return {
+      total: paris.length,
+      manquants: manquants.length,
+      misé: misé,
+      retourné: retourné,
+      net: retourné - misé,
+    };
+  }
+
+  // ---------- Rendu ----------
+  function fmtEUR(v) {
+    if (v === null || v === undefined || isNaN(v)) return '—';
+    var s = v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (v < 0) s = s.replace('-', '−');
+    return s + ' €';
+  }
+
+  function badgeClass(statut) {
+    if (statut === 'Won' || statut === 'Half Won') return 'won';
+    if (statut === 'Lost' || statut === 'Half Lost') return 'lost';
+    if (statut === 'Cashed Out') return 'cashedout';
+    return 'other';
+  }
+
+  function selectionsLabel(bet) {
+    if (!bet.selections || !bet.selections.length) return bet.nbSelections + ' sél.';
+    return bet.selections.map(function (s) {
+      return s.label || [s.match, s.marche].filter(Boolean).join(' · ') || '?';
+    }).join(', ');
+  }
+
+  function render() {
+    var bets = loadBets().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    var tbody = document.getElementById('bets-tbody');
+    var empty = document.getElementById('list-empty');
+    var strip = document.getElementById('strip');
+
+    tbody.innerHTML = '';
+    if (!bets.length) {
+      empty.style.display = 'block';
+      strip.innerHTML = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    var misé = bets.reduce(function (s, b) { return s + (b.mise || 0); }, 0);
+    var retourné = bets.reduce(function (s, b) { return s + (b.retour || 0); }, 0);
+    var net = retourné - misé;
+    strip.innerHTML =
+      '<div><div class="v">' + bets.length + '</div><div class="k">Paris</div></div>' +
+      '<div><div class="v">' + fmtEUR(misé) + '</div><div class="k">Total misé</div></div>' +
+      '<div><div class="v">' + fmtEUR(retourné) + '</div><div class="k">Total retourné</div></div>' +
+      '<div><div class="v ' + (net >= 0 ? 'up' : 'down') + '">' + fmtEUR(net) + '</div><div class="k">Net</div></div>';
+
+    bets.forEach(function (bet) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + (bet.date || '—') + '</td>' +
+        '<td>' + (bet.bookmaker || '—') + '</td>' +
+        '<td>' + selectionsLabel(bet) + '</td>' +
+        '<td class="num">' + (bet.coteTotale != null ? bet.coteTotale.toFixed(2) : '—') + '</td>' +
+        '<td class="num">' + fmtEUR(bet.mise) + '</td>' +
+        '<td class="num">' + fmtEUR(bet.retour) + '</td>' +
+        '<td><span class="badge ' + badgeClass(bet.statut) + '">' + (bet.statut || '?') + '</span></td>' +
+        '<td><button class="btn danger-sm" data-id="' + bet.id + '">Suppr.</button></td>';
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('button[data-id]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-id');
+        var remaining = loadBets().filter(function (b) { return b.id !== id; });
+        saveBets(remaining);
+        render();
+      });
+    });
+  }
+
+  // ---------- Import UI ----------
+  var filebox = document.getElementById('filebox');
+  var fileInput = document.getElementById('bwin-file');
+  var importMsg = document.getElementById('import-msg');
+
+  function showMsg(el, text, ok) {
+    el.innerHTML = '<div class="msg ' + (ok ? 'ok' : 'err') + '">' + text + '</div>';
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var html = e.target.result;
+        var paris = parseBwinExport(html);
+        if (!paris.length) {
+          showMsg(importMsg, "Aucun ticket détecté dans ce fichier. Vérifie que c'est bien un export de la page « Mes paris ».", false);
+          return;
+        }
+        var controle = controlerImport(paris);
+        if (controle.manquants > 0) {
+          showMsg(importMsg, controle.manquants + ' ticket(s) incomplet(s) sur ' + controle.total + ' — import annulé, parseur à vérifier.', false);
+          return;
+        }
+        var existing = loadBets();
+        var existingBetslipIds = new Set(existing.map(function (b) { return b.betslipId; }).filter(Boolean));
+        var nouveaux = paris.filter(function (p) { return !p.betslipId || !existingBetslipIds.has(p.betslipId); });
+        saveBets(existing.concat(nouveaux));
+        showMsg(importMsg,
+          nouveaux.length + ' pari(s) importé(s) (' + (paris.length - nouveaux.length) + ' doublon(s) ignoré(s)) — ' +
+          controle.misé.toFixed(2).replace('.', ',') + ' € misés, ' +
+          controle.retourné.toFixed(2).replace('.', ',') + ' € retournés, net ' +
+          (controle.net >= 0 ? '+' : '') + controle.net.toFixed(2).replace('.', ',') + ' €.',
+          true);
+        render();
+      } catch (err) {
+        console.error(err);
+        showMsg(importMsg, 'Erreur pendant le parsing : ' + err.message, false);
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  fileInput.addEventListener('change', function () { handleFile(fileInput.files[0]); });
+  filebox.addEventListener('dragover', function (e) { e.preventDefault(); filebox.classList.add('drag'); });
+  filebox.addEventListener('dragleave', function () { filebox.classList.remove('drag'); });
+  filebox.addEventListener('drop', function (e) {
+    e.preventDefault();
+    filebox.classList.remove('drag');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+
+  // ---------- Saisie manuelle ----------
+  document.getElementById('manual-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var cote = parseFloat(document.getElementById('m-cote').value);
+    var mise = parseFloat(document.getElementById('m-mise').value);
+    var retourInput = document.getElementById('m-retour').value;
+    var statut = document.getElementById('m-statut').value;
+    var retour = retourInput !== '' ? parseFloat(retourInput) : (statut === 'Lost' ? 0 : null);
+    var probaInput = document.getElementById('m-proba').value;
+
+    if (!cote || cote <= 1 || !mise || mise < 0 || retour === null) {
+      showMsg(document.getElementById('manual-msg'), 'Cote, mise et retour (ou statut Lost) sont obligatoires.', false);
+      return;
+    }
+
+    var bet = {
+      id: uid(),
+      betslipId: null,
+      date: document.getElementById('m-date').value,
+      heure: null,
+      bookmaker: document.getElementById('m-bookmaker').value || 'manuel',
+      statut: statut,
+      nbSelections: 1,
+      coteTotale: cote,
+      mise: mise,
+      retour: retour,
+      boost: null,
+      live: document.getElementById('m-live').checked,
+      selections: [{
+        match: document.getElementById('m-match').value || null,
+        marche: document.getElementById('m-marche').value || null,
+        label: document.getElementById('m-selection').value || null,
+      }],
+      probaEstimee: probaInput !== '' ? parseFloat(probaInput) / 100 : null,
+      pronosticId: null,
+    };
+
+    var bets = loadBets();
+    bets.push(bet);
+    saveBets(bets);
+    showMsg(document.getElementById('manual-msg'), 'Pari enregistré.', true);
+    document.getElementById('manual-form').reset();
+    render();
+  });
+
+  // ---------- Tout effacer ----------
+  document.getElementById('clear-all').addEventListener('click', function () {
+    if (!confirm('Effacer tous les paris enregistrés localement ? Cette action est irréversible.')) return;
+    saveBets([]);
+    render();
+  });
+
+  // ---------- Self-tests (mode debug uniquement, ?debug=1) ----------
+  function runSelfTests() {
+    var sample =
+      '<ds-card surface="1">Betslip ID: ABC123|9/2/26 3:45 PM|<span class="ds-badge-text"> Won </span>|' +
+      '- 2 picks|PSG - Win|Over 2.5 Goals|Stake|€10.00|3.50|Returns|€35.00|' +
+      '<ds-card surface="2">Betslip ID: XYZ789|10/2/26 8:00 PM|<span class="ds-badge-text"> Lost </span>|' +
+      '- 1 picks|Marseille - Win|Live|Stake|€5.00|2.10|';
+
+    var paris = parseBwinExport(sample);
+    console.assert(paris.length === 2, 'self-test: 2 tickets attendus, trouvé ' + paris.length);
+    console.assert(paris[0].statut === 'Won', 'self-test: statut Won attendu, trouvé ' + paris[0].statut);
+    console.assert(paris[0].mise === 10.00, 'self-test: mise 10.00 attendue, trouvé ' + paris[0].mise);
+    console.assert(paris[0].coteTotale === 3.50, 'self-test: cote 3.50 attendue, trouvé ' + paris[0].coteTotale);
+    console.assert(paris[0].retour === 35.00, 'self-test: retour 35.00 attendu, trouvé ' + paris[0].retour);
+    console.assert(paris[0].date === '2026-02-09', 'self-test: date ISO 2026-02-09 attendue, trouvé ' + paris[0].date);
+    console.assert(paris[1].statut === 'Lost', 'self-test: statut Lost attendu pour ticket 2, trouvé ' + paris[1].statut);
+    console.assert(paris[1].mise === 5.00, 'self-test: mise 5.00 attendue pour ticket 2, trouvé ' + paris[1].mise);
+    console.assert(paris[1].live === true, 'self-test: ticket 2 doit être live');
+    console.assert(paris[1].retour === 0, 'self-test: retour 0 par défaut si absent');
+    console.log('[bankroll] self-tests terminés — voir assertions ci-dessus (pas de message = OK)');
+  }
+
+  if (new URLSearchParams(location.search).get('debug') === '1') {
+    runSelfTests();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

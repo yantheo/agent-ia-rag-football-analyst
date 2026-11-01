@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meilleurs Paris | Football Analyste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #1a2420;
+            --green-primary: #22c55e;
+            --green-secondary: #16a34a;
+            --green-dark: #14532d;
+            --gold: #fbbf24;
+            --text-primary: #f0fdf4;
+            --text-secondary: #a7f3d0;
+            --text-muted: #6b7280;
+            --border: #2d3b35;
+            --red: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            pointer-events: none; z-index: 0;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        header { padding: 24px 0; border-bottom: 1px solid var(--border); }
+        .header-content { display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .logo-text h1 { font-size: 1.5rem; font-weight: 700; }
+        .logo-text span { font-size: 0.75rem; color: var(--green-primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+        .nav-links a {
+            padding: 8px 16px; border-radius: 100px; font-size: 0.875rem;
+            color: var(--text-secondary); text-decoration: none;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark);
+        }
+
+        .page-title { padding: 40px 0 24px; text-align: center; }
+        .page-title h2 {
+            font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary), var(--green-primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .page-title p { color: var(--text-muted); font-size: 0.95rem; }
+
+        .panel {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 24px; margin: 20px 0;
+        }
+
+        .controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+        .field { display: block; }
+        .field > span:first-child {
+            display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600; margin-bottom: 6px;
+        }
+        .field input {
+            width: 90px; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;
+            padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-secondary); color: var(--text-primary);
+        }
+        .field input:focus { outline: none; border-color: var(--green-primary); }
+        .field .hint { font-size: 0.74rem; color: var(--text-muted); margin-top: 6px; max-width: 46ch; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 13px 28px; border: none; border-radius: 10px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            color: #fff; transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(34, 197, 94, 0.25); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn.secondary { background: none; color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn.secondary:hover { border-color: var(--green-primary); color: var(--green-primary); box-shadow: none; transform: none; }
+
+        .progress-wrap { margin-top: 18px; display: none; }
+        .progress-wrap.active { display: block; }
+        .progress-bar-track { width: 100%; height: 6px; background: var(--bg-secondary); border-radius: 100px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green-primary), var(--gold)); transition: width 0.3s; width: 0%; }
+        .progress-label { font-size: 0.82rem; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+
+        .meta-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin: 20px 0 8px; }
+        .meta-row .cached-note { font-size: 0.82rem; color: var(--text-muted); }
+
+        .rank-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 20px 22px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .rank-card:hover { border-color: var(--green-primary); }
+        .rank-top { display: flex; align-items: center; gap: 16px; }
+        .rank-num {
+            font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700;
+            color: var(--gold); min-width: 28px;
+        }
+        .rank-teams { flex: 1; min-width: 0; }
+        .rank-teams .vs { font-size: 1rem; font-weight: 600; }
+        .rank-teams .league { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+        .confidence-badge {
+            padding: 5px 14px; border-radius: 100px; font-size: 0.78rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+        }
+        .confidence-badge.eleve { background: rgba(34,197,94,0.18); color: var(--green-primary); }
+        .confidence-badge.moyen { background: rgba(251,191,36,0.18); color: var(--gold); }
+        .confidence-badge.faible { background: rgba(239,68,68,0.15); color: var(--red); }
+        .rank-arrow { color: var(--text-muted); font-size: 1.2rem; transition: transform 0.2s; }
+        .rank-card.expanded .rank-arrow { transform: rotate(90deg); color: var(--green-primary); }
+
+        .rank-detail { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+        .rank-card.expanded .rank-detail { display: block; }
+        .analysis-content { color: var(--text-secondary); line-height: 1.8; font-size: 0.92rem; }
+        .analysis-content h3 { color: var(--green-primary); margin: 0 0 10px; font-size: 1rem; }
+        .analysis-content strong { color: #4ade80; }
+        .analysis-content ul, .analysis-content ol { padding-left: 20px; margin: 8px 0; }
+        .analysis-content li { margin: 4px 0; }
+        .analysis-content li::marker { color: var(--green-primary); }
+        .analysis-content p { margin: 10px 0; }
+
+        .empty-state, .error-state { text-align: center; padding: 48px 0; color: var(--text-muted); font-size: 0.9rem; }
+        .error-state { color: var(--red); }
+
+        .spinner { display: inline-block; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); text-align: center; }
+        footer p { font-size: 0.875rem; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; gap: 16px; }
+            .rank-top { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">&#9917;</div>
+                    <div class="logo-text">
+                        <h1>Football Analyste IA</h1>
+                        <span>Powered by RAG SQL</span>
+                    </div>
+                </a>
+                <nav class="nav-links">
+                    <a href="index.html" id="nav-calendar">Calendrier</a>
+                    <a href="bankroll.html" id="nav-bankroll">Bankroll</a>
+                    <a href="meilleurs-paris.html" id="nav-best" class="active">Meilleurs Paris</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-title">
+            <h2>Meilleurs Paris du Jour</h2>
+            <p>Les matchs avec l'indice de confiance le plus élevé, analysés par l'IA</p>
+        </div>
+
+        <div class="panel">
+            <div class="controls">
+                <label class="field">
+                    <span>Matchs à analyser (max)</span>
+                    <input type="number" id="max-matches" value="12" min="3" max="30">
+                </label>
+                <button class="btn" id="generate-btn">&#9889; Générer les meilleurs paris</button>
+                <button class="btn secondary" id="cancel-btn" style="display:none">Annuler</button>
+            </div>
+            <p class="field hint">Un pré-filtre statistique (taux de victoire, fiabilité, profils offensif/défensif — sans IA, instantané) sélectionne d'abord les matchs les plus déséquilibrés du jour. Seuls ceux-là sont envoyés à l'agent IA (crédits OpenAI, quelques secondes chacun). Résultat mis en cache pour la journée.</p>
+            <div class="progress-wrap" id="progress-wrap">
+                <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
+                <div class="progress-label" id="progress-label"></div>
+            </div>
+        </div>
+
+        <div class="meta-row" id="meta-row" style="display:none">
+            <div class="cached-note" id="cached-note"></div>
+            <button class="btn secondary" id="regenerate-btn">&#8635; Régénérer</button>
+        </div>
+
+        <div id="results"></div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Projet par <a href="https://github.com/yantheo" style="color: var(--green-primary); text-decoration: none;">yantheo</a></p>
+        </div>
+    </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
+  const N8N_WEBHOOK_URL = 'https://n8n.scribify.net/webhook/football-analyze';
+  const CACHE_KEY = 'meilleurs_paris_cache_v1';
+  const MIN_RESULTS = 3;
+  const MAX_RESULTS = 10;
+  const CONFIDENCE_RANK = { 'Élevé': 3, 'Eleve': 3, 'Moyen': 2, 'Faible': 1 };
+
+  const FLAG_MAP = {
+    fr: '\u{1F1EB}\u{1F1F7}', esp: '\u{1F1EA}\u{1F1F8}', eng: '\u{1F1EC}\u{1F1E7}',
+    it: '\u{1F1EE}\u{1F1F9}', de: '\u{1F1E9}\u{1F1EA}', tr: '\u{1F1F9}\u{1F1F7}',
+    pt: '\u{1F1F5}\u{1F1F9}', nl: '\u{1F1F3}\u{1F1F1}', eu: '\u{1F1EA}\u{1F1FA}',
+  };
+
+  let cancelled = false;
+
+  async function supabaseGet(table, params = '') {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+    return res.json();
+  }
+
+  function todayStr() {
+    return new Date().toLocaleDateString('sv-SE');
+  }
+
+  function loadCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function saveCache(results) {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ date: todayStr(), results, generatedAt: new Date().toISOString() }));
+  }
+
+  // "<li><strong>Indice de confiance :</strong> Élevé</li>" -> "Élevé"
+  function extractConfidence(html) {
+    const m = /Indice de confiance\s*:?\s*<\/strong>\s*([^<]+)/i.exec(html || '');
+    if (!m) return null;
+    return m[1].trim().replace(/[.,:;]+$/, '');
+  }
+
+  function extractSignal(html) {
+    const m = /Signal\s*:?\s*<\/strong>\s*([^<]+)/i.exec(html || '');
+    return m ? m[1].trim().replace(/[.,:;]+$/, '') : null;
+  }
+
+  function confidenceClass(label) {
+    const norm = (label || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    if (norm.indexOf('elev') !== -1) return 'eleve';
+    if (norm.indexOf('moyen') !== -1) return 'moyen';
+    return 'faible';
+  }
+
+  async function loadTodayMatches() {
+    const today = todayStr();
+    const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
+    return supabaseGet('calendrier', `date_match=gte.${today}&date_match=lt.${tomorrow}&order=heure.asc`);
+  }
+
+  // ---------- Pré-filtre statistique (gratuit, pas d'appel IA) ----------
+  // Les données du scraper mélangent deux générations de l'algorithme
+  // (ex: "DOMINANCE" vs "DOMINANCE (Profil Équilibré)", "EXCALIBUR" vs
+  // "ATTAQUE EXPLOSIVE"). On matche par mots-clés normalisés (sans accents)
+  // plutôt que par égalité stricte, pour couvrir les deux formats.
+  function norm(s) {
+    return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  }
+
+  function reliabilityRank(etatFiabilite) {
+    const t = norm(etatFiabilite);
+    if (t.indexOf('DOMINANCE') !== -1) return 4;
+    if (t.indexOf('FORCE') !== -1) return 3;
+    if (t.indexOf('SOLID') !== -1) return 2; // SOLIDE / SOLIDITE
+    if (t.indexOf('FRAGIL') !== -1) return 1; // FRAGILE / FRAGILITE
+    if (t.indexOf('DETRESSE') !== -1 || t.indexOf('SOUFFRANCE') !== -1) return 0;
+    return 2; // neutre si valeur inconnue
+  }
+
+  function offensiveRank(profilOffensif) {
+    const t = norm(profilOffensif);
+    if (t.indexOf('EXPLOSIVE') !== -1 || t.indexOf('TRES PERFORMANTE') !== -1 || t.indexOf('EXCALIBUR') !== -1) return 3;
+    if (t.indexOf('EFFICACE') !== -1 || t.indexOf('GLAIVE') !== -1) return 2;
+    if (t.indexOf('LIMITEE') !== -1 || t.indexOf('OUTSIDER') !== -1) return 1;
+    if (t.indexOf('STERILE') !== -1) return 0;
+    return 1.5; // neutre
+  }
+
+  function defensiveRank(profilDefensif) {
+    const t = norm(profilDefensif);
+    if (t.indexOf('IMPENETRABLE') !== -1 || t.indexOf('ELITE') !== -1 || t.indexOf('BOUCLIER') !== -1) return 3;
+    if (t.indexOf('SOLIDE') !== -1) return 2;
+    if (t.indexOf('MOYENNE') !== -1) return 1.5;
+    if (t.indexOf('VULNERABLE') !== -1 || t.indexOf('DETRESSE') !== -1 || t.indexOf('EPAVE') !== -1) return 0;
+    return 1.5; // neutre
+  }
+
+  // Score de "force" d'une équipe sur une échelle approx. 0-150.
+  // taux_victoire pèse le plus (signal le plus fiable et le plus régulièrement
+  // présent dans les données), les profils qualitatifs ajustent en complément.
+  function teamStrength(stats) {
+    if (!stats) return null;
+    return (stats.taux_victoire || 0)
+      + reliabilityRank(stats.etat_fiabilite) * 6
+      + offensiveRank(stats.profil_offensif) * 5
+      + defensiveRank(stats.profil_defensif) * 5;
+  }
+
+  async function fetchStatsByTeamIds(teamIds) {
+    const uniq = Array.from(new Set(teamIds.filter(Boolean)));
+    if (!uniq.length) return {};
+    const rows = await supabaseGet('classements_foot',
+      `team_id=in.(${uniq.map(encodeURIComponent).join(',')})&select=team_id,taux_victoire,etat_fiabilite,profil_offensif,profil_defensif`);
+    const map = {};
+    rows.forEach(r => { map[r.team_id] = r; });
+    return map;
+  }
+
+  // Écart de niveau entre les deux équipes : plus il est grand, plus le match
+  // est statistiquement déséquilibré (donc plus susceptible de donner une
+  // analyse IA à confiance élevée). Matchs sans stats dispo → exclus du tri
+  // (envoyés en dernier) plutôt que favorisés par défaut.
+  async function preRankMatches(matches) {
+    const statsMap = await fetchStatsByTeamIds(
+      matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur])
+    );
+    const scored = matches.map(m => {
+      const sHome = teamStrength(statsMap[m.team_id_domicile]);
+      const sAway = teamStrength(statsMap[m.team_id_exterieur]);
+      const gap = (sHome != null && sAway != null) ? Math.abs(sHome - sAway) : null;
+      return { match: m, preGap: gap };
+    });
+    scored.sort((a, b) => {
+      if (a.preGap == null && b.preGap == null) return 0;
+      if (a.preGap == null) return 1;
+      if (b.preGap == null) return -1;
+      return b.preGap - a.preGap;
+    });
+    return scored;
+  }
+
+  async function analyzeMatch(match) {
+    const payload = {
+      match_id: match.match_id || null,
+      equipe_domicile: match.equipe_domicile,
+      equipe_exterieur: match.equipe_exterieur,
+      team_id_domicile: match.team_id_domicile,
+      team_id_exterieur: match.team_id_exterieur,
+      championnat: match.championnat,
+      date_match: match.date_match,
+    };
+    const res = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`Webhook error: ${res.status}`);
+    const text = await res.text();
+    if (!text) throw new Error('Réponse vide');
+    const data = JSON.parse(text);
+    const output = data.output || data.text || data.response || '';
+    return output;
+  }
+
+  function setProgress(done, total, label) {
+    const wrap = document.getElementById('progress-wrap');
+    const fill = document.getElementById('progress-fill');
+    const lbl = document.getElementById('progress-label');
+    wrap.classList.add('active');
+    fill.style.width = total ? (done / total * 100) + '%' : '0%';
+    lbl.textContent = label;
+  }
+
+  function hideProgress() {
+    document.getElementById('progress-wrap').classList.remove('active');
+  }
+
+  async function generate(maxMatches) {
+    cancelled = false;
+    const generateBtn = document.getElementById('generate-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const resultsEl = document.getElementById('results');
+
+    generateBtn.disabled = true;
+    cancelBtn.style.display = 'inline-flex';
+    resultsEl.innerHTML = '';
+    document.getElementById('meta-row').style.display = 'none';
+
+    let matches;
+    try {
+      setProgress(0, 1, 'Chargement du calendrier du jour…');
+      matches = await loadTodayMatches();
+    } catch (err) {
+      resultsEl.innerHTML = `<div class="error-state">Erreur de chargement du calendrier : ${err.message}</div>`;
+      generateBtn.disabled = false;
+      cancelBtn.style.display = 'none';
+      hideProgress();
+      return;
+    }
+
+    if (!matches.length) {
+      resultsEl.innerHTML = '<div class="empty-state">Aucun match programmé aujourd\'hui.</div>';
+      generateBtn.disabled = false;
+      cancelBtn.style.display = 'none';
+      hideProgress();
+      return;
+    }
+
+    let ranked;
+    try {
+      setProgress(0, 1, 'Pré-filtrage statistique des matchs (sans IA)…');
+      ranked = await preRankMatches(matches);
+    } catch (err) {
+      console.error('Pré-filtre échoué, on retombe sur l\'ordre chronologique', err);
+      ranked = matches.map(m => ({ match: m, preGap: null }));
+    }
+
+    const toAnalyze = ranked.slice(0, maxMatches);
+    const results = [];
+
+    for (let i = 0; i < toAnalyze.length; i++) {
+      if (cancelled) break;
+      const { match: m, preGap } = toAnalyze[i];
+      setProgress(i, toAnalyze.length, `Analyse ${i + 1}/${toAnalyze.length} — ${m.equipe_domicile} vs ${m.equipe_exterieur}…`);
+      try {
+        const output = await analyzeMatch(m);
+        const confidence = extractConfidence(output);
+        if (confidence) {
+          results.push({
+            match: m,
+            output,
+            confidence,
+            confidenceRank: CONFIDENCE_RANK[confidence] || 0,
+            signal: extractSignal(output),
+            preGap,
+          });
+        }
+      } catch (err) {
+        console.error('Analyse échouée pour', m.equipe_domicile, 'vs', m.equipe_exterieur, err);
+      }
+    }
+
+    setProgress(toAnalyze.length, toAnalyze.length, cancelled ? 'Annulé.' : 'Analyse terminée.');
+    generateBtn.disabled = false;
+    cancelBtn.style.display = 'none';
+    setTimeout(hideProgress, 1500);
+
+    results.sort((a, b) => {
+      if (b.confidenceRank !== a.confidenceRank) return b.confidenceRank - a.confidenceRank;
+      return (b.preGap || 0) - (a.preGap || 0);
+    });
+    const top = results.slice(0, MAX_RESULTS);
+
+    saveCache(top);
+    renderResults(top, { generatedAt: new Date().toISOString(), analyzedCount: toAnalyze.length });
+  }
+
+  function renderResults(results, meta) {
+    const resultsEl = document.getElementById('results');
+    const metaRow = document.getElementById('meta-row');
+    const cachedNote = document.getElementById('cached-note');
+
+    if (!results.length) {
+      resultsEl.innerHTML = '<div class="empty-state">Aucune analyse exploitable pour l\'instant. Essaie de régénérer ou d\'augmenter le nombre de matchs analysés.</div>';
+      metaRow.style.display = 'none';
+      return;
+    }
+
+    if (results.length < MIN_RESULTS) {
+      resultsEl.innerHTML = `<div class="empty-state" style="padding-bottom:8px">Seulement ${results.length} match(s) exploitable(s) sur les matchs analysés — en dessous du minimum de ${MIN_RESULTS}. Augmente le nombre de matchs analysés ou régénère.</div>`;
+    }
+
+    metaRow.style.display = 'flex';
+    const when = meta.generatedAt ? new Date(meta.generatedAt).toLocaleString('fr-FR') : '';
+    cachedNote.textContent = `${results.length} match(s) retenu(s)` + (meta.analyzedCount ? ` sur ${meta.analyzedCount} analysé(s)` : '') + (when ? ` — généré le ${when}` : '');
+
+    resultsEl.innerHTML = '';
+    results.forEach((r, idx) => {
+      const flag = FLAG_MAP[r.match.country] || '';
+      const card = document.createElement('div');
+      card.className = 'rank-card';
+      card.innerHTML = `
+        <div class="rank-top">
+          <div class="rank-num">#${idx + 1}</div>
+          <div class="rank-teams">
+            <div class="vs">${r.match.equipe_domicile} <span style="color:var(--text-muted)">vs</span> ${r.match.equipe_exterieur}</div>
+            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${r.preGap != null ? ' &middot; écart stats ' + r.preGap.toFixed(0) : ''}</div>
+          </div>
+          <span class="confidence-badge ${confidenceClass(r.confidence)}">${r.confidence}</span>
+          <span class="rank-arrow">&#8250;</span>
+        </div>
+        <div class="rank-detail"><div class="analysis-content">${r.output}</div></div>
+      `;
+      card.addEventListener('click', () => card.classList.toggle('expanded'));
+      resultsEl.appendChild(card);
+    });
+  }
+
+  document.getElementById('generate-btn').addEventListener('click', () => {
+    const max = Math.max(MIN_RESULTS, Math.min(30, parseInt(document.getElementById('max-matches').value, 10) || 12));
+    generate(max);
+  });
+
+  document.getElementById('regenerate-btn').addEventListener('click', () => {
+    const max = Math.max(MIN_RESULTS, Math.min(30, parseInt(document.getElementById('max-matches').value, 10) || 12));
+    generate(max);
+  });
+
+  document.getElementById('cancel-btn').addEventListener('click', () => {
+    cancelled = true;
+  });
+
+  // ---------- Init : cache du jour si disponible ----------
+  const cache = loadCache();
+  if (cache && cache.date === todayStr() && cache.results && cache.results.length) {
+    renderResults(cache.results, { generatedAt: cache.generatedAt });
+  } else {
+    document.getElementById('results').innerHTML = '<div class="empty-state">Clique sur « Générer les meilleurs paris » pour lancer l\'analyse des matchs du jour.</div>';
+  }
+})();
+</script>
+</body>
+</html>
