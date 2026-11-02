@@ -20,8 +20,10 @@ Pages actuelles :
   top/flop 5 par championnat (forme, attaque, defense, efficacite, possession, points vs attendus).
 - **`meilleures-equipes.html`** / **`pires-equipes.html`** — Top 10 toutes ligues confondues sur les
   memes 6 metriques (pires = meme calcul, tri inverse), 3 tableaux par rangee.
-- **`buteurs-passeurs.html`** — 6 classements de 20 joueurs (buteurs/passeurs bruts, par importance
-  relative a l'equipe, equipes dominantes), calcules cote client depuis les donnees Supabase.
+- **`buteurs-passeurs.html`** — 6 classements (buteurs/passeurs bruts, par importance relative a
+  l'equipe, equipes dominantes), calcules cote client depuis les donnees Supabase. Meme menu lateral
+  que `championnats.html` : "Tous les championnats" par defaut (20 joueurs par tableau), ou un seul
+  championnat (10 joueurs — `TOP_N_ALL` / `TOP_N_LEAGUE`), filtre cote client sans nouvelle requete.
 
 **Header/navigation dupliques dans chaque page** (pas de build, pas d'include) : ajouter une page ou
 modifier le menu implique de modifier le `<nav class="nav-links">` et le CSS `.header-content` de

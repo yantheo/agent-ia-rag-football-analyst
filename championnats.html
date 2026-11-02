@@ -503,9 +503,20 @@
       b.classList.toggle('active', b.dataset.league === lg));
   }
 
+  // Mobile : le menu est une barre horizontale, on la fait defiler jusqu'au
+  // championnat actif (sinon invisible si on arrive via un lien #championnat).
+  // scrollLeft plutot que scrollIntoView pour ne jamais faire defiler la page.
+  function revealActiveLeague() {
+    const menu = document.querySelector('.league-menu');
+    const active = menu && menu.querySelector('button.active');
+    if (!active || menu.scrollWidth <= menu.clientWidth) return;
+    menu.scrollLeft += active.getBoundingClientRect().left - menu.getBoundingClientRect().left - 8;
+  }
+
   function selectLeague(lg, pushHash = true) {
     if (!byLeague[lg]) return;
     renderLeague(lg);
+    revealActiveLeague();
     if (pushHash) history.replaceState(null, '', '#' + encodeURIComponent(lg));
   }
 

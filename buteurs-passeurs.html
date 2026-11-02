@@ -64,16 +64,56 @@
             border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark);
         }
 
-        .page-title { padding: 40px 0 24px; text-align: center; }
+        /* ---------- Layout : menu championnats fixe a gauche (cf. championnats.html) ---------- */
+        .layout { display: flex; gap: 28px; align-items: flex-start; padding: 32px 0 48px; }
+        .league-menu {
+            position: sticky; top: 16px;
+            flex: 0 0 230px; width: 230px;
+            max-height: calc(100vh - 32px); overflow-y: auto;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 14px 10px;
+        }
+        .league-menu h3 {
+            font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600; padding: 0 10px 10px;
+        }
+        .league-menu ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .league-menu li.sep { height: 1px; background: var(--border); margin: 6px 10px; }
+        .league-menu button {
+            width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            background: none; border: 1px solid transparent; border-radius: 10px;
+            color: var(--text-secondary); font: inherit; font-size: 0.88rem; text-align: left;
+            padding: 8px 10px; cursor: pointer; transition: all 0.15s;
+        }
+        .league-menu button:hover { background: var(--bg-secondary); }
+        .league-menu button.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark); font-weight: 600;
+        }
+        .league-menu .count { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+        .league-content { flex: 1; min-width: 0; }
+
+        @media (max-width: 860px) {
+            .layout { flex-direction: column; align-items: stretch; gap: 16px; padding-top: 20px; }
+            .league-menu {
+                position: static; width: 100%; flex-basis: auto; max-height: none;
+                overflow-x: auto; overflow-y: hidden; padding: 8px;
+            }
+            .league-menu h3, .league-menu .count, .league-menu li.sep { display: none; }
+            .league-menu ul { flex-direction: row; gap: 6px; }
+            .league-menu button { white-space: nowrap; }
+        }
+
+        .page-title { padding: 0 0 8px; }
         .page-title h2 {
-            font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+            font-size: 1.8rem; line-height: 1.2; font-weight: 700; margin-bottom: 8px;
             background: linear-gradient(135deg, var(--text-primary), var(--green-primary));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
         .page-title p { color: var(--text-muted); font-size: 0.95rem; }
 
-        .tables-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 24px 0 48px; }
-        @media (max-width: 900px) { .tables-grid { grid-template-columns: 1fr; } }
+        .tables-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0 0; }
+        /* Seuil plus haut qu'avant : la zone de contenu est reduite par le menu lateral */
+        @media (max-width: 1100px) { .tables-grid { grid-template-columns: 1fr; } }
 
         .table-block {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
@@ -155,8 +195,15 @@
     </header>
 
     <main class="container">
+      <div class="layout">
+        <aside class="league-menu" aria-label="Championnats">
+            <h3>Championnats</h3>
+            <ul id="league-list"></ul>
+        </aside>
+
+        <section class="league-content">
         <div class="page-title">
-            <h2>Buteurs &amp; Passeurs</h2>
+            <h2 id="page-heading">Buteurs &amp; Passeurs</h2>
             <p id="championnats-count">Classements sur les championnats européens suivis</p>
         </div>
 
@@ -165,8 +212,8 @@
 
         <div id="tables" class="tables-grid" style="display:none">
             <div class="table-block">
-                <h3>&#9917; Top 20 Buteurs</h3>
-                <p class="sub">Classement brut, tous championnats confondus</p>
+                <h3>&#9917; Top <span class="top-n">20</span> Buteurs</h3>
+                <p class="sub scope-sub">Classement brut, tous championnats confondus</p>
                 <div class="tbl-scroll">
                     <table>
                         <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Buts</th></tr></thead>
@@ -176,8 +223,8 @@
             </div>
 
             <div class="table-block">
-                <h3>&#127919; Top 20 Passeurs</h3>
-                <p class="sub">Classement brut, tous championnats confondus</p>
+                <h3>&#127919; Top <span class="top-n">20</span> Passeurs</h3>
+                <p class="sub scope-sub">Classement brut, tous championnats confondus</p>
                 <div class="tbl-scroll">
                     <table>
                         <thead><tr><th>#</th><th>Joueur</th><th>Équipe</th><th>Passes D.</th></tr></thead>
@@ -209,7 +256,7 @@
             </div>
         </div>
 
-        <div id="tables-dominantes" class="tables-grid" style="display:none; margin-bottom:48px">
+        <div id="tables-dominantes" class="tables-grid" style="display:none">
             <div class="table-block">
                 <h3>&#128165; Buteurs d'équipes dominantes</h3>
                 <p class="sub">Écart attaque/défense (modèle de buts attendus, vs moyenne du championnat) + forme récente pondérée — min. 3 buts, un seul joueur par équipe (son meilleur buteur)</p>
@@ -232,6 +279,8 @@
                 </div>
             </div>
         </div>
+        </section>
+      </div>
     </main>
 
     <footer>
@@ -246,7 +295,10 @@
 
   const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
-  const TOP_N = 20;
+  // Taille des classements : 20 tous championnats confondus, 10 sur un seul
+  // championnat (vivier plus petit, top 3 par equipe seulement).
+  const TOP_N_ALL = 20;
+  const TOP_N_LEAGUE = 10;
   const MIN_BUTS_IMPORTANCE = 3;
   const MIN_PASSES_IMPORTANCE = 2;
   const MIN_BUTS_DOMINANTES = 3;
@@ -370,8 +422,8 @@
     tbody.innerHTML = rows.map((r, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
-        <td class="player">${r.nom}</td>
-        <td class="team">${r.equipe}${playingTodayBadge(r.teamId, todayMap)}</td>
+        <td class="player">${esc(r.nom)}</td>
+        <td class="team">${esc(r.equipe)}${playingTodayBadge(r.teamId, todayMap)}</td>
         <td class="val">${valueFormatter(r)}</td>
       </tr>
     `).join('');
@@ -386,82 +438,152 @@
     tbody.innerHTML = rows.map((r, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
-        <td class="player">${r.nom}</td>
-        <td class="team">${r.equipe}${playingTodayBadge(r.teamId, todayMap)}</td>
+        <td class="player">${esc(r.nom)}</td>
+        <td class="team">${esc(r.equipe)}${playingTodayBadge(r.teamId, todayMap)}</td>
         <td class="val">${r.valeur}</td>
         <td class="val">${r.qualityScore >= 0 ? '+' : ''}${r.qualityScore.toFixed(2)}</td>
       </tr>
     `).join('');
   }
 
+  // Meme fenetre de fraicheur que championnats.html / meilleures-equipes.html :
+  // exclut les lignes orphelines d'une saison precedente (et donc leurs
+  // joueurs) que le scraper n'a plus mises a jour.
+  const FRESHNESS_MS = 3 * 24 * 60 * 60 * 1000;
+  const ALL = ''; // valeur du filtre "tous championnats confondus" (hash vide)
+
+  let allTeams = [];
+  let byLeague = {};
+  let leagueAvg = {};
+  let todayMap = {};
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderMenu(leagues) {
+    const item = (value, label, count) => `
+      <li><button type="button" data-league="${esc(value)}">
+        <span>${esc(label)}</span><span class="count">${count}</span>
+      </button></li>`;
+    document.getElementById('league-list').innerHTML =
+      item(ALL, 'Tous les championnats', allTeams.length) +
+      '<li class="sep" aria-hidden="true"></li>' +
+      leagues.map(lg => item(lg, lg, byLeague[lg].length)).join('');
+  }
+
+  // Calcule et affiche les 6 classements sur un sous-ensemble d'equipes.
+  // leagueAvg reste calcule sur toutes les equipes : la moyenne d'un
+  // championnat ne depend pas du filtre affiche.
+  function render(teams, league) {
+    const TOP_N = league ? TOP_N_LEAGUE : TOP_N_ALL;
+    document.querySelectorAll('.top-n').forEach(el => { el.textContent = TOP_N; });
+    const scope = league ? league : 'tous championnats confondus';
+    document.getElementById('page-heading').textContent = league ? `Buteurs & Passeurs — ${league}` : 'Buteurs & Passeurs';
+    document.getElementById('championnats-count').textContent = league
+      ? `${teams.length} équipes · top 3 buteurs/passeurs de chaque équipe`
+      : `Classements sur les ${Object.keys(byLeague).length} championnats européens suivis`;
+    document.querySelectorAll('.scope-sub').forEach(el => { el.textContent = `Classement brut, ${scope}`; });
+
+    const buteurs = flatten(teams, 'meilleurs_buteurs');
+    const passeurs = flatten(teams, 'meilleurs_passeurs');
+
+    const topButeurs = [...buteurs].sort((a, b) => b.valeur - a.valeur).slice(0, TOP_N);
+    const topPasseurs = [...passeurs].sort((a, b) => b.valeur - a.valeur).slice(0, TOP_N);
+
+    const importanceButeurs = buteurs
+      .filter(r => r.valeur >= MIN_BUTS_IMPORTANCE && r.butsEquipe > 0)
+      .map(r => ({ ...r, pct: r.valeur / r.butsEquipe }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, TOP_N);
+
+    const importancePasseurs = passeurs
+      .filter(r => r.valeur >= MIN_PASSES_IMPORTANCE && r.butsEquipe > 0)
+      .map(r => ({ ...r, pct: r.valeur / r.butsEquipe }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, TOP_N);
+
+    // Meilleur joueur (>= seuil) de chaque équipe sur un champ donné (buteurs ou passeurs),
+    // classé par qualité globale de l'équipe (attaque/défense + forme récente)
+    // — pas juste son nombre de buts/passes brut.
+    function topDominantes(field, minVal) {
+      return teams
+        .map(t => {
+          const meilleur = (t[field] || [])
+            .filter(p => p && p.nom && p.stats >= minVal)
+            .sort((a, b) => b.stats - a.stats)[0];
+          if (!meilleur) return null;
+          return {
+            nom: meilleur.nom,
+            valeur: meilleur.stats,
+            equipe: t.equipe,
+            teamId: t.team_id,
+            championnat: t.championnat,
+            qualityScore: teamQualityScore(t, leagueAvg),
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.qualityScore - a.qualityScore)
+        .slice(0, TOP_N);
+    }
+
+    renderTable('tbl-buteurs', topButeurs, r => r.valeur, todayMap);
+    renderTable('tbl-passeurs', topPasseurs, r => r.valeur, todayMap);
+    renderTable('tbl-buteurs-importance', importanceButeurs, r => (r.pct * 100).toFixed(0) + '%', todayMap);
+    renderTable('tbl-passeurs-importance', importancePasseurs, r => (r.pct * 100).toFixed(0) + '%', todayMap);
+    renderDominantesTable('tbl-dominantes', topDominantes('meilleurs_buteurs', MIN_BUTS_DOMINANTES), todayMap);
+    renderDominantesTable('tbl-dominantes-passeurs', topDominantes('meilleurs_passeurs', MIN_PASSES_DOMINANTES), todayMap);
+
+    document.querySelectorAll('#league-list button').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.league === league));
+  }
+
+  // Mobile : le menu est une barre horizontale, on la fait defiler jusqu'au
+  // championnat actif (sinon invisible si on arrive via un lien #championnat).
+  // scrollLeft plutot que scrollIntoView pour ne jamais faire defiler la page.
+  function revealActiveLeague() {
+    const menu = document.querySelector('.league-menu');
+    const active = menu && menu.querySelector('button.active');
+    if (!active || menu.scrollWidth <= menu.clientWidth) return;
+    menu.scrollLeft += active.getBoundingClientRect().left - menu.getBoundingClientRect().left - 8;
+  }
+
+  function selectLeague(league, updateHash = true) {
+    if (league !== ALL && !byLeague[league]) league = ALL;
+    render(league === ALL ? allTeams : byLeague[league], league);
+    revealActiveLeague();
+    if (updateHash) {
+      history.replaceState(null, '', league === ALL ? location.pathname + location.search : '#' + encodeURIComponent(league));
+    }
+  }
+
   async function init() {
     try {
-      const [teams, todayMap] = await Promise.all([
+      const [teams, today] = await Promise.all([
         supabaseGet('classements_foot',
           'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,' +
-          'meilleurs_buteurs,meilleurs_passeurs,forme_recente_championnat'),
+          'meilleurs_buteurs,meilleurs_passeurs,forme_recente_championnat,updated_at'),
         fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
       ]);
-      const leagueAvg = computeLeagueAverages(teams);
+      todayMap = today;
 
-      // Nombre de championnats calculé depuis les données réelles plutôt que
-      // codé en dur — s'adapte automatiquement si un championnat est ajouté
-      // ou retiré de config.yaml côté scraper.
-      const nbChampionnats = new Set(teams.map(t => t.championnat)).size;
-      document.getElementById('championnats-count').textContent =
-        `Classements sur les ${nbChampionnats} championnats européens suivis`;
+      const freshCutoff = Date.now() - FRESHNESS_MS;
+      allTeams = teams.filter(t => t.championnat && t.updated_at && new Date(t.updated_at).getTime() >= freshCutoff);
+      if (!allTeams.length) throw new Error('aucune équipe à jour en base');
+      leagueAvg = computeLeagueAverages(allTeams);
 
-      const buteurs = flatten(teams, 'meilleurs_buteurs');
-      const passeurs = flatten(teams, 'meilleurs_passeurs');
+      byLeague = {};
+      allTeams.forEach(t => { (byLeague[t.championnat] = byLeague[t.championnat] || []).push(t); });
+      renderMenu(Object.keys(byLeague).sort((a, b) => a.localeCompare(b, 'fr')));
 
-      const topButeurs = [...buteurs].sort((a, b) => b.valeur - a.valeur).slice(0, TOP_N);
-      const topPasseurs = [...passeurs].sort((a, b) => b.valeur - a.valeur).slice(0, TOP_N);
+      document.getElementById('league-list').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-league]');
+        if (btn) selectLeague(btn.dataset.league);
+      });
+      window.addEventListener('hashchange', () => selectLeague(decodeURIComponent(location.hash.slice(1)), false));
 
-      const importanceButeurs = buteurs
-        .filter(r => r.valeur >= MIN_BUTS_IMPORTANCE && r.butsEquipe > 0)
-        .map(r => ({ ...r, pct: r.valeur / r.butsEquipe }))
-        .sort((a, b) => b.pct - a.pct)
-        .slice(0, TOP_N);
-
-      const importancePasseurs = passeurs
-        .filter(r => r.valeur >= MIN_PASSES_IMPORTANCE && r.butsEquipe > 0)
-        .map(r => ({ ...r, pct: r.valeur / r.butsEquipe }))
-        .sort((a, b) => b.pct - a.pct)
-        .slice(0, TOP_N);
-
-      // Meilleur joueur (>= seuil) de chaque équipe sur un champ donné (buteurs ou passeurs),
-      // classé par qualité globale de l'équipe (forme récente + fiabilité + attaque + défense)
-      // — pas juste son nombre de buts/passes brut.
-      function topDominantes(field, minVal) {
-        return teams
-          .map(t => {
-            const meilleur = (t[field] || [])
-              .filter(p => p && p.nom && p.stats >= minVal)
-              .sort((a, b) => b.stats - a.stats)[0];
-            if (!meilleur) return null;
-            return {
-              nom: meilleur.nom,
-              valeur: meilleur.stats,
-              equipe: t.equipe,
-              teamId: t.team_id,
-              championnat: t.championnat,
-              qualityScore: teamQualityScore(t, leagueAvg),
-            };
-          })
-          .filter(Boolean)
-          .sort((a, b) => b.qualityScore - a.qualityScore)
-          .slice(0, TOP_N);
-      }
-
-      const dominantesButeurs = topDominantes('meilleurs_buteurs', MIN_BUTS_DOMINANTES);
-      const dominantesPasseurs = topDominantes('meilleurs_passeurs', MIN_PASSES_DOMINANTES);
-
-      renderTable('tbl-buteurs', topButeurs, r => r.valeur, todayMap);
-      renderTable('tbl-passeurs', topPasseurs, r => r.valeur, todayMap);
-      renderTable('tbl-buteurs-importance', importanceButeurs, r => (r.pct * 100).toFixed(0) + '%', todayMap);
-      renderTable('tbl-passeurs-importance', importancePasseurs, r => (r.pct * 100).toFixed(0) + '%', todayMap);
-      renderDominantesTable('tbl-dominantes', dominantesButeurs, todayMap);
-      renderDominantesTable('tbl-dominantes-passeurs', dominantesPasseurs, todayMap);
+      // Par defaut (pas de hash) : tous championnats confondus
+      selectLeague(decodeURIComponent(location.hash.slice(1)), false);
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('tables').style.display = 'grid';
