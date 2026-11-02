@@ -158,7 +158,7 @@
     <main class="container">
         <div class="page-title">
             <h2>Pires Équipes</h2>
-            <p>Classements sur les 8 championnats européens suivis</p>
+            <p id="championnats-count">Classements sur les championnats européens suivis</p>
             <p class="note">Même modèle que « Meilleures Équipes », inversé : tous les indices restent relatifs à la moyenne du championnat de chaque équipe, avec un lissage statistique pour les équipes ayant peu joué. Seules les équipes avec au moins 5 matchs joués sont classées.</p>
         </div>
 
@@ -381,6 +381,13 @@
         (t.matchs_joues || 0) >= MIN_MATCHS &&
         t.updated_at && new Date(t.updated_at).getTime() >= freshCutoff
       );
+
+      // Nombre de championnats calculé depuis les données réelles (équipes
+      // éligibles seulement) plutôt que codé en dur — s'adapte automatiquement
+      // si un championnat est ajouté ou retiré de config.yaml côté scraper.
+      const nbChampionnats = new Set(eligibles.map(t => t.championnat)).size;
+      document.getElementById('championnats-count').textContent =
+        `Classements sur les ${nbChampionnats} championnats européens suivis`;
 
       const leagueAvgGoals = computeLeagueGoalAverages(eligibles);
       const leagueAvgRatio = weightedLeagueAvg(eligibles, 'ratio_conversion_num', 'matchs_joues');

@@ -156,7 +156,7 @@
     <main class="container">
         <div class="page-title">
             <h2>Buteurs &amp; Passeurs</h2>
-            <p>Classements sur les 8 championnats europeens suivis</p>
+            <p id="championnats-count">Classements sur les championnats européens suivis</p>
         </div>
 
         <div id="loading" class="loading-state"><span class="spinner">&#9917;</span><p style="margin-top:10px">Chargement des statistiques…</p></div>
@@ -402,6 +402,13 @@
         fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
       ]);
       const leagueAvg = computeLeagueAverages(teams);
+
+      // Nombre de championnats calculé depuis les données réelles plutôt que
+      // codé en dur — s'adapte automatiquement si un championnat est ajouté
+      // ou retiré de config.yaml côté scraper.
+      const nbChampionnats = new Set(teams.map(t => t.championnat)).size;
+      document.getElementById('championnats-count').textContent =
+        `Classements sur les ${nbChampionnats} championnats européens suivis`;
 
       const buteurs = flatten(teams, 'meilleurs_buteurs');
       const passeurs = flatten(teams, 'meilleurs_passeurs');

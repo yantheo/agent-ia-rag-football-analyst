@@ -24,7 +24,7 @@ L'utilisateur choisit un match dans le calendrier du jour ; l'agent interroge di
 ## Fonctionnalites
 
 - **RAG SQL** : l'agent IA interroge directement PostgreSQL (pas de chat en texte libre — les equipes sont resolues via le calendrier, pas devinees par nom)
-- **8 championnats europeens** : Ligue 1, La Liga, Premier League, Serie A, Bundesliga, Super Lig, Liga Portugal, Eredivisie
+- **10 championnats europeens** : Ligue 1, Ligue 2, Liga, Premier League, Championship, Serie A, Bundesliga, Super Lig, Liga Portugal Betclic, Eredivisie
 - **160+ equipes** analysees avec 35+ metriques par equipe
 - **Analyse de matchs** : comparaison d'equipes avec metriques avancees (taux de victoire, efficacite offensive, profil defensif, forme recente)
 - **Indicateurs proprietaires** : Draw Index, Indice de Finition, detection des pieges
