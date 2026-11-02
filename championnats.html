@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Championnats | Football Analyste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #1a2420;
+            --green-primary: #22c55e;
+            --green-secondary: #16a34a;
+            --green-dark: #14532d;
+            --gold: #fbbf24;
+            --text-primary: #f0fdf4;
+            --text-secondary: #a7f3d0;
+            --text-muted: #6b7280;
+            --border: #2d3b35;
+            --red: #ef4444;
+            --sidebar-w: 230px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            pointer-events: none; z-index: 0;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        header { padding: 24px 0; border-bottom: 1px solid var(--border); }
+        .header-content { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .logo-text h1 { font-size: 1.5rem; font-weight: 700; }
+        .logo-text span { font-size: 0.75rem; color: var(--green-primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .nav-links { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .nav-links a {
+            padding: 8px 16px; border-radius: 100px; font-size: 0.875rem;
+            color: var(--text-secondary); text-decoration: none;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark);
+        }
+
+        /* ---------- Layout : menu championnats fixe a gauche ---------- */
+        .layout { display: flex; gap: 28px; align-items: flex-start; padding: 32px 0 48px; }
+        .league-menu {
+            position: sticky; top: 16px;
+            flex: 0 0 var(--sidebar-w); width: var(--sidebar-w);
+            max-height: calc(100vh - 32px); overflow-y: auto;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 14px 10px;
+        }
+        .league-menu h3 {
+            font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600; padding: 0 10px 10px;
+        }
+        .league-menu ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .league-menu button {
+            width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            background: none; border: 1px solid transparent; border-radius: 10px;
+            color: var(--text-secondary); font: inherit; font-size: 0.88rem; text-align: left;
+            padding: 8px 10px; cursor: pointer; transition: all 0.15s;
+        }
+        .league-menu button:hover { background: var(--bg-secondary); }
+        .league-menu button.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark); font-weight: 600;
+        }
+        .league-menu .count { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+
+        .league-content { flex: 1; min-width: 0; }
+        .league-head { margin-bottom: 20px; }
+        .league-head h2 {
+            font-size: 1.8rem; font-weight: 700; line-height: 1.2;
+            background: linear-gradient(135deg, var(--text-primary), var(--green-primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .league-head p { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+        .table-block {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 22px; min-width: 0;
+        }
+        .table-block h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
+        .table-block .sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+
+        .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; }
+        @media (max-width: 1050px) { .mini-grid { grid-template-columns: 1fr; } }
+
+        .tbl-scroll { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+        th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        thead th {
+            font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600;
+        }
+        tbody tr:hover { background: var(--bg-secondary); }
+        tbody tr:last-child td { border-bottom: none; }
+        td.rank { font-family: 'JetBrains Mono', monospace; color: var(--gold); font-weight: 700; width: 28px; }
+        td.team { font-weight: 600; }
+        td.num, th.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+        td.num { color: var(--text-secondary); }
+        td.pts { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--green-primary); text-align: right; }
+        td.pos { color: var(--green-primary); }
+        td.neg { color: var(--red); }
+        td.val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--green-primary); text-align: right; }
+        td.val.down { color: var(--red); }
+        .mini th:last-child { text-align: right; }
+        .mono { font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); }
+
+        /* Pastilles de forme V/N/D */
+        .form { display: inline-flex; gap: 3px; }
+        .form span {
+            width: 18px; height: 18px; border-radius: 4px; font-size: 0.62rem; font-weight: 700;
+            display: inline-flex; align-items: center; justify-content: center; color: #0a0f0d;
+        }
+        .form .V { background: var(--green-primary); }
+        .form .N { background: var(--text-muted); }
+        .form .D { background: var(--red); }
+
+        .playing-today {
+            position: relative; display: inline-block; margin-left: 6px;
+            font-size: 0.82rem; cursor: help; vertical-align: middle;
+        }
+        .playing-today::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: calc(100% + 8px); left: 0;
+            width: 200px; max-width: 70vw; white-space: normal;
+            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4;
+            padding: 10px 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            opacity: 0; visibility: hidden; transition: opacity 0.15s, transform 0.15s;
+            transform: translateY(4px); pointer-events: none; z-index: 20;
+        }
+        .playing-today:hover::after, .playing-today:focus-visible::after {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+
+        .footnote { font-size: 0.75rem; color: var(--text-muted); margin-top: 12px; }
+
+        .loading-state, .empty-state, .error-state { text-align: center; padding: 40px 0; color: var(--text-muted); font-size: 0.9rem; }
+        .error-state { color: var(--red); }
+        .spinner { display: inline-block; animation: spin 1s linear infinite; font-size: 1.4rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        footer { padding: 32px 0; border-top: 1px solid var(--border); text-align: center; }
+        footer p { font-size: 0.875rem; color: var(--text-muted); }
+
+        @media (max-width: 768px) { .header-content { flex-direction: column; gap: 16px; } }
+
+        /* Mobile : le menu lateral devient une barre horizontale scrollable */
+        @media (max-width: 860px) {
+            .layout { flex-direction: column; align-items: stretch; gap: 16px; padding-top: 20px; }
+            .league-menu {
+                position: static; width: 100%; flex-basis: auto; max-height: none;
+                overflow-x: auto; overflow-y: hidden; padding: 8px;
+            }
+            .league-menu h3 { display: none; }
+            .league-menu ul { flex-direction: row; gap: 6px; }
+            .league-menu button { white-space: nowrap; }
+            .league-menu .count { display: none; }
+            .table-block { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">&#9917;</div>
+                    <div class="logo-text">
+                        <h1>Football Analyste IA</h1>
+                        <span>Powered by RAG SQL</span>
+                    </div>
+                </a>
+                <nav class="nav-links">
+                    <a href="index.html" id="nav-calendar">Calendrier</a>
+                    <a href="championnats.html" id="nav-leagues" class="active">Championnats</a>
+                    <a href="meilleurs-paris.html" id="nav-best">Meilleurs Paris</a>
+                    <a href="meilleures-equipes.html" id="nav-teams">Meilleures Équipes</a>
+                    <a href="pires-equipes.html" id="nav-worst-teams">Pires Équipes</a>
+                    <a href="buteurs-passeurs.html" id="nav-scorers">Buteurs &amp; Passeurs</a>
+                    <a href="bankroll.html" id="nav-bankroll">Bankroll</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="layout">
+            <aside class="league-menu" aria-label="Championnats">
+                <h3>Championnats</h3>
+                <ul id="league-list"></ul>
+            </aside>
+
+            <section class="league-content">
+                <div id="loading" class="loading-state"><span class="spinner">&#9917;</span><p style="margin-top:10px">Chargement des championnats…</p></div>
+                <div id="error" class="error-state" hidden></div>
+
+                <div id="content" hidden>
+                    <div class="league-head">
+                        <h2 id="league-title"></h2>
+                        <p id="league-meta"></p>
+                    </div>
+
+                    <div class="table-block">
+                        <h3>&#127942; Classement</h3>
+                        <div class="tbl-scroll">
+                            <table>
+                                <thead><tr>
+                                    <th>#</th><th>Équipe</th>
+                                    <th class="num">MJ</th><th class="num">V</th><th class="num">N</th><th class="num">D</th>
+                                    <th class="num">BP</th><th class="num">BC</th><th class="num">Diff</th><th class="num">Pts</th>
+                                    <th>Forme</th>
+                                </tr></thead>
+                                <tbody id="tbl-classement"></tbody>
+                            </table>
+                        </div>
+                        <p class="footnote">Position et points tels que publiés par la source (pénalités et critères de départage propres à chaque championnat inclus). Forme : 5 derniers matchs de championnat, du plus récent (à gauche) au plus ancien.</p>
+                    </div>
+
+                    <div class="mini-grid" id="mini-grid"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Projet par <a href="https://github.com/yantheo" style="color: var(--green-primary); text-decoration: none;">yantheo</a></p>
+        </div>
+    </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
+  const TOP_N = 5;
+  const MIN_MATCHS = 5; // comme meilleures-equipes.html
+  const SHRINK_K = 6;   // lissage bayesien, voir CLAUDE.md
+  // Meme fenetre de fraicheur que meilleures-equipes.html : exclut les lignes
+  // orphelines d'une saison precedente que le scraper n'a plus mises a jour.
+  const FRESHNESS_MS = 3 * 24 * 60 * 60 * 1000;
+
+  let byLeague = {};
+  let todayMap = {};
+
+  async function supabaseGet(table, params = '') {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+    return res.json();
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  async function fetchTodayMatchMap() {
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    const tomorrowStr = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
+    const matches = await supabaseGet('calendrier',
+      `date_match=gte.${todayStr}&date_match=lt.${tomorrowStr}&` +
+      'select=team_id_domicile,team_id_exterieur,equipe_domicile,equipe_exterieur,heure');
+    const map = {};
+    matches.forEach(m => {
+      if (m.team_id_domicile) map[m.team_id_domicile] = { heure: m.heure, adversaire: m.equipe_exterieur, home: true };
+      if (m.team_id_exterieur) map[m.team_id_exterieur] = { heure: m.heure, adversaire: m.equipe_domicile, home: false };
+    });
+    return map;
+  }
+
+  function playingTodayBadge(teamId) {
+    const info = todayMap[teamId];
+    if (!info) return '';
+    const tip = `Joue aujourd'hui${info.heure ? ' à ' + info.heure : ''} ${info.home ? 'vs' : '@'} ${info.adversaire}`;
+    return `<span class="playing-today" tabindex="0" data-tooltip="${esc(tip)}">&#9917;</span>`;
+  }
+
+  // Forme ponderee par recence (identique a meilleures-equipes.html) :
+  // poids [5,4,3,2,1], V=+1 N=0 D=-1 -> score dans [-1, 1].
+  function formRecencyScore(forme) {
+    if (!Array.isArray(forme) || !forme.length) return 0;
+    const weights = [5, 4, 3, 2, 1];
+    let sumW = 0, sumWV = 0;
+    forme.slice(0, 5).forEach((r, i) => {
+      const w = weights[i] || 1;
+      sumW += w;
+      sumWV += w * (r === 'V' ? 1 : r === 'D' ? -1 : 0);
+    });
+    return sumW ? sumWV / sumW : 0;
+  }
+
+  function formBadges(forme) {
+    if (!Array.isArray(forme) || !forme.length) return '<span style="color:var(--text-muted)">—</span>';
+    return '<span class="form">' + forme.slice(0, 5).map(r =>
+      `<span class="${['V', 'N', 'D'].includes(r) ? r : 'N'}">${esc(r)}</span>`).join('') + '</span>';
+  }
+
+  function signed(n, digits = 0) {
+    return (n > 0 ? '+' : '') + n.toFixed(digits);
+  }
+
+  // ---------- Rendu ----------
+  function renderMenu(leagues, current) {
+    document.getElementById('league-list').innerHTML = leagues.map(lg => `
+      <li><button type="button" data-league="${esc(lg)}" class="${lg === current ? 'active' : ''}">
+        <span>${esc(lg)}</span><span class="count">${byLeague[lg].length}</span>
+      </button></li>`).join('');
+  }
+
+  function renderStandings(teams) {
+    const rows = [...teams].sort((a, b) =>
+      (a.position ?? 999) - (b.position ?? 999) || (b.points || 0) - (a.points || 0));
+    document.getElementById('tbl-classement').innerHTML = rows.map((t, i) => {
+      const diff = (t.buts_pour || 0) - (t.buts_contre || 0);
+      return `
+        <tr>
+          <td class="rank">${t.position ?? i + 1}</td>
+          <td class="team">${esc(t.equipe)}${playingTodayBadge(t.team_id)}</td>
+          <td class="num">${t.matchs_joues ?? '—'}</td>
+          <td class="num">${t.victoires ?? '—'}</td>
+          <td class="num">${t.nuls ?? '—'}</td>
+          <td class="num">${t.defaites ?? '—'}</td>
+          <td class="num">${t.buts_pour ?? '—'}</td>
+          <td class="num">${t.buts_contre ?? '—'}</td>
+          <td class="num ${diff > 0 ? 'pos' : diff < 0 ? 'neg' : ''}">${signed(diff)}</td>
+          <td class="pts">${t.points ?? '—'}</td>
+          <td>${formBadges(t.forme_recente_championnat)}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderMini(rows, middle, value, valueClass) {
+    if (!rows.length) {
+      return '<tr><td colspan="4" style="color:var(--text-muted);text-align:center">Pas assez de données</td></tr>';
+    }
+    return rows.map((r, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="team">${esc(r.equipe)}${playingTodayBadge(r.team_id)}</td>
+        <td class="mid">${middle(r)}</td>
+        <td class="val ${valueClass ? valueClass(r) : ''}">${value(r)}</td>
+      </tr>`).join('');
+  }
+
+  // Moyenne d'un champ sur le championnat, ponderee par matchs joues
+  // (meme logique que weightedLeagueAvg de meilleures-equipes.html).
+  function weightedAvg(teams, field) {
+    let sum = 0, w = 0;
+    teams.forEach(t => {
+      if (t[field] == null || !t.matchs_joues) return;
+      sum += t[field] * t.matchs_joues;
+      w += t.matchs_joues;
+    });
+    return w ? sum / w : null;
+  }
+
+  const mono = v => `<span class="mono">${v}</span>`;
+
+  // Chaque metrique : un calcul par equipe (null = exclue), puis le top 5
+  // "meilleur" et le top 5 "pire" via le meme tri. Formules identiques a
+  // meilleures-equipes.html / pires-equipes.html, mais restreintes au
+  // championnat selectionne.
+  function buildMetrics(teams) {
+    const elig = teams.filter(t => (t.matchs_joues || 0) >= MIN_MATCHS);
+    const goals = elig.reduce((s, t) => s + (t.buts_pour || 0), 0);
+    const games = elig.reduce((s, t) => s + (t.matchs_joues || 0), 0);
+    const avgGoals = games ? goals / games : 1.3;
+    const avgRatio = weightedAvg(elig.filter(t => t.ratio_conversion_num > 0), 'ratio_conversion_num');
+    const avgPoss = weightedAvg(elig.filter(t => t.possession_en_pourcentage), 'possession_en_pourcentage');
+    const avgVict = weightedAvg(elig, 'taux_victoire');
+
+    return [
+      {
+        best: '&#128293; En forme', worst: '&#129398; Moins en forme',
+        sub: '5 derniers résultats pondérés par récence + bonus forme globale',
+        mid: 'Forme', val: 'Score',
+        score: t => formRecencyScore(t.forme_recente_championnat) + 0.3 * formRecencyScore(t.forme_recente_globale),
+        middle: r => formBadges(r.forme_recente_championnat),
+        fmt: r => signed(r.score, 2),
+      },
+      {
+        best: '&#9876; Meilleures attaques', worst: '&#128165; Pires attaques',
+        sub: 'Buts marqués/match, relatif à la moyenne du championnat (lissé)',
+        mid: 'Buts/m', val: 'Indice',
+        score: t => (((t.buts_pour || 0) + SHRINK_K * avgGoals) / (t.matchs_joues + SHRINK_K)) / avgGoals,
+        middle: r => mono((r.buts_pour / r.matchs_joues).toFixed(2)),
+        fmt: r => r.score.toFixed(2) + '×',
+      },
+      {
+        // Score inverse (1/defenseIndex) : plus haut = meilleure defense,
+        // pour garder le meme sens de tri que les autres metriques.
+        best: '&#128737; Meilleures défenses', worst: '&#128683; Pires défenses',
+        sub: 'Buts encaissés/match, relatif à la moyenne du championnat (plus bas = meilleur)',
+        mid: 'Enc./m', val: 'Indice',
+        score: t => -(((t.buts_contre || 0) + SHRINK_K * avgGoals) / (t.matchs_joues + SHRINK_K)) / avgGoals,
+        middle: r => mono((r.buts_contre / r.matchs_joues).toFixed(2)),
+        fmt: r => (-r.score).toFixed(2) + '×',
+      },
+      {
+        best: '&#127919; Plus efficaces', worst: '&#10060; Moins efficaces',
+        sub: 'Ratio buts / tirs cadrés, relatif à la moyenne du championnat',
+        mid: 'Ratio', val: 'Indice',
+        score: t => (t.ratio_conversion_num > 0 && avgRatio) ? t.ratio_conversion_num / avgRatio : null,
+        middle: r => mono((r.ratio_conversion_num * 100).toFixed(1) + '%'),
+        fmt: r => r.score.toFixed(2) + '×',
+      },
+      {
+        best: '&#9917; Possession dominante', worst: '&#128164; Possession stérile',
+        sub: 'Possession ET taux de victoire combinés, relatifs à la moyenne du championnat',
+        mid: 'Poss. · Vict.', val: 'Score',
+        score: t => (t.possession_en_pourcentage && avgPoss && avgVict)
+          ? (t.possession_en_pourcentage / avgPoss - 1) + ((t.taux_victoire || 0) / avgVict - 1) : null,
+        middle: r => mono(`${Math.round(r.possession_en_pourcentage)}% · ${Math.round(r.taux_victoire || 0)}%`),
+        fmt: r => signed(r.score, 2),
+      },
+      {
+        // Expectation pythagoricienne (exposant 1.3) sur buts pour/contre.
+        best: '&#127808; Surperforment', worst: '&#128148; Malchanceuses',
+        sub: 'Points réels vs points attendus selon la différence de buts — positif = candidate à la régression, négatif = pourrait rebondir',
+        mid: 'Pts / att.', val: 'Écart',
+        score: t => {
+          if (t.points == null || !(t.buts_pour || t.buts_contre)) return null;
+          const bp = Math.pow(t.buts_pour || 0, 1.3), bc = Math.pow(t.buts_contre || 0, 1.3);
+          // Ecart en vrais points (et non en % du max comme sur
+          // meilleures-equipes.html) : lisible a cote de "Pts / att.", et
+          // comparable puisque les equipes d'un meme championnat ont
+          // quasiment le meme nombre de matchs joues.
+          return t.points - (bp / (bp + bc)) * t.matchs_joues * 3;
+        },
+        middle: r => mono(`${r.points} / ${(r.points - r.score).toFixed(1)}`),
+        fmt: r => signed(r.score, 1) + ' pts',
+        cls: r => (r.score < 0 ? 'down' : ''),
+      },
+    ].map(m => {
+      const ranked = elig
+        .map(t => ({ ...t, score: m.score(t) }))
+        .filter(t => t.score != null && Number.isFinite(t.score))
+        .sort((a, b) => b.score - a.score);
+      return { ...m, top: ranked.slice(0, TOP_N), bottom: ranked.slice(-TOP_N).reverse() };
+    });
+  }
+
+  function miniBlock(title, sub, m, rows, cls) {
+    return `
+      <div class="table-block mini">
+        <h3>${title}</h3>
+        <p class="sub">${sub}</p>
+        <div class="tbl-scroll"><table>
+          <thead><tr><th>#</th><th>Équipe</th><th>${m.mid}</th><th>${m.val}</th></tr></thead>
+          <tbody>${renderMini(rows, m.middle, m.fmt, cls)}</tbody>
+        </table></div>
+      </div>`;
+  }
+
+  function renderLeague(lg) {
+    const teams = byLeague[lg];
+    document.getElementById('league-title').textContent = lg;
+    const lastUpdate = teams.reduce((m, t) => (t.updated_at > m ? t.updated_at : m), '');
+    document.getElementById('league-meta').textContent =
+      `${teams.length} équipes` +
+      (lastUpdate ? ` · mis à jour le ${new Date(lastUpdate).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}` : '');
+
+    renderStandings(teams);
+
+    // Une rangee par metrique : meilleur a gauche, pire a droite
+    document.getElementById('mini-grid').innerHTML = buildMetrics(teams).map(m =>
+      miniBlock(m.best, m.sub, m, m.top, m.cls) +
+      miniBlock(m.worst, 'Même calcul, du plus faible au moins faible', m, m.bottom, m.cls || (() => 'down'))
+    ).join('');
+
+    document.querySelectorAll('#league-list button').forEach(b =>
+      b.classList.toggle('active', b.dataset.league === lg));
+  }
+
+  function selectLeague(lg, pushHash = true) {
+    if (!byLeague[lg]) return;
+    renderLeague(lg);
+    if (pushHash) history.replaceState(null, '', '#' + encodeURIComponent(lg));
+  }
+
+  async function init() {
+    try {
+      const [teams, today] = await Promise.all([
+        supabaseGet('classements_foot',
+          'select=team_id,equipe,championnat,position,points,matchs_joues,victoires,nuls,defaites,' +
+          'buts_pour,buts_contre,ratio_conversion_num,possession_en_pourcentage,taux_victoire,' +
+          'forme_recente_championnat,forme_recente_globale,updated_at'),
+        fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
+      ]);
+      todayMap = today;
+
+      const freshCutoff = Date.now() - FRESHNESS_MS;
+      const fresh = teams.filter(t => t.championnat && t.updated_at && new Date(t.updated_at).getTime() >= freshCutoff);
+
+      byLeague = {};
+      fresh.forEach(t => { (byLeague[t.championnat] = byLeague[t.championnat] || []).push(t); });
+      const leagues = Object.keys(byLeague).sort((a, b) => a.localeCompare(b, 'fr'));
+      if (!leagues.length) throw new Error('aucun championnat à jour en base');
+
+      const fromHash = decodeURIComponent(location.hash.slice(1));
+      const current = byLeague[fromHash] ? fromHash : leagues[0];
+      renderMenu(leagues, current);
+
+      document.getElementById('league-list').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-league]');
+        if (btn) selectLeague(btn.dataset.league);
+      });
+      window.addEventListener('hashchange', () => selectLeague(decodeURIComponent(location.hash.slice(1)), false));
+
+      selectLeague(current, false);
+      document.getElementById('loading').hidden = true;
+      document.getElementById('content').hidden = false;
+    } catch (err) {
+      console.error(err);
+      document.getElementById('loading').hidden = true;
+      const errEl = document.getElementById('error');
+      errEl.hidden = false;
+      errEl.textContent = 'Erreur de chargement : ' + err.message;
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
