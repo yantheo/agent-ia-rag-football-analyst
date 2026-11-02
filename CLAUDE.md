@@ -16,8 +16,16 @@ Pages actuelles :
   aucune communication avec un backend.
 - **`meilleurs-paris.html`** — Pre-filtre statistique local (gratuit) des matchs du jour, puis analyse
   IA des candidats les plus desequilibres, classes par indice de confiance.
-- **`buteurs-passeurs.html`** — 4 classements (buteurs/passeurs bruts + par importance relative a
-  l'equipe), calcules cote client depuis les donnees Supabase deja chargees.
+- **`championnats.html`** — Menu lateral des championnats scrapes, classement du championnat choisi +
+  top/flop 5 par championnat (forme, attaque, defense, efficacite, possession, points vs attendus).
+- **`meilleures-equipes.html`** / **`pires-equipes.html`** — Top 10 toutes ligues confondues sur les
+  memes 6 metriques (pires = meme calcul, tri inverse), 3 tableaux par rangee.
+- **`buteurs-passeurs.html`** — 6 classements de 20 joueurs (buteurs/passeurs bruts, par importance
+  relative a l'equipe, equipes dominantes), calcules cote client depuis les donnees Supabase.
+
+**Header/navigation dupliques dans chaque page** (pas de build, pas d'include) : ajouter une page ou
+modifier le menu implique de modifier le `<nav class="nav-links">` et le CSS `.header-content` de
+toutes les pages. Le menu est centre sous le logo (`flex-direction: column`).
 
 Ce n'est **pas** un chat libre. Le calendrier (`index.html`) fonctionne ainsi :
 1. Au chargement, le frontend requete directement Supabase (REST, cle anon en dur dans le JS — c'est
@@ -27,7 +35,7 @@ Ce n'est **pas** un chat libre. Le calendrier (`index.html`) fonctionne ainsi :
 3. Bouton "Analyser" → POST vers le webhook n8n avec le payload structure (voir plus bas) → affichage
    du rapport HTML genere par l'agent IA.
 
-Les 3 autres pages reutilisent ce meme webhook et/ou les memes requetes Supabase REST — aucun nouveau
+Les autres pages reutilisent ce meme webhook et/ou les memes requetes Supabase REST — aucun nouveau
 backend n'a ete introduit.
 
 ## Stack / Architecture
@@ -149,10 +157,33 @@ Calcule 6 classements cote client a partir d'une seule requete Supabase sur `cla
   `taux_victoire`) ne sont plus utilises dans le score : ils sont derives des memes stats brutes par le
   scraper, les reutiliser aurait compte deux fois le meme signal.
 
-## Etat au 2026-11-01 (a reprendre a la prochaine session)
+## Page Championnats (championnats.html)
 
-- Le modele Poisson ci-dessus est commite en local (`dd9b9df`) mais **pas encore pousse sur GitHub** —
-  donc pas encore sur le site en ligne. Attendre validation avant de pousser.
+Une seule requete `classements_foot`, regroupee par `championnat` cote client. Le menu lateral (fixe en
+`position: sticky`, barre horizontale scrollable sous 860px) est genere depuis les donnees : aucun nom
+de championnat en dur. Meme filtre de fraicheur que les autres pages (`updated_at` < 3 jours, pour
+exclure les lignes orphelines d'une saison precedente). Le championnat choisi est dans le hash de l'URL
+(`championnats.html#Serie%20A`), partageable.
+
+- **Classement : `position` et `points` repris tels quels de la source, PAS recalcules.** Verifie le
+  2026-11-02 : un recalcul `3V + N` / tri points > diff > BP aurait ete faux dans deux cas reels —
+  Southampton (Championship) a une penalite de points (23 en base vs 27 par 3V+N), et la Liga Portugal
+  departage par confrontations directes (4 equipes mal placees par un tri diff de buts). Seule la
+  difference de buts (`buts_pour - buts_contre`) est calculee cote client — pas besoin de colonne
+  backend pour ca.
+- **12 tableaux top/flop 5** generes depuis une liste de definitions (`buildMetrics`) : memes formules
+  que Meilleures/Pires Equipes (min. 5 matchs joues, `SHRINK_K = 6`, moyennes du championnat ponderees
+  par matchs joues), restreintes au championnat selectionne. Pour ajouter une metrique, ajouter une
+  entree a cette liste.
+- **Difference volontaire** : l'ecart "points reels vs attendus" (expectation pythagoricienne, exposant
+  1.3) est affiche en **vrais points** ici, alors que `meilleures-equipes.html` l'affiche en points de %
+  du maximum. Ici il est affiche a cote de "Pts / att." et les equipes d'un meme championnat ont
+  quasiment le meme nombre de matchs, donc les vrais points sont comparables et lisibles.
+
+## Etat au 2026-11-02
+
+- Le modele Poisson (`dd9b9df`) est pousse et en ligne, ainsi que la page Championnats (`9da9c28`) et
+  le passage a 20 joueurs sur Buteurs & Passeurs (`bfe9792`).
 - Changement lie cote backend : les algorithmes du scraper (`scraper_league_team.py`,
   `scraper_detail_team.py`, voir le repo backend mentionne plus haut) ont ete revus le meme jour pour
   utiliser le meme principe (seuils relatifs au championnat + shrinkage, au lieu de seuils absolus fixes)
