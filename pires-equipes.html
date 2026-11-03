@@ -250,10 +250,14 @@
 
             <div class="table-block">
                 <h3>&#128683; Pires défenses</h3>
-                <p class="sub">Buts encaissés/match, relatif à la moyenne du championnat (plus haut = pire)</p>
+                <div class="mode-tabs" id="defense-tabs" role="tablist">
+                    <button type="button" data-mode="indice" class="active">Indice</button>
+                    <button type="button" data-mode="buts">Buts encaissés</button>
+                </div>
+                <p class="sub" id="defense-sub">Buts encaissés/match, relatif à la moyenne du championnat (plus haut = pire)</p>
                 <div class="tbl-scroll">
                     <table>
-                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Indice</th></tr></thead>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th id="defense-col">Indice</th></tr></thead>
                         <tbody id="tbl-defense"></tbody>
                     </table>
                 </div>
@@ -615,7 +619,29 @@
         if (btn) renderAttaque(btn.dataset.mode);
       });
       renderAttaque('indice');
-      renderTable('tbl-defense', defense, r => r.defenseIndex.toFixed(2) + '×', null, todayMap);
+      // Onglets Indice / Buts encaisses : meme principe que l'attaque.
+      const defenseButs = [...withIndices].sort((a, b) => b.buts_contre - a.buts_contre || a.matchs_joues - b.matchs_joues).slice(0, TOP_N);
+      const DEFENSE_MODES = {
+        indice: { rows: defense, col: 'Indice', sub: 'Buts encaissés/match, relatif à la moyenne du championnat (plus haut = pire)', fmt: r => r.defenseIndex.toFixed(2) + '×' },
+        buts: {
+          rows: defenseButs, col: 'Encaissés',
+          sub: 'Total brut de buts encaissés en championnat (sans correction du nombre de matchs ni du niveau du championnat)',
+          fmt: r => `${r.buts_contre} <span class="muted">en ${r.matchs_joues} m</span>`,
+        },
+      };
+      function renderDefense(mode) {
+        const m = DEFENSE_MODES[mode] || DEFENSE_MODES.indice;
+        renderTable('tbl-defense', m.rows, m.fmt, null, todayMap);
+        document.getElementById('defense-col').textContent = m.col;
+        document.getElementById('defense-sub').textContent = m.sub;
+        document.querySelectorAll('#defense-tabs button').forEach(b =>
+          b.classList.toggle('active', b.dataset.mode === mode));
+      }
+      document.getElementById('defense-tabs').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-mode]');
+        if (btn) renderDefense(btn.dataset.mode);
+      });
+      renderDefense('indice');
       renderTable('tbl-efficacite', efficacite, r => r.ratioVsLigue.toFixed(2) + '×', null, todayMap);
       renderTable('tbl-possession', possession, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2), null, todayMap);
       renderTable('tbl-chance', chance, r => (r.ecart >= 0 ? '+' : '') + r.ecart.toFixed(1) + ' pts', r => r.ecart >= 0 ? 'up' : '', todayMap);
