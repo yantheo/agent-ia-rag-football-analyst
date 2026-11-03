@@ -3,3 +3,6 @@ bilan-paris.html
 PROMPT-reprise-claude-code.md
 PROMPT-integration-calculatrice.md
 parse_bwin.py
+
+# Sauvegardes locales des prompts / workflows n8n (jamais commitees)
+prompts-n8n/
