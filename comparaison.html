@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparaison v1 / v2</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f0d; --card: #1a2420; --card2: #111916; --border: #2a3832;
+    --text: #e2e8e4; --muted: #8a9a92; --green: #22c55e; --gold: #fbbf24; --red: #ef4444; --blue: #60a5fa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; padding: 28px 16px 60px; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  h2 { font-size: 1.1rem; margin: 32px 0 6px; }
+  p.lead, p.note { color: var(--muted); font-size: 0.88rem; margin: 4px 0; max-width: 100ch; }
+  .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 16px 0; }
+  .controls input { background: var(--card2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font: inherit; }
+  .controls button { background: var(--green); color: #04130a; border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 700; cursor: pointer; }
+  .summary { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 4px; }
+  .pill { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 0.85rem; }
+  .pill b { font-family: 'JetBrains Mono', monospace; }
+  .scroll { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.84rem; }
+  th, td { padding: 8px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
+  th { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; background: var(--card2); position: sticky; top: 0; }
+  td.n { font-family: 'JetBrains Mono', monospace; text-align: right; }
+  tr.flip td { background: rgba(251, 191, 36, 0.10); }
+  tr.flip td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+  .tag { display: inline-block; font-size: 0.68rem; padding: 1px 6px; border-radius: 6px; margin-left: 6px; font-weight: 600; vertical-align: middle; }
+  .tag.x { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .tag.dg { background: rgba(239,68,68,0.15); color: var(--red); }
+  .tag.fl { background: rgba(251,191,36,0.18); color: var(--gold); }
+  .muted { color: var(--muted); }
+  .up { color: var(--green); } .down { color: var(--red); }
+  .ranks { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .ranks { grid-template-columns: 1fr; } }
+  #err { color: var(--red); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Comparaison des modèles v1 / v2</h1>
+  <p class="lead">Outil de diagnostic (pas une page publique). Pour chaque match, <b>v1</b> (<code>v1-poisson-k6</code>, en production) et
+    <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson) sont calculés dans la même passe, sur les mêmes données.</p>
+  <p class="note">Espérance = P(1) + ½·P(N) : c'est elle (pas P(1)) qui se compare à la cible Elo 1/(1+10^(−dE/400)).
+    Lignes surlignées = le favori change de camp entre v1 et v2. Elo : instantané ClubElo versionné (<code>elo-clubs.json</code>).</p>
+
+  <div class="controls">
+    <label>Date <input type="date" id="date"></label>
+    <button id="go">Calculer</button>
+    <span id="status" class="muted"></span><span id="err"></span>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <h2>Matchs</h2>
+  <div class="scroll"><table>
+    <thead><tr>
+      <th>Match</th><th>Compétition</th><th>Elo dom</th><th>Elo ext</th><th>dE</th>
+      <th>v1 : favori</th><th>v2 : favori</th><th>Δ P(1)</th><th>Espérance v2</th><th>Cible Elo</th>
+      <th>T v2 (buts)</th><th>v1 P(1/N/2)</th><th>v2 P(1/N/2)</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+
+  <h2>Classements du pré-filtre (probabilité du favori décroissante)</h2>
+  <p class="note">Ce que Meilleurs Paris enverrait à l'IA dans cet ordre. Flèche = gain/perte de rang de v1 à v2.</p>
+  <div class="ranks">
+    <div class="scroll"><table><thead><tr><th>#</th><th>v1</th><th>Favori</th><th>%</th></tr></thead><tbody id="rank1"></tbody></table></div>
+    <div class="scroll"><table><thead><tr><th>#</th><th>v2</th><th>Favori</th><th>%</th><th>vs v1</th></tr></thead><tbody id="rank2"></tbody></table></div>
+  </div>
+</main>
+
+<script src="model.js"></script>
+<script>
+(function () {
+  'use strict';
+  const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
+
+  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const pct = v => (v * 100).toFixed(0) + '%';
+  async function sb(table, params) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+    if (!r.ok) throw new Error(`Supabase ${table} : ${r.status}`);
+    return r.json();
+  }
+  async function json(path) {
+    const r = await fetch(path, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`${path} : ${r.status}`);
+    return r.json();
+  }
+  function fav(p, m) {
+    if (!p) return null;
+    const max = Math.max(p.pHome, p.pDraw, p.pAway);
+    const side = max === p.pHome ? 'home' : max === p.pAway ? 'away' : 'draw';
+    return { side, prob: max, name: side === 'home' ? m.equipe_domicile : side === 'away' ? m.equipe_exterieur : 'Nul' };
+  }
+
+  async function compute(dateStr) {
+    const next = new Date(new Date(dateStr + 'T12:00:00').getTime() + 86400000).toLocaleDateString('sv-SE');
+    const [matches, teams, eloData, mapping] = await Promise.all([
+      sb('calendrier', `date_match=gte.${dateStr}&date_match=lt.${next}&select=*&order=heure.asc`),
+      // Mêmes données que meilleurs-paris.html (pas de filtre de fraîcheur) pour que la v1 soit identique.
+      sb('classements_foot', 'select=team_id,championnat,buts_pour,buts_contre,matchs_joues'),
+      json('elo-clubs.json'),
+      json('elo-mapping.json'),
+    ]);
+
+    const iV1 = Modele.v1.buildTeamIndices(teams, Modele.v1.computeLeagueAverages(teams));
+    const ctx = Modele.v2.prepare(teams, eloData, mapping);
+    Modele.v2.eloCoverage(ctx, matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur]));
+
+    const rows = matches.map(m => {
+      const p1 = Modele.v1_poisson(iV1[m.team_id_domicile], iV1[m.team_id_exterieur]);
+      const p2 = Modele.v2.matchProbabilities(ctx, m.team_id_domicile, m.team_id_exterieur);
+      const f1 = fav(p1, m), f2 = fav(p2, m);
+      return { m, p1, p2, f1, f2, flip: !!(f1 && f2 && f1.side !== f2.side) };
+    });
+    return { rows, eloData };
+  }
+
+  function render({ rows, eloData }) {
+    const flips = rows.filter(r => r.flip).length;
+    const deg = rows.filter(r => r.p2 && r.p2.eloDegrade).length;
+    const v1Missing = rows.filter(r => !r.p1).length;
+    const xl = rows.filter(r => r.p2 && r.p2.crossLeague).length;
+    document.getElementById('summary').innerHTML = [
+      `<span class="pill">Matchs : <b>${rows.length}</b></span>`,
+      `<span class="pill">Favori qui change de camp : <b>${flips}</b></span>`,
+      `<span class="pill">Inter-ligues : <b>${xl}</b></span>`,
+      `<span class="pill">v2 en Elo dégradé : <b>${deg}</b></span>`,
+      `<span class="pill">Non calculables en v1 (équipe sans stats) : <b>${v1Missing}</b></span>`,
+      `<span class="pill">Elo ClubElo du <b>${esc(eloData.date_classement_clubelo)}</b></span>`,
+    ].join('');
+
+    document.getElementById('rows').innerHTML = rows.map(({ m, p1, p2, f1, f2, flip }) => {
+      const tags = (p2 && p2.crossLeague ? '<span class="tag x">inter-ligues</span>' : '') +
+        (p2 && p2.eloDegrade ? `<span class="tag dg" title="${esc(p2.eloDegradeDetail.join(' ; '))}">Elo dégradé</span>` : '') +
+        (flip ? '<span class="tag fl">favori change</span>' : '');
+      const esp = p2 ? p2.pHome + p2.pDraw / 2 : null;
+      const cible = p2 ? 1 / (1 + Math.pow(10, -p2.dE / 400)) : null;
+      const d = p1 && p2 ? p2.pHome - p1.pHome : null;
+      const trio = p => p ? `${pct(p.pHome)} / ${pct(p.pDraw)} / ${pct(p.pAway)}` : '—';
+      return `<tr class="${flip ? 'flip' : ''}">
+        <td><b>${esc(m.equipe_domicile)}</b> – <b>${esc(m.equipe_exterieur)}</b>${tags}</td>
+        <td class="muted">${esc(m.championnat)}</td>
+        <td class="n">${p2 ? p2.eloHome : '—'}</td><td class="n">${p2 ? p2.eloAway : '—'}</td>
+        <td class="n">${p2 ? (p2.dE > 0 ? '+' : '') + Math.round(p2.dE) : '—'}</td>
+        <td>${f1 ? `${esc(f1.name)} <span class="muted">${pct(f1.prob)}</span>` : '<span class="muted">—</span>'}</td>
+        <td>${f2 ? `<b>${esc(f2.name)}</b> <span class="muted">${pct(f2.prob)}</span>` : '<span class="muted">—</span>'}</td>
+        <td class="n ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d == null ? '—' : (d > 0 ? '+' : '') + (d * 100).toFixed(0) + ' pts'}</td>
+        <td class="n">${esp == null ? '—' : esp.toFixed(3)}</td>
+        <td class="n">${cible == null ? '—' : cible.toFixed(3)}</td>
+        <td class="n">${p2 ? p2.T.toFixed(2) : '—'}</td>
+        <td class="n muted">${trio(p1)}</td><td class="n">${trio(p2)}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="13" class="muted">Aucun match ce jour-là.</td></tr>';
+
+    // Classements côte à côte (mêmes règles que le pré-filtre : proba du favori décroissante)
+    const key = r => `${r.m.team_id_domicile}|${r.m.team_id_exterieur}`;
+    const r1 = rows.filter(r => r.f1).sort((a, b) => b.f1.prob - a.f1.prob);
+    const r2 = rows.filter(r => r.f2).sort((a, b) => b.f2.prob - a.f2.prob);
+    const pos1 = new Map(r1.map((r, i) => [key(r), i + 1]));
+    const label = r => `${esc(r.m.equipe_domicile)} – ${esc(r.m.equipe_exterieur)}${r.p2 && r.p2.crossLeague ? '<span class="tag x">IL</span>' : ''}`;
+    document.getElementById('rank1').innerHTML = r1.map((r, i) =>
+      `<tr><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f1.name)}</td><td class="n">${pct(r.f1.prob)}</td></tr>`).join('');
+    document.getElementById('rank2').innerHTML = r2.map((r, i) => {
+      const before = pos1.get(key(r));
+      const mv = before == null ? '<span class="muted">nouveau</span>'
+        : before - (i + 1) > 0 ? `<span class="up">▲ ${before - (i + 1)}</span>`
+        : before - (i + 1) < 0 ? `<span class="down">▼ ${(i + 1) - before}</span>` : '<span class="muted">=</span>';
+      return `<tr class="${r.flip ? 'flip' : ''}"><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f2.name)}</td><td class="n">${pct(r.f2.prob)}</td><td class="n">${mv}</td></tr>`;
+    }).join('');
+  }
+
+  async function go() {
+    const dateStr = document.getElementById('date').value;
+    document.getElementById('status').textContent = 'Calcul…';
+    document.getElementById('err').textContent = '';
+    try {
+      render(await compute(dateStr));
+      document.getElementById('status').textContent = '';
+      history.replaceState(null, '', '?date=' + dateStr);
+    } catch (e) {
+      console.error(e);
+      document.getElementById('status').textContent = '';
+      document.getElementById('err').textContent = 'Erreur : ' + e.message;
+    }
+  }
+
+  const qs = new URLSearchParams(location.search).get('date');
+  document.getElementById('date').value = qs || new Date().toLocaleDateString('sv-SE');
+  document.getElementById('go').addEventListener('click', go);
+  go();
+})();
+</script>
+</body>
+</html>
