@@ -219,6 +219,54 @@ exclure les lignes orphelines d'une saison precedente). Le championnat choisi es
   backend (pull + restart + scrape) -> frontend, mais le repli evite de casser les pages en cas de
   decalage.
 
+## Modele de prediction v2 (branche `v2-modele`, 2026-11-03) — EN EVALUATION, pas en production
+
+**Architecture.** Le modele vit dans `model.js` (objet global `Modele`, aussi chargeable sous Node).
+`Modele.v1` = modele historique (`v1-poisson-k6`), deplace a l'identique depuis `meilleurs-paris.html`
+(ecart 0 verifie) et **conserve comme reference : ne pas le modifier**. `Modele.v2` = `v2-elo-k13`.
+`comparaison.html` = outil de diagnostic v1/v2 (hors menu). `tests.html` / `node model.tests.js` = tests
+chiffres (valeurs attendues calculees independamment, tolerance 0,005).
+
+**Formules v2 (figees).** `dE = eloDom + advDomLigue - eloExt` (avantage du terrain +65 Elo, par
+championnat, jamais par equipe) ; `s = exp(2·k·dE)`, k = 0.00225 ; `T = mL·(attDom·defExt + attExt·defDom)`
+(indices lisses K=13, **aucun** facteur 1,08/0,94) ; `λdom = T·s/(1+s)`, `λext = T/(1+s)`, plancher 0,25.
+Pieges : `exp(k·dE)` ou `exp(k·dE/2)` = pente 2x trop faible ; remettre 1,08/0,94 dans T = double comptage
+de l'avantage du terrain ; reintroduire la correction par Elo moyen de ligue = double comptage (l'Elo des
+clubs est deja sur une echelle commune). Consequence assumee : en v2, **le 1X2 vient presque entierement
+de l'Elo** (l'esperance P(1)+½P(N) reproduit `1/(1+10^(-dE/400))` a ±0,01) ; les stats de saison
+n'agissent que sur T (Over/Under). Sur le 1X2, v2 ne battra donc pas les bookmakers (memes donnees
+publiques) ; l'avantage eventuel est sur les marches de buts.
+
+**`version_modele`** : chaque version est figee. Toute modification d'une formule ou d'une constante
+= nouvelle valeur (`v1-poisson-k6`, `v2-elo-k13`, `v2-elo-k13-tirs`...), sinon un log melangeant
+plusieurs versions est inexploitable pour une comparaison appariee.
+
+**Elo des clubs — le piege du mapping des noms.** `elo-mapping.json` (team_id -> nom ClubElo, releve a
+la main) + `elo-clubs.json` (instantane genere par `tools/build_elo_snapshot.py`). Le rapprochement
+automatique des noms donnait **Inter Milan -> "Milan" et PSG -> "Paris FC"** : des Elo credibles mais
+faux, sans aucune erreur (meme famille que les bugs bwin). D'ou : table explicite versionnee, controle
+qu'aucun club ClubElo n'est attribue deux fois, fallback explicite (Elo moyen du championnat + prediction
+`eloDegrade`) et compteur console des equipes sans Elo. Toute nouvelle equipe (promue, adversaire de
+Coupe d'Europe en `-eu`) doit etre ajoutee au mapping. L'API ClubElo n'existe qu'en HTTP : inutilisable
+depuis GitHub Pages (contenu mixte) -> cible = scraper backend + table Supabase ; l'instantane date du
+2026-11-02 et 11 equipes absentes de la page d'accueil ClubElo sont en Elo degrade.
+
+**Ecartes volontairement (ne pas reintroduire sans test)** : la forme des 5 derniers matchs comme
+facteur (deja dans les totaux et dans l'Elo, sur-ajustement mesure), Dixon-Coles (le double Poisson donne
+deja 25 % de nuls a T=2,8, dans la fourchette europeenne 24-26 % ; a reconsiderer si les nuls observes
+passent sous 23 %), l'avantage du terrain par equipe (trop bruite sur une demi-saison), possession et
+precision des passes (marqueurs de style, pouvoir predictif residuel quasi nul).
+
+**Point ouvert : K_LISSAGE = 13.** Valeur imposee par la specification. Estimation empirique sur nos
+192 equipes au 2026-11-03 (variance observee des taux de buts - variance Poisson attendue) : mediane
+~7,5, de 3 (Liga) a 37 (Ligue 2) — estimation elle-meme bruitee (18-24 equipes par ligue). N'agit que
+sur T en v2. A reestimer avec plus de journees.
+
+**Ce qu'il ne faut pas attendre** : comparer v1 et v2 par Brier score apparie demande ~600 matchs
+logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; detecter un avantage
+reel contre un bookmaker, plusieurs milliers de paris. Le pari n'est pas l'instrument de validation du
+modele : les matchs logges (joues ou non pariés) le sont.
+
 ## Etat au 2026-11-02
 
 - Le modele Poisson (`dd9b9df`) est pousse et en ligne, ainsi que la page Championnats (`9da9c28`) et
