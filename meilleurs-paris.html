@@ -326,6 +326,24 @@
     return m ? m[1].trim().replace(/[.,:;]+$/, '') : null;
   }
 
+  // Favori retenu par l'IA ("<strong>Favori :</strong> Norwich — ...") ramené à
+  // 'home' / 'away' / 'none' en le comparant aux noms des équipes. Calculé ici
+  // plutôt que lu dans l'étiquette "Lecture IA" du rapport : gpt-4o-mini se
+  // trompe parfois d'étiquette (test du 2026-11-03 : "CONFIRME" alors qu'il
+  // avait changé de favori).
+  function iaFavoriteSide(html, match) {
+    const m = /Favori\s*:?\s*<\/strong>\s*([^<]+)/i.exec(html || '');
+    if (!m) return null;
+    const txt = m[1].split(/\s[—–-]\s/)[0].toLowerCase();
+    if (/aucun/.test(txt)) return 'none';
+    const words = txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter(Boolean);
+    const hits = name => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .split(/[^a-z0-9]+/).filter(t => t.length >= 3)
+      .some(t => words.some(w => w.length >= 3 && (w.startsWith(t.slice(0, 4)) || t.startsWith(w.slice(0, 4)))));
+    const h = hits(match.equipe_domicile), a = hits(match.equipe_exterieur);
+    return h === a ? null : (h ? 'home' : 'away');
+  }
+
   function extractSignal(html) {
     const m = /Signal\s*:?\s*<\/strong>\s*([^<]+)/i.exec(html || '');
     return m ? m[1].trim().replace(/[.,:;]+$/, '') : null;
@@ -612,6 +630,16 @@
       return out;
     }
 
+    // Favori de l'IA comparé au favori du modèle (tâche 8) : affiché seulement
+    // s'il diffère, l'accord étant le cas attendu.
+    function iaVsModel(r) {
+      if (!r.fav || !r.output) return '';
+      const side = iaFavoriteSide(r.output, r.match);
+      if (!side || side === r.fav) return '';
+      const name = side === 'home' ? r.match.equipe_domicile : side === 'away' ? r.match.equipe_exterieur : 'aucun favori';
+      return ` &middot; <span class="xleague ia-contre" title="L'IA retient un autre favori que le modèle statistique : voir sa justification dans le rapport">IA : ${name} (contre le modèle)</span>`;
+    }
+
     function favTitle(r) {
       if (!r.probs) return 'Probabilité du favori — modèle statistique';
       const p = v => Math.round(v * 100) + '%';
@@ -631,7 +659,7 @@
           <div class="rank-num">#${idx + 1}</div>
           <div class="rank-teams">
             <div class="vs">${r.match.equipe_domicile} <span style="color:var(--text-muted)">vs</span> ${r.match.equipe_exterieur}</div>
-            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${matchTags(r)}</div>
+            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${matchTags(r)}${iaVsModel(r)}</div>
           </div>
           <div class="badges-col">
             <span class="confidence-badge ${probabilityClass(r.preGap)}" title="${favTitle(r)}">${favLabel(r)}${r.preGap != null ? (r.preGap * 100).toFixed(0) + '%' : '—'}</span>
