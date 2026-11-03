@@ -117,6 +117,15 @@
     check('v3 : repli explicite sur la v2 sans v1', r4x && r4x.v3Repli === true && r4x.version === 'v2-elo-k13' && r4x.probV1 === null,
       r4x ? `version ${r4x.version}, repli ${r4x.v3Repli}` : 'null');
 
+    // 12. Bloc envoyé à l'IA : mêmes probabilités, Over 2,5 d'un Poisson(T).
+    // T = 2,8 -> P(total <= 2) = e^-2,8 (1 + 2,8 + 3,92) = 0,4695 -> Over = 0,531.
+    const pl = M.payloadModele(M.v2.matchProbabilities(ctxFor(1815, 1821), 'h', 'a'), 'Galatasaray', 'Stuttgart');
+    check('payloadModele : probabilités, favori et Over 2,5',
+      pl && pl.favori === 'Galatasaray' && near(pl.p_domicile, 0.459) && near(pl.p_over_2_5, 0.531)
+        && near(pl.buts_attendus_total, 2.8, 0.001) && pl.version === 'v2-elo-k13',
+      pl ? JSON.stringify(pl) : 'null');
+    check('payloadModele(null) = null (match non calculable)', M.payloadModele(null, 'A', 'B') === null);
+
     return results;
   }
 

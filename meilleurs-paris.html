@@ -270,7 +270,11 @@
 
   const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
-  const N8N_WEBHOOK_URL = 'https://n8n.scribify.net/webhook/football-analyze';
+  // Webhook de test (workflow n8n séparé) : seulement en local avec ?n8n=v3,
+  // pour essayer un nouveau prompt sans toucher à la production.
+  const N8N_WEBHOOK_URL = (location.hostname === 'localhost' && new URLSearchParams(location.search).get('n8n') === 'v3')
+    ? 'https://n8n.scribify.net/webhook/football-analyze-v3'
+    : 'https://n8n.scribify.net/webhook/football-analyze';
   const CACHE_KEY = 'meilleurs_paris_cache_v1';
   const MIN_RESULTS = 3;
   const MAX_RESULTS = 10;
@@ -423,7 +427,9 @@
     return results;
   }
 
-  async function analyzeMatch(match) {
+  // probs = prédiction v2 déjà calculée par le pré-filtre : transmise à l'IA
+  // (bloc "modele") pour qu'elle parte du favori statistique.
+  async function analyzeMatch(match, probs) {
     const payload = {
       match_id: match.match_id || null,
       equipe_domicile: match.equipe_domicile,
@@ -432,6 +438,7 @@
       team_id_exterieur: match.team_id_exterieur,
       championnat: match.championnat,
       date_match: match.date_match,
+      modele: Modele.payloadModele(probs, match.equipe_domicile, match.equipe_exterieur),
     };
     const res = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
@@ -511,7 +518,7 @@
       // confiance (avant, il disparaissait — l'IA ne doit venir qu'en second).
       let output = '', confidence = null;
       try {
-        output = await analyzeMatch(m);
+        output = await analyzeMatch(m, probs);
         confidence = extractConfidence(output);
       } catch (err) {
         console.error('Analyse échouée pour', m.equipe_domicile, 'vs', m.equipe_exterieur, err);

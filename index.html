@@ -371,6 +371,7 @@
         </div>
     </footer>
 
+    <script src="model.js"></script>
     <script>
 
   // Lien vers la fiche équipe (equipe.html?team=<team_id>)
@@ -381,7 +382,10 @@
         // --- CONFIG ---
         const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
-        const N8N_WEBHOOK_URL = 'https://n8n.scribify.net/webhook/football-analyze';
+        // Webhook de test (workflow n8n séparé) : seulement en local avec ?n8n=v3.
+        const N8N_WEBHOOK_URL = (location.hostname === 'localhost' && new URLSearchParams(location.search).get('n8n') === 'v3')
+            ? 'https://n8n.scribify.net/webhook/football-analyze-v3'
+            : 'https://n8n.scribify.net/webhook/football-analyze';
 
         const FLAG_MAP = {
             fr: '\u{1F1EB}\u{1F1F7}', esp: '\u{1F1EA}\u{1F1F8}', eng: '\u{1F1EC}\u{1F1E7}',
@@ -795,6 +799,36 @@
                 </div>`;
         }
 
+        // --- MODELE v2 (model.js) : transmis à l'IA avec la demande d'analyse ---
+        // Contexte chargé une fois (stats de saison + Elo + correspondance). En cas
+        // d'échec, l'analyse part sans bloc "modele" (l'IA le signale "non fourni").
+        let modelCtxPromise = null;
+        function loadModelContext() {
+            if (!modelCtxPromise) {
+                const getJson = path => fetch(path, { cache: 'no-cache' }).then(r => {
+                    if (!r.ok) throw new Error(`${path} : ${r.status}`);
+                    return r.json();
+                });
+                modelCtxPromise = Promise.all([
+                    supabaseGet('classements_foot', 'select=team_id,championnat,buts_pour,buts_contre,matchs_joues'),
+                    getJson('elo-clubs.json'), getJson('elo-mapping.json'),
+                ]).then(([teams, elo, mapping]) => Modele.v2.prepare(teams, elo, mapping));
+                modelCtxPromise.catch(() => { modelCtxPromise = null; });
+            }
+            return modelCtxPromise;
+        }
+
+        async function modelBlock(match) {
+            try {
+                const ctx = await loadModelContext();
+                const p = Modele.v2.matchProbabilities(ctx, match.team_id_domicile, match.team_id_exterieur);
+                return Modele.payloadModele(p, match.equipe_domicile, match.equipe_exterieur);
+            } catch (err) {
+                console.warn('Modele v2 indisponible, analyse sans bloc modele', err);
+                return null;
+            }
+        }
+
         // --- ANALYZE ---
         async function analyzeMatch() {
             if (!currentMatch) return;
@@ -815,6 +849,7 @@
                     team_id_exterieur: currentMatch.team_id_exterieur,
                     championnat: currentMatch.championnat,
                     date_match: currentMatch.date_match,
+                    modele: await modelBlock(currentMatch),
                 };
 
                 const res = await fetch(N8N_WEBHOOK_URL, {

@@ -247,7 +247,7 @@
     };
   })();
 
-  // ===========================================================================
+  // ====================================================================
   // Marché : probabilités implicites des cotes 1/N/2, marge retirée par la
   // méthode de la puissance (p_i = (1/cote_i)^k, k tel que Σ p_i = 1). Moins
   // biaisée que la normalisation proportionnelle sur les gros outsiders.
@@ -317,12 +317,35 @@
     function eloCoverage(ctx, teamIds) { return v2.eloCoverage(ctx.v2, teamIds); }
     return { VERSION, prepare, matchProbabilities, eloCoverage };
   })();
+=======
+  // Bloc "modele" envoyé à l'agent IA (webhook n8n) avec la demande d'analyse :
+  // l'IA part du favori statistique au lieu d'en déduire un elle-même. Ne
+  // modifie aucune formule : simple mise en forme d'une prédiction v2.
+  // P(Over 2,5) : le total de deux Poisson indépendants est un Poisson de
+  // paramètre λdom + λext.
+  function payloadModele(p, nomDom, nomExt) {
+    if (!p) return null;
+    const r = x => Math.round(x * 1000) / 1000;
+    const mu = p.lambdaHome + p.lambdaAway;
+    const pUnder = poissonPmf(mu, 0) + poissonPmf(mu, 1) + poissonPmf(mu, 2);
+    const max = Math.max(p.pHome, p.pDraw, p.pAway);
+    return {
+      version: p.version,
+      p_domicile: r(p.pHome), p_nul: r(p.pDraw), p_exterieur: r(p.pAway),
+      favori: max === p.pHome ? nomDom : max === p.pAway ? nomExt : 'Nul',
+      buts_attendus_domicile: r(p.lambdaHome), buts_attendus_exterieur: r(p.lambdaAway),
+      buts_attendus_total: r(mu), p_over_2_5: r(1 - pUnder),
+      elo_domicile: Math.round(p.eloHome), elo_exterieur: Math.round(p.eloAway),
+      elo_approximatif: !!p.eloDegrade,
+    };
+  }
 
   global.Modele = {
     moyenneV1V2,
     v3,
     poissonPmf,
     poissonOutcomes,
+    payloadModele,
     v1,
     v2,
     marche,
