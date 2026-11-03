@@ -18,8 +18,12 @@ Pages actuelles :
   IA des candidats les plus desequilibres, classes par indice de confiance.
 - **`championnats.html`** — Menu lateral des championnats scrapes, classement du championnat choisi +
   top/flop 5 par championnat (forme, attaque, defense, efficacite, possession, points vs attendus).
-- **`meilleures-equipes.html`** / **`pires-equipes.html`** — Top 10 toutes ligues confondues sur les
-  memes 6 metriques (pires = meme calcul, tri inverse), 3 tableaux par rangee.
+- **`meilleures-equipes.html`** / **`pires-equipes.html`** — Classements toutes ligues confondues sur les
+  memes 6 metriques + domicile / exterieur (pires = meme calcul, tri inverse). Top 20 (`TOP_N`). Menu
+  lateral a gauche (meme style que `championnats.html`), **genere depuis les `.table-block` du HTML**
+  (titre = `<h3>`, cle = id du `<tbody>` sans `tbl-`) : un seul tableau affiche a la fois, choix dans le
+  hash (`meilleures-equipes.html#domicile`). Ajouter un tableau dans le HTML suffit pour qu'il apparaisse
+  dans le menu.
 - **`buteurs-passeurs.html`** — 6 classements (buteurs/passeurs bruts, par importance relative a
   l'equipe, equipes dominantes), calcules cote client depuis les donnees Supabase. Meme menu lateral
   que `championnats.html` : "Tous les championnats" par defaut (20 joueurs par tableau), ou un seul

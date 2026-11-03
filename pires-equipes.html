@@ -133,6 +133,44 @@
         footer p { font-size: 0.875rem; color: var(--text-muted); }
 
         @media (max-width: 768px) { .header-content { flex-direction: column; gap: 16px; } }
+
+        /* Menu lateral des stats (meme style que championnats.html) */
+        .layout { --sidebar-w: 230px; display: flex; gap: 28px; align-items: flex-start; padding: 8px 0 48px; }
+        .stat-menu {
+            position: sticky; top: 16px;
+            flex: 0 0 var(--sidebar-w); width: var(--sidebar-w);
+            max-height: calc(100vh - 32px); overflow-y: auto;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 14px 10px;
+        }
+        .stat-menu h3 {
+            font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600; padding: 0 10px 10px;
+        }
+        .stat-menu ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .stat-menu button {
+            width: 100%; display: flex; align-items: center; gap: 8px;
+            background: none; border: 1px solid transparent; border-radius: 10px;
+            color: var(--text-secondary); font: inherit; font-size: 0.88rem; text-align: left;
+            padding: 8px 10px; cursor: pointer; transition: all 0.15s;
+        }
+        .stat-menu button:hover { background: var(--bg-secondary); }
+        .stat-menu button.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark); font-weight: 600;
+        }
+        .stat-content { flex: 1; min-width: 0; }
+        .stat-content .tables-grid { display: block; margin: 0; }
+        .stat-content .table-block[hidden] { display: none; }
+        @media (max-width: 860px) {
+            .layout { flex-direction: column; align-items: stretch; gap: 16px; }
+            .stat-menu {
+                position: static; width: 100%; flex-basis: auto; max-height: none;
+                overflow-x: auto; overflow-y: hidden; padding: 8px;
+            }
+            .stat-menu h3 { display: none; }
+            .stat-menu ul { flex-direction: row; gap: 6px; }
+            .stat-menu button { white-space: nowrap; }
+        }
     </style>
 </head>
 <body>
@@ -171,7 +209,13 @@
         <div id="loading" class="loading-state"><span class="spinner">&#9917;</span><p style="margin-top:10px">Chargement des statistiques…</p></div>
         <div id="error" class="error-state" style="display:none"></div>
 
-        <div id="tables" class="tables-grid" style="display:none">
+        <div class="layout" id="layout" style="display:none">
+        <aside class="stat-menu" aria-label="Statistiques">
+            <h3>Statistiques</h3>
+            <ul id="stat-list"></ul>
+        </aside>
+        <section class="stat-content">
+        <div id="tables" class="tables-grid">
             <div class="table-block">
                 <h3>&#128557; Pire forme</h3>
                 <p class="sub">Forme récente (championnat) pondérée par récence + bonus forme globale (toutes compétitions)</p>
@@ -239,7 +283,7 @@
             </div>
         </div>
 
-        <div id="split-tables" class="tables-grid split-grid" style="display:none">
+        <div id="split-tables" class="tables-grid split-grid">
             <div class="table-block">
                 <h3>&#127962; Pires à domicile</h3>
                 <p class="sub">Points par match à domicile, lissés puis rapportés à la moyenne de leur championnat (1.00× = dans la moyenne)</p>
@@ -261,6 +305,8 @@
                 </div>
             </div>
         </div>
+        </section>
+        </div>
     </main>
 
     <footer>
@@ -275,7 +321,7 @@
 
   const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
-  const TOP_N = 10;
+  const TOP_N = 20;
   const MIN_MATCHS = 5;
   const SHRINK_K = 6;
 
@@ -399,6 +445,41 @@
         <td class="val ${valueClass ? valueClass(r) : ''}">${valueFormatter(r)}</td>
       </tr>
     `).join('');
+  }
+
+  // Menu lateral (comme championnats.html) : genere depuis les blocs
+  // .table-block presents dans la page (titre = <h3>, cle = id du <tbody>
+  // sans "tbl-"). Un seul tableau affiche a la fois, choix dans le hash de
+  // l'URL (#domicile, #attaque...) pour pouvoir partager le lien. Ajouter un
+  // tableau dans le HTML suffit pour qu'il apparaisse dans le menu.
+  function initStatMenu() {
+    const blocks = [...document.querySelectorAll('.stat-content .table-block')].map(el => ({
+      el, key: el.querySelector('tbody').id.replace(/^tbl-/, ''), title: el.querySelector('h3').innerHTML,
+    }));
+    const list = document.getElementById('stat-list');
+    list.innerHTML = blocks.map(b =>
+      `<li><button type="button" data-stat="${b.key}">${b.title}</button></li>`).join('');
+
+    function select(key, pushHash) {
+      const target = blocks.find(b => b.key === key) || blocks[0];
+      blocks.forEach(b => { b.el.hidden = b !== target; });
+      list.querySelectorAll('button').forEach(btn =>
+        btn.classList.toggle('active', btn.dataset.stat === target.key));
+      // Mobile : faire defiler la barre horizontale jusqu'au bouton actif
+      const menu = document.querySelector('.stat-menu');
+      const active = list.querySelector('button.active');
+      if (active && menu.scrollWidth > menu.clientWidth) {
+        menu.scrollLeft += active.getBoundingClientRect().left - menu.getBoundingClientRect().left - 8;
+      }
+      if (pushHash) history.replaceState(null, '', '#' + target.key);
+    }
+
+    list.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-stat]');
+      if (btn) select(btn.dataset.stat, true);
+    });
+    window.addEventListener('hashchange', () => select(location.hash.slice(1), false));
+    select(location.hash.slice(1), false);
   }
 
   async function init() {
@@ -538,8 +619,8 @@
       renderSplit('tbl-exterieur', splitTop('classement_exterieur'));
 
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('tables').style.display = 'grid';
-      document.getElementById('split-tables').style.display = 'grid';
+      document.getElementById('layout').style.display = 'flex';
+      initStatMenu();
     } catch (err) {
       console.error(err);
       document.getElementById('loading').style.display = 'none';
