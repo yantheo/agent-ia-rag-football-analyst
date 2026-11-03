@@ -211,7 +211,7 @@
         <div class="page-title">
             <h2>Meilleurs Paris du Jour</h2>
             <p>Les matchs les plus déséquilibrés du jour (modèle statistique), analysés par l'IA</p>
-            <p style="font-size:0.78rem;margin-top:6px">Badge principal = probabilité du favori (modèle Poisson). Badge "IA" = avis narratif de l'agent, non calibré contre des résultats réels — à prendre comme complément, pas comme mesure</p>
+            <p style="font-size:0.78rem;margin-top:6px">Badge principal = favori et sa probabilité (modèle statistique : Elo des clubs + buts de la saison). Badge "IA" = avis narratif de l'agent, non calibré contre des résultats réels — à prendre comme complément, pas comme mesure</p>
         </div>
 
         <div class="panel">
@@ -223,7 +223,7 @@
                 <button class="btn" id="generate-btn">&#9889; Générer les meilleurs paris</button>
                 <button class="btn secondary" id="cancel-btn" style="display:none">Annuler</button>
             </div>
-            <p class="field hint">Un modèle de buts attendus (Poisson, basé sur l'attaque/la défense de chaque équipe par rapport à la moyenne de son championnat — sans IA, instantané) calcule la probabilité du favori pour chaque match du jour et sélectionne les plus déséquilibrés. Seuls ceux-là sont envoyés à l'agent IA (crédits OpenAI, quelques secondes chacun). Résultat mis en cache pour la journée.</p>
+            <p class="field hint">Un modèle statistique (sans IA, instantané) calcule la probabilité du favori : le rapport de force vient de l'Elo des clubs (ClubElo, comparable d'un championnat à l'autre), le nombre de buts attendus des stats de la saison. Il évalue chaque match du jour et sélectionne les plus déséquilibrés. Seuls ceux-là sont envoyés à l'agent IA (crédits OpenAI, quelques secondes chacun). Résultat mis en cache pour la journée.</p>
             <div class="progress-wrap" id="progress-wrap">
                 <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
                 <div class="progress-label" id="progress-label"></div>
@@ -331,26 +331,44 @@
   }
 
   // ---------- Pré-filtre statistique (gratuit, pas d'appel IA) ----------
-  // Le modèle vit dans model.js (partagé, versionné). Cette page utilise la v1
-  // ("v1-poisson-k6"), identique à l'ancien code inline : voir model.js pour
-  // les formules et leur historique.
-  const { computeLeagueAverages, buildTeamIndices, matchProbabilities } = Modele.v1;
-
+  // Modèle v2 ("v2-elo-k13", voir model.js et CLAUDE.md) : le rapport de force
+  // vient de l'Elo des clubs (ClubElo, échelle commune à tous les championnats,
+  // donc valable pour la Ligue des Champions), le volume de buts des stats de
+  // la saison. Remplace la v1 (Poisson relatif au championnat + correction de
+  // ligue), conservée dans model.js comme référence.
   async function fetchAllTeams() {
     return supabaseGet('classements_foot',
       'select=team_id,championnat,buts_pour,buts_contre,matchs_joues');
   }
 
+  async function fetchJson(path) {
+    const res = await fetch(path, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`${path} : ${res.status}`);
+    return res.json();
+  }
+
+  // Une passe = stats de la saison + Elo des clubs + table de correspondance.
+  async function loadModelContext() {
+    const [teams, eloData, mapping] = await Promise.all([
+      fetchAllTeams(), fetchJson('elo-clubs.json'), fetchJson('elo-mapping.json'),
+    ]);
+    return Modele.v2.prepare(teams, eloData, mapping);
+  }
+
+  function modelProbs(ctx, m) {
+    return Modele.v2.matchProbabilities(ctx, m.team_id_domicile, m.team_id_exterieur);
+  }
+
   // Écart de niveau = probabilité du favori (plus c'est proche de 1, plus le
-  // match est déséquilibré donc statistiquement "prévisible"). Matchs sans
-  // stats dispo → exclus du tri (envoyés en dernier) plutôt que favorisés.
+  // match est déséquilibré donc statistiquement "prévisible"). Matchs non
+  // calculables (aucun Elo) → envoyés en dernier plutôt que favorisés.
   async function preRankMatches(matches) {
-    const teams = await fetchAllTeams();
-    const leagueAvg = computeLeagueAverages(teams);
-    const indices = buildTeamIndices(teams, leagueAvg);
+    const ctx = await loadModelContext();
+    // Compteur console des équipes sans Elo ClubElo (prédiction dégradée).
+    Modele.v2.eloCoverage(ctx, matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur]));
 
     const scored = matches.map(m => {
-      const probs = matchProbabilities(indices[m.team_id_domicile], indices[m.team_id_exterieur]);
+      const probs = modelProbs(ctx, m);
       const gap = probs ? Math.max(probs.pHome, probs.pDraw, probs.pAway) : null;
       return { match: m, preGap: gap, probs, fav: favoriteOf(probs) };
     });
@@ -375,10 +393,9 @@
   // cache du jour après un changement du modèle : les rapports IA sont gardés,
   // seules les probabilités, le favori et l'ordre sont mis à jour.
   async function refreshModel(results) {
-    const teams = await fetchAllTeams();
-    const indices = buildTeamIndices(teams, computeLeagueAverages(teams));
+    const ctx = await loadModelContext();
     results.forEach(r => {
-      const probs = matchProbabilities(indices[r.match.team_id_domicile], indices[r.match.team_id_exterieur]);
+      const probs = modelProbs(ctx, r.match);
       r.probs = probs;
       r.preGap = probs ? Math.max(probs.pHome, probs.pDraw, probs.pAway) : null;
       r.fav = favoriteOf(probs);
@@ -496,7 +513,7 @@
     cancelBtn.style.display = 'none';
     setTimeout(hideProgress, 1500);
 
-    // Tri par probabilité du favori (modèle Poisson, continu et discriminant)
+    // Tri par probabilité du favori (modèle statistique v2, continu et discriminant)
     // en critère principal. L'indice de confiance IA (Faible/Moyen/Élevé) n'a
     // que 3 valeurs possibles et peut regrouper des matchs très différents
     // (ex: 61% et 88% tous deux "Élevé") — il sert de départage secondaire,
@@ -541,10 +558,25 @@
       const name = r.fav === 'home' ? r.match.equipe_domicile : r.fav === 'away' ? r.match.equipe_exterieur : 'Nul';
       return `${name} `;
     }
+    // Étiquettes : compétition européenne (équipes de championnats différents,
+    // comparées via l'Elo des clubs) et Elo dégradé (équipe sans Elo ClubElo).
+    function matchTags(r) {
+      if (!r.probs) return '';
+      let out = '';
+      if (r.probs.crossLeague) {
+        const label = /champions/i.test(r.match.championnat || '') ? 'Champions League' : 'Coupe d\'Europe';
+        out += ` &middot; <span class="xleague" title="Équipes de championnats différents : rapport de force calculé avec l'Elo des clubs (ClubElo), comparable d'un championnat à l'autre">${label}</span>`;
+      }
+      if (r.probs.eloDegrade) {
+        out += ` &middot; <span class="xleague" title="${escapeAttr('Elo ClubElo indisponible, Elo moyen du championnat utilisé : ' + (r.probs.eloDegradeDetail || []).join(' ; '))}">Elo approximatif</span>`;
+      }
+      return out;
+    }
+
     function favTitle(r) {
-      if (!r.probs) return 'Probabilité du favori — modèle statistique Poisson';
+      if (!r.probs) return 'Probabilité du favori — modèle statistique';
       const p = v => Math.round(v * 100) + '%';
-      return escapeAttr(`Modèle Poisson — ${r.match.equipe_domicile} ${p(r.probs.pHome)} · Nul ${p(r.probs.pDraw)} · ${r.match.equipe_exterieur} ${p(r.probs.pAway)}`);
+      return escapeAttr(`Modèle (Elo + Poisson) — ${r.match.equipe_domicile} ${p(r.probs.pHome)} · Nul ${p(r.probs.pDraw)} · ${r.match.equipe_exterieur} ${p(r.probs.pAway)}`);
     }
 
     resultsEl.innerHTML = '';
@@ -560,7 +592,7 @@
           <div class="rank-num">#${idx + 1}</div>
           <div class="rank-teams">
             <div class="vs">${r.match.equipe_domicile} <span style="color:var(--text-muted)">vs</span> ${r.match.equipe_exterieur}</div>
-            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${r.probs && r.probs.crossLeague ? ` &middot; <span class="xleague" title="${r.probs.leagueAdjusted ? 'Équipes de championnats différents : probabilités corrigées par la force relative des deux ligues (Elo moyen ClubElo)' : 'Équipes de championnats différents : force relative des ligues inconnue, probabilités non corrigées'}">inter-ligues${r.probs.leagueAdjusted ? '' : ' (non corrigé)'}</span>` : ''}</div>
+            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${matchTags(r)}</div>
           </div>
           <div class="badges-col">
             <span class="confidence-badge ${probabilityClass(r.preGap)}" title="${favTitle(r)}">${favLabel(r)}${r.preGap != null ? (r.preGap * 100).toFixed(0) + '%' : '—'}</span>

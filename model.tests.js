@@ -1,6 +1,6 @@
 /*
- * Tests chiffrés du modèle (model.js). Tournent dans le navigateur (tests.html)
- * et sous Node :  node model.tests.js
+ * Tests chiffrés du modèle (model.js). Tournent sous Node (pas de page de test publiée)
+ *   node model.tests.js
  * Tolérance ±0,005 sauf mention. Les valeurs attendues sont calculées
  * indépendamment (Python, double Poisson tronqué à 10 buts) — un test ne doit
  * pas valider "ce que le code produit actuellement" (cf. piège bwinDateToISO

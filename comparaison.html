@@ -49,7 +49,7 @@
   <p class="lead">Outil de diagnostic (pas une page publique). Pour chaque match, <b>v1</b> (<code>v1-poisson-k6</code>, en production) et
     <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson) sont calculés dans la même passe, sur les mêmes données.</p>
   <p class="note">Espérance = P(1) + ½·P(N) : c'est elle (pas P(1)) qui se compare à la cible Elo 1/(1+10^(−dE/400)).
-    Lignes surlignées = le favori change de camp entre v1 et v2. Elo : instantané ClubElo versionné (<code>elo-clubs.json</code>).</p>
+    Lignes surlignées = le favori change de camp entre v1 et v2. « Champions League » = équipes de championnats différents. Elo : instantané ClubElo versionné (<code>elo-clubs.json</code>).</p>
 
   <div class="controls">
     <label>Date <input type="date" id="date"></label>
@@ -97,6 +97,9 @@
     if (!r.ok) throw new Error(`${path} : ${r.status}`);
     return r.json();
   }
+  // Étiquette des matchs entre championnats différents
+  const cl = m => /champions/i.test(m.championnat || '') ? 'Champions League' : "Coupe d'Europe";
+
   function fav(p, m) {
     if (!p) return null;
     const max = Math.max(p.pHome, p.pDraw, p.pAway);
@@ -135,14 +138,14 @@
     document.getElementById('summary').innerHTML = [
       `<span class="pill">Matchs : <b>${rows.length}</b></span>`,
       `<span class="pill">Favori qui change de camp : <b>${flips}</b></span>`,
-      `<span class="pill">Inter-ligues : <b>${xl}</b></span>`,
+      `<span class="pill">Champions League / Coupes d'Europe : <b>${xl}</b></span>`,
       `<span class="pill">v2 en Elo dégradé : <b>${deg}</b></span>`,
       `<span class="pill">Non calculables en v1 (équipe sans stats) : <b>${v1Missing}</b></span>`,
       `<span class="pill">Elo ClubElo du <b>${esc(eloData.date_classement_clubelo)}</b></span>`,
     ].join('');
 
     document.getElementById('rows').innerHTML = rows.map(({ m, p1, p2, f1, f2, flip }) => {
-      const tags = (p2 && p2.crossLeague ? '<span class="tag x">inter-ligues</span>' : '') +
+      const tags = (p2 && p2.crossLeague ? `<span class="tag x">${cl(m)}</span>` : '') +
         (p2 && p2.eloDegrade ? `<span class="tag dg" title="${esc(p2.eloDegradeDetail.join(' ; '))}">Elo dégradé</span>` : '') +
         (flip ? '<span class="tag fl">favori change</span>' : '');
       const esp = p2 ? p2.pHome + p2.pDraw / 2 : null;
@@ -169,7 +172,7 @@
     const r1 = rows.filter(r => r.f1).sort((a, b) => b.f1.prob - a.f1.prob);
     const r2 = rows.filter(r => r.f2).sort((a, b) => b.f2.prob - a.f2.prob);
     const pos1 = new Map(r1.map((r, i) => [key(r), i + 1]));
-    const label = r => `${esc(r.m.equipe_domicile)} – ${esc(r.m.equipe_exterieur)}${r.p2 && r.p2.crossLeague ? '<span class="tag x">IL</span>' : ''}`;
+    const label = r => `${esc(r.m.equipe_domicile)} – ${esc(r.m.equipe_exterieur)}${r.p2 && r.p2.crossLeague ? `<span class="tag x">${cl(r.m)}</span>` : ''}`;
     document.getElementById('rank1').innerHTML = r1.map((r, i) =>
       `<tr><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f1.name)}</td><td class="n">${pct(r.f1.prob)}</td></tr>`).join('');
     document.getElementById('rank2').innerHTML = r2.map((r, i) => {

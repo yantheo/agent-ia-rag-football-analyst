@@ -137,7 +137,11 @@ qui choisit quels matchs du jour envoyer a l'agent, plutot que les N premiers pa
   depuis le frontend) ne permet de verifier que "Élevé" correspond a un vrai taux de reussite superieur.
   Mention explicite de cette limite dans l'UI. Pour vraiment calibrer, il faudrait un scraper de
   resultats + une table dediee + un acces en ecriture — evolution backend, pas frontend.
-- **Matchs inter-ligues (ajout du 2026-11-03)** : les indices etant relatifs a CHAQUE championnat, le
+- **REMPLACE le soir meme par le modele v2 (voir section "Modele de prediction v2")** : la page utilise
+  desormais `Modele.v2` (Elo des clubs) ; l'etiquette "inter-ligues" est devenue "Champions League"
+  (ou "Coupe d'Europe"), et "Elo approximatif" signale une equipe sans Elo ClubElo. Le paragraphe
+  ci-dessous decrit la correction v1, conservee dans `Modele.v1` comme reference.
+- **Matchs inter-ligues (ajout du 2026-11-03, v1)** : les indices etant relatifs a CHAQUE championnat, le
   modele supposait qu'une equipe moyenne de Liga vaut une equipe moyenne de Premier League ou de Super
   Lig (Barcelone - Aston Villa donne a 83 %). Entre deux championnats differents, les buts attendus sont
   multiplies / divises par `exp(ELO_GOAL_K x ecart)`, ou ecart = difference d'Elo moyen des deux ligues
@@ -219,12 +223,16 @@ exclure les lignes orphelines d'une saison precedente). Le championnat choisi es
   backend (pull + restart + scrape) -> frontend, mais le repli evite de casser les pages en cas de
   decalage.
 
-## Modele de prediction v2 (branche `v2-modele`, 2026-11-03) — EN EVALUATION, pas en production
+## Modele de prediction v2 (2026-11-03) — utilise par meilleurs-paris.html
+
+Valide le 2026-11-03 apres comparaison sur les 18 matchs du jour : Man United - Roma, cotes 2,00 / 4,20 /
+2,90 demargees en puissance = 47 / 21 / 32 % ; v2 = 46 / 23 / 32 %, v1 = 28 / 23 / 49 % (Roma favorite a
+tort). Un match n'est pas une preuve : la vraie validation passe par les matchs logges (voir plus bas).
 
 **Architecture.** Le modele vit dans `model.js` (objet global `Modele`, aussi chargeable sous Node).
 `Modele.v1` = modele historique (`v1-poisson-k6`), deplace a l'identique depuis `meilleurs-paris.html`
 (ecart 0 verifie) et **conserve comme reference : ne pas le modifier**. `Modele.v2` = `v2-elo-k13`.
-`comparaison.html` = outil de diagnostic v1/v2 (hors menu). `tests.html` / `node model.tests.js` = tests
+`comparaison.html` = outil de diagnostic v1/v2 (hors menu, non lie). `node model.tests.js` = tests
 chiffres (valeurs attendues calculees independamment, tolerance 0,005).
 
 **Formules v2 (figees).** `dE = eloDom + advDomLigue - eloExt` (avantage du terrain +65 Elo, par
