@@ -182,6 +182,24 @@ exclure les lignes orphelines d'une saison precedente). Le championnat choisi es
   du maximum. Ici il est affiche a cote de "Pts / att." et les equipes d'un meme championnat ont
   quasiment le meme nombre de matchs, donc les vrais points sont comparables et lisibles.
 
+## Classements domicile / exterieur (ajout du 2026-11-03)
+
+- **Source** : classements domicile et exterieur publies par footmercato (vue
+  `<classement>?partial=1&type=home|away`), scrapes par `scraper_league_team.py` dans deux colonnes
+  jsonb `classement_domicile` / `classement_exterieur` = `{position, pts, j, v, n, d, bp, bc}`.
+  Verifie : `points_domicile + points_exterieur = points` pour 191/192 equipes (exception :
+  Southampton, penalite de points).
+- **`championnats.html`** : 4 tableaux (5 meilleurs / 5 pires a domicile et a l'exterieur), colonnes
+  J, V, N, D, buts, Pts, Pts/m. **`meilleures-equipes.html` / `pires-equipes.html`** : top 10 domicile et
+  exterieur toutes ligues confondues (`#split-tables`, grille de 2).
+- **Tri** : points par match lisses (`(pts + SHRINK_K x moy) / (j + SHRINK_K)`) vers la moyenne du MEME
+  cote dans le championnat, car le nombre de matchs a domicile varie d'une equipe a l'autre (4 ou 5 en
+  debut de saison). Pages equipes : rapporte a cette moyenne (indice, 1.00x = moyenne de sa ligue).
+- **Repli `supabaseGetSplit`** : si Supabase refuse ces colonnes (400 avant migration), la page recharge
+  sans elles et les tableaux affichent "Pas encore de donnees". Ordre de deploiement : `ALTER TABLE` ->
+  backend (pull + restart + scrape) -> frontend, mais le repli evite de casser les pages en cas de
+  decalage.
+
 ## Etat au 2026-11-02
 
 - Le modele Poisson (`dd9b9df`) est pousse et en ligne, ainsi que la page Championnats (`9da9c28`) et

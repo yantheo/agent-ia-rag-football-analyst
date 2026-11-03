@@ -76,6 +76,10 @@
         .tables-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0 48px; }
         @media (max-width: 1100px) { .tables-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 700px) { .tables-grid { grid-template-columns: 1fr; } }
+        .tables-grid.split-grid { grid-template-columns: repeat(2, 1fr); margin-top: -24px; }
+        @media (max-width: 900px) { .tables-grid.split-grid { grid-template-columns: 1fr; } }
+        td.num, th.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+        td.num { color: var(--text-secondary); }
 
         .table-block {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
@@ -234,6 +238,29 @@
                 </div>
             </div>
         </div>
+
+        <div id="split-tables" class="tables-grid split-grid" style="display:none">
+            <div class="table-block">
+                <h3>&#127968; Meilleurs à domicile</h3>
+                <p class="sub">Points par match à domicile, lissés puis rapportés à la moyenne de leur championnat (1.00× = dans la moyenne)</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th class="num">J</th><th class="num">V-N-D</th><th class="num">Pts</th><th>Indice</th></tr></thead>
+                        <tbody id="tbl-domicile"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="table-block">
+                <h3>&#9992; Meilleurs à l'extérieur</h3>
+                <p class="sub">Points par match à l'extérieur, lissés puis rapportés à la moyenne de leur championnat (1.00× = dans la moyenne)</p>
+                <div class="tbl-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th class="num">J</th><th class="num">V-N-D</th><th class="num">Pts</th><th>Indice</th></tr></thead>
+                        <tbody id="tbl-exterieur"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>
@@ -258,6 +285,20 @@
     });
     if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
     return res.json();
+  }
+
+  // Repli tant que les colonnes classement_domicile / classement_exterieur
+  // n'existent pas en base (ou si leur lecture echoue) : on recharge sans
+  // elles, le reste de la page fonctionne et les tableaux domicile/exterieur
+  // affichent "Pas encore de donnees". Evite qu'un decalage de deploiement
+  // backend/frontend casse toute la page (erreur 400 de Supabase).
+  async function supabaseGetSplit(table, params) {
+    try {
+      return await supabaseGet(table, params);
+    } catch (err) {
+      console.warn('Classements domicile/extérieur indisponibles, chargement sans :', err);
+      return supabaseGet(table, params.replace('classement_domicile,classement_exterieur,', ''));
+    }
   }
 
   function escapeAttr(s) {
@@ -364,10 +405,10 @@
   async function init() {
     try {
       const [teams, todayMap] = await Promise.all([
-        supabaseGet('classements_foot',
+        supabaseGetSplit('classements_foot',
           'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,points,' +
           'ratio_conversion_num,possession_en_pourcentage,taux_victoire,' +
-          'forme_recente_championnat,forme_recente_globale,updated_at'),
+          'forme_recente_championnat,forme_recente_globale,classement_domicile,classement_exterieur,updated_at'),
         fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
       ]);
 
@@ -459,8 +500,47 @@
       renderTable('tbl-possession', possession, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2), null, todayMap);
       renderTable('tbl-chance', chance, r => (r.ecart >= 0 ? '+' : '') + r.ecart.toFixed(1) + ' pts', r => r.ecart < 0 ? 'down' : '', todayMap);
 
+      // ---------- 7 & 8. Domicile / Extérieur ----------
+      // Classements domicile/extérieur publiés par la source ({position, pts, j,
+      // v, n, d, bp, bc}). Points par match lissés (SHRINK_K) vers la moyenne
+      // du même côté dans le championnat, puis rapportés à cette moyenne pour
+      // comparer des championnats différents (1.00× = moyenne de sa ligue).
+      function splitTop(col) {
+        const avg = {};
+        eligibles.forEach(t => {
+          if (!t[col] || !t[col].j) return;
+          const a = (avg[t.championnat] = avg[t.championnat] || { pts: 0, j: 0 });
+          a.pts += t[col].pts; a.j += t[col].j;
+        });
+        return eligibles
+          .filter(t => t[col] && t[col].j > 0 && avg[t.championnat] && avg[t.championnat].pts > 0)
+          .map(t => {
+            const lg = avg[t.championnat].pts / avg[t.championnat].j;
+            return { ...t, s: t[col], score: ((t[col].pts + SHRINK_K * lg) / (t[col].j + SHRINK_K)) / lg };
+          })
+          .sort((a, b) => b.score - a.score)
+          .slice(0, TOP_N);
+      }
+      function renderSplit(tbodyId, rows) {
+        const tbody = document.getElementById(tbodyId);
+        tbody.innerHTML = rows.length ? rows.map((r, i) => `
+          <tr>
+            <td class="rank">${i + 1}</td>
+            <td class="team">${r.equipe}${playingTodayBadge(r.team_id, todayMap || {})}</td>
+            <td class="league">${r.championnat}</td>
+            <td class="num">${r.s.j}</td>
+            <td class="num">${r.s.v}-${r.s.n}-${r.s.d}</td>
+            <td class="num">${r.s.pts}</td>
+            <td class="val">${r.score.toFixed(2)}×</td>
+          </tr>`).join('')
+          : '<tr><td colspan="7" style="color:var(--text-muted);text-align:center">Pas encore de données</td></tr>';
+      }
+      renderSplit('tbl-domicile', splitTop('classement_domicile'));
+      renderSplit('tbl-exterieur', splitTop('classement_exterieur'));
+
       document.getElementById('loading').style.display = 'none';
       document.getElementById('tables').style.display = 'grid';
+      document.getElementById('split-tables').style.display = 'grid';
     } catch (err) {
       console.error(err);
       document.getElementById('loading').style.display = 'none';

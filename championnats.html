@@ -245,6 +245,8 @@
                         <p class="footnote">Position et points tels que publiés par la source (pénalités et critères de départage propres à chaque championnat inclus). Forme : 5 derniers matchs de championnat, du plus récent (à gauche) au plus ancien.</p>
                     </div>
 
+                    <div class="mini-grid" id="split-grid"></div>
+
                     <div class="mini-grid" id="mini-grid"></div>
                 </div>
             </section>
@@ -279,6 +281,20 @@
     });
     if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
     return res.json();
+  }
+
+  // Repli tant que les colonnes classement_domicile / classement_exterieur
+  // n'existent pas en base (ou si leur lecture echoue) : on recharge sans
+  // elles, le reste de la page fonctionne et les tableaux domicile/exterieur
+  // affichent "Pas encore de donnees". Evite qu'un decalage de deploiement
+  // backend/frontend casse toute la page (erreur 400 de Supabase).
+  async function supabaseGetSplit(table, params) {
+    try {
+      return await supabaseGet(table, params);
+    } catch (err) {
+      console.warn('Classements domicile/extérieur indisponibles, chargement sans :', err);
+      return supabaseGet(table, params.replace('classement_domicile,classement_exterieur,', ''));
+    }
   }
 
   function esc(s) {
@@ -471,6 +487,62 @@
     });
   }
 
+  // ---------- Domicile / Exterieur ----------
+  // Classements publies par la source (colonnes classement_domicile /
+  // classement_exterieur : {position, pts, j, v, n, d, bp, bc}). Tri par
+  // points par match LISSES vers la moyenne du championnat du meme cote
+  // (SHRINK_K, comme le reste du site) : le nombre de matchs a domicile varie
+  // d'une equipe a l'autre (4 ou 5 en debut de saison) et un 3/3 ne doit pas
+  // passer devant une equipe a 13/15.
+  function splitRanking(teams, col) {
+    const rows = teams.filter(t => t[col] && t[col].j > 0);
+    const pts = rows.reduce((s, t) => s + t[col].pts, 0);
+    const games = rows.reduce((s, t) => s + t[col].j, 0);
+    const avg = games ? pts / games : 0;
+    if (!avg) return [];
+    return rows
+      .map(t => ({ ...t, s: t[col], score: (t[col].pts + SHRINK_K * avg) / (t[col].j + SHRINK_K) }))
+      .sort((a, b) => b.score - a.score || b.s.pts - a.s.pts);
+  }
+
+  function splitBlock(title, sub, rows, worst) {
+    const body = rows.length ? rows.map((r, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="team">${esc(r.equipe)}${playingTodayBadge(r.team_id)}</td>
+        <td class="num">${r.s.j}</td>
+        <td class="num">${r.s.v}</td>
+        <td class="num">${r.s.n}</td>
+        <td class="num">${r.s.d}</td>
+        <td class="num">${r.s.bp}:${r.s.bc}</td>
+        <td class="val ${worst ? 'down' : ''}">${r.s.pts}</td>
+        <td class="num">${(r.s.pts / r.s.j).toFixed(2)}</td>
+      </tr>`).join('')
+      : '<tr><td colspan="9" style="color:var(--text-muted);text-align:center">Pas encore de données</td></tr>';
+    return `
+      <div class="table-block mini">
+        <h3>${title}</h3>
+        <p class="sub">${sub}</p>
+        <div class="tbl-scroll"><table>
+          <thead><tr><th>#</th><th>Équipe</th><th class="num">J</th><th class="num">V</th><th class="num">N</th>
+            <th class="num">D</th><th class="num">Buts</th><th class="num">Pts</th><th class="num">Pts/m</th></tr></thead>
+          <tbody>${body}</tbody>
+        </table></div>
+      </div>`;
+  }
+
+  function renderSplit(teams) {
+    const sub = 'Classé par points par match (lissé vers la moyenne du championnat)';
+    document.getElementById('split-grid').innerHTML = [
+      ['classement_domicile', '&#127968; Meilleurs à domicile', '&#127962; Pires à domicile'],
+      ['classement_exterieur', '&#9992; Meilleurs à l\'extérieur', '&#129523; Pires à l\'extérieur'],
+    ].map(([col, best, worst]) => {
+      const ranked = splitRanking(teams, col);
+      return splitBlock(best, sub, ranked.slice(0, TOP_N), false) +
+        splitBlock(worst, 'Même calcul, du plus faible au moins faible', ranked.slice(-TOP_N).reverse(), true);
+    }).join('');
+  }
+
   function miniBlock(title, sub, m, rows, cls) {
     return `
       <div class="table-block mini">
@@ -492,6 +564,7 @@
       (lastUpdate ? ` · mis à jour le ${new Date(lastUpdate).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}` : '');
 
     renderStandings(teams);
+    renderSplit(teams);
 
     // Une rangee par metrique : meilleur a gauche, pire a droite
     document.getElementById('mini-grid').innerHTML = buildMetrics(teams).map(m =>
@@ -523,10 +596,10 @@
   async function init() {
     try {
       const [teams, today] = await Promise.all([
-        supabaseGet('classements_foot',
+        supabaseGetSplit('classements_foot',
           'select=team_id,equipe,championnat,position,points,matchs_joues,victoires,nuls,defaites,' +
           'buts_pour,buts_contre,ratio_conversion_num,possession_en_pourcentage,taux_victoire,' +
-          'forme_recente_championnat,forme_recente_globale,updated_at'),
+          'forme_recente_championnat,forme_recente_globale,classement_domicile,classement_exterieur,updated_at'),
         fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
       ]);
       todayMap = today;
