@@ -329,22 +329,46 @@
     return m ? m[1].trim().replace(/[.,:;]+$/, '') : null;
   }
 
-  // Favori retenu par l'IA ("<strong>Favori :</strong> Norwich — ...") ramené à
-  // 'home' / 'away' / 'none' en le comparant aux noms des équipes. Calculé ici
-  // plutôt que lu dans l'étiquette "Lecture IA" du rapport : gpt-4o-mini se
-  // trompe parfois d'étiquette (test du 2026-11-03 : "CONFIRME" alors qu'il
-  // avait changé de favori).
-  function iaFavoriteSide(html, match) {
-    const m = /Favori\s*:?\s*<\/strong>\s*([^<]+)/i.exec(html || '');
-    if (!m) return null;
-    const txt = m[1].split(/\s[—–-]\s/)[0].toLowerCase();
-    if (/aucun/.test(txt)) return 'none';
-    const words = txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter(Boolean);
-    const hits = name => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .split(/[^a-z0-9]+/).filter(t => t.length >= 3)
-      .some(t => words.some(w => w.length >= 3 && (w.startsWith(t.slice(0, 4)) || t.startsWith(w.slice(0, 4)))));
-    const h = hits(match.equipe_domicile), a = hits(match.equipe_exterieur);
+  // Équipe désignée par un texte libre de l'IA ("Norwich", "la Roma",
+  // "Aucun favori clair") : 'home' / 'away' / 'none', ou null si ambigu ou non
+  // reconnu (rien n'est alors affiché plutôt qu'une conclusion fausse).
+  function teamSide(text, match) {
+    const txt = (text || '').toLowerCase();
+    if (/aucun|pas de pari/.test(txt)) return 'none';
+    const norm = x => (x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+    // Vocabulaire de pari exclu ("Draw No Bet" ne doit pas désigner le Betis).
+    const STOP = new Set(['draw', 'bet', 'double', 'chance', 'pari', 'paris', 'over', 'under', 'buts', 'sur',
+      'victoire', 'nul', 'les', 'des', 'pour', 'avec', 'equipe', 'favori', 'match', 'car', 'mais']);
+    const words = norm(txt).filter(w => !STOP.has(w));
+    // Préfixe commun de 4 lettres, ou 3 si l'un des mots est court (Roma / Rome).
+    const same = (a, b) => {
+      let k = 0;
+      while (k < a.length && k < b.length && a[k] === b[k]) k++;
+      return k >= 4 || (k >= 3 && Math.min(a.length, b.length) <= 4);
+    };
+    // Mots propres à chaque équipe ("man" est commun à Man United et Man City).
+    const tH = norm(match.equipe_domicile), tA = norm(match.equipe_exterieur);
+    const own = (t, other) => t.filter(x => !other.some(y => same(x, y)));
+    const hits = toks => toks.some(t => words.some(w => same(w, t)));
+    const h = hits(own(tH, tA)), a = hits(own(tA, tH));
     return h === a ? null : (h ? 'home' : 'away');
+  }
+
+  // Favori et Conseil Expert du rapport, comparés aux noms des équipes. Calculé
+  // ici plutôt que lu dans l'étiquette "Lecture IA" : gpt-4o-mini se trompe
+  // parfois d'étiquette, et a parfois donné un favori et un conseil sur
+  // l'autre équipe (tests du 2026-11-03 / 04).
+  function iaVerdict(html, match) {
+    const field = name => {
+      const m = new RegExp(name + '\\s*:?\\s*<\\/strong>\\s*([^<]+)', 'i').exec(html || '');
+      return m ? m[1] : null;
+    };
+    const fav = field('Favori'), conseil = field('Conseil Expert');
+    return {
+      favori: fav == null ? null : teamSide(fav.split(/\s[—–-]\s/)[0], match),
+      conseil: conseil == null ? null : teamSide(conseil, match),
+    };
   }
 
   function extractSignal(html) {
@@ -638,13 +662,18 @@
     }
 
     // Favori de l'IA comparé au favori du modèle (tâche 8) : affiché seulement
-    // s'il diffère, l'accord étant le cas attendu.
+    // s'il diffère (l'accord est le cas attendu), ou si le verdict de l'IA se
+    // contredit lui-même (favori sur une équipe, conseil de pari sur l'autre).
     function iaVsModel(r) {
       if (!r.fav || !r.output) return '';
-      const side = iaFavoriteSide(r.output, r.match);
-      if (!side || side === r.fav) return '';
-      const name = side === 'home' ? r.match.equipe_domicile : side === 'away' ? r.match.equipe_exterieur : 'aucun favori';
-      return ` &middot; <span class="xleague ia-contre" title="L'IA retient un autre favori que le modèle statistique : voir sa justification dans le rapport">IA : ${name} (contre le modèle)</span>`;
+      const v = iaVerdict(r.output, r.match);
+      const nameOf = side => side === 'home' ? r.match.equipe_domicile : side === 'away' ? r.match.equipe_exterieur : 'aucun favori';
+      const conseilTeam = v.conseil === 'home' || v.conseil === 'away';
+      if (v.favori && conseilTeam && v.conseil !== v.favori) {
+        return ` &middot; <span class="xleague ia-contre" title="Le rapport IA désigne ${escapeAttr(nameOf(v.favori))} comme favori mais conseille un pari sur ${escapeAttr(nameOf(v.conseil))} : verdict à ne pas suivre tel quel">avis IA incohérent</span>`;
+      }
+      if (!v.favori || v.favori === r.fav) return '';
+      return ` &middot; <span class="xleague ia-contre" title="L'IA retient un autre favori que le modèle statistique : voir sa justification dans le rapport">IA : ${nameOf(v.favori)} (contre le modèle)</span>`;
     }
 
     function favTitle(r) {
