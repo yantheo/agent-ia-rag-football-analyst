@@ -120,10 +120,136 @@
     };
   })();
 
+  // ===========================================================================
+  // v2 — "v2-elo-k13" : Elo des clubs pour le rapport de force, Poisson pour les buts
+  // ===========================================================================
+  // Principe : QUI est favori vient uniquement de l'Elo des clubs (ClubElo, échelle
+  // commune à tous les championnats, donc plus de correction de ligue) ; COMBIEN de
+  // buts vient des indices attaque/défense de la saison. Formules figées (voir
+  // CLAUDE.md, section "Modèle v2") — ne pas les "simplifier" :
+  //   dE = eloDom + advDomLigue - eloExt          (TOUT l'avantage du terrain ici)
+  //   s  = exp(2·k·dE)                             (PAS exp(k·dE) : pente 2x trop faible)
+  //   T  = mL · (attDom·defExt + attExt·defDom)    (strictement neutre, sans 1,08/0,94)
+  //   λdom = T·s/(1+s), λext = T/(1+s)             (conserve le total : λdom+λext = T)
+  //   plancher 0,25 sur chaque λ
+  // Vérifié : reproduit la formule Elo 1/(1+10^(-dE/400)) sur l'espérance
+  // P(1)+½P(N) (±0,01 jusqu'à dE=200), 25 % de nuls pour deux équipes égales à T=2,8.
+  const v2 = (function () {
+    const VERSION = 'v2-elo-k13';
+    const K_ELO = 0.00225;      // même calibrage que v1 (100 pts = x1,25 sur le rapport de buts)
+    const K_LISSAGE = 13;       // lissage bayésien des indices (v1 : 6) — n'agit que sur T
+    const ADV_DOM_DEFAUT = 65;  // avantage du terrain en points Elo
+    // Par championnat, jamais par équipe (trop bruité sur une demi-saison).
+    // Même valeur partout pour l'instant ; à différencier plus tard (plus fort en
+    // Süper Lig / Liga Portugal qu'en Eredivisie).
+    const ADV_DOM_LIGUE = {};
+    const PLANCHER_LAMBDA = 0.25;
+    const MAX_GOALS = 10;       // T peut dépasser 4 buts : troncature plus large que v1
+    const M_DEFAUT = 1.4;       // buts/équipe/match si aucun des deux championnats n'est connu
+
+    function buildTeamIndices(teams, leagueAvg) {
+      const map = {};
+      teams.forEach(t => {
+        const avg = leagueAvg[t.championnat] || M_DEFAUT;
+        const n = t.matchs_joues || 0;
+        map[t.team_id] = {
+          att: ((t.buts_pour || 0) + K_LISSAGE * avg) / (n + K_LISSAGE) / avg,
+          def: ((t.buts_contre || 0) + K_LISSAGE * avg) / (n + K_LISSAGE) / avg,
+          league: t.championnat,
+          mL: avg,
+        };
+      });
+      return map;
+    }
+
+    /**
+     * Prépare le contexte d'une passe de calcul.
+     * @param teams  lignes classements_foot (team_id, championnat, buts_pour, buts_contre, matchs_joues)
+     * @param eloData contenu de elo-clubs.json
+     * @param mapping contenu de elo-mapping.json (pour distinguer "absent chez ClubElo" et "jamais apparié")
+     */
+    function prepare(teams, eloData, mapping) {
+      const leagueAvg = v1.computeLeagueAverages(teams);
+      return {
+        indices: buildTeamIndices(teams, leagueAvg),
+        elo: (eloData && eloData.equipes) || {},
+        eloLigue: (eloData && eloData.moyennes_championnats) || {},
+        mapping: (mapping && mapping.equipes) || {},
+      };
+    }
+
+    // Elo d'une équipe. Fallback EXPLICITE : Elo moyen de son championnat, et
+    // la prédiction est marquée dégradée. Jamais de valeur silencieuse.
+    function eloOf(ctx, teamId, league) {
+      const e = ctx.elo[teamId];
+      if (e) return { elo: e.elo, degrade: false, raison: null };
+      const raison = teamId in ctx.mapping ? 'absent chez ClubElo' : 'non apparié (elo-mapping.json)';
+      const moy = league != null ? ctx.eloLigue[league] : undefined;
+      return { elo: moy != null ? moy : null, degrade: true, raison };
+    }
+
+    function matchProbabilities(ctx, homeId, awayId) {
+      const iH = ctx.indices[homeId], iA = ctx.indices[awayId];
+      const leagueH = iH ? iH.league : null, leagueA = iA ? iA.league : null;
+      const eH = eloOf(ctx, homeId, leagueH), eA = eloOf(ctx, awayId, leagueA);
+      if (eH.elo == null || eA.elo == null) return null; // ni Elo ni championnat connu
+
+      // Équipe sans stats de saison (hors de nos 10 championnats) : indices neutres.
+      const attH = iH ? iH.att : 1, defH = iH ? iH.def : 1;
+      const attA = iA ? iA.att : 1, defA = iA ? iA.def : 1;
+      // mL = niveau de buts de la compétition. Faute de données propres à la
+      // Ligue des Champions, moyenne des deux championnats (valeur journalisée).
+      const ms = [iH && iH.mL, iA && iA.mL].filter(v => v != null);
+      const mL = ms.length ? ms.reduce((a, b) => a + b, 0) / ms.length : M_DEFAUT;
+
+      const advDomLigue = (leagueH && ADV_DOM_LIGUE[leagueH] != null) ? ADV_DOM_LIGUE[leagueH] : ADV_DOM_DEFAUT;
+      const dE = eH.elo + advDomLigue - eA.elo;
+      const s = Math.exp(2 * K_ELO * dE);
+      const T = mL * (attH * defA + attA * defH);
+      const lambdaHome = Math.max((T * s) / (1 + s), PLANCHER_LAMBDA);
+      const lambdaAway = Math.max(T / (1 + s), PLANCHER_LAMBDA);
+
+      return Object.assign(poissonOutcomes(lambdaHome, lambdaAway, MAX_GOALS), {
+        lambdaHome, lambdaAway, T, dE, s,
+        eloHome: eH.elo, eloAway: eA.elo,
+        eloDegrade: eH.degrade || eA.degrade,
+        eloDegradeDetail: [eH.degrade && `${homeId} : ${eH.raison}`, eA.degrade && `${awayId} : ${eA.raison}`].filter(Boolean),
+        advDomLigue, mL_utilise: mL, K_lissage: K_LISSAGE,
+        attHome: attH, defHome: defH, attAway: attA, defAway: defA,
+        crossLeague: leagueH !== leagueA,
+        version: VERSION,
+      });
+    }
+
+    // Compteur d'équipes sans Elo réel parmi celles demandées, affiché en
+    // console : s'il n'est pas à zéro, des prédictions sont dégradées.
+    function eloCoverage(ctx, teamIds) {
+      const nonApparies = [], absents = [];
+      [...new Set(teamIds)].forEach(id => {
+        if (ctx.elo[id]) return;
+        (id in ctx.mapping ? absents : nonApparies).push(id);
+      });
+      if (nonApparies.length || absents.length) {
+        console.warn(`[Modele v2] ${nonApparies.length} équipe(s) non appariée(s) à ClubElo, ` +
+          `${absents.length} absente(s) chez ClubElo -> Elo moyen du championnat (prédiction dégradée)`,
+          { nonApparies, absents });
+      } else {
+        console.info('[Modele v2] toutes les équipes ont un Elo ClubElo.');
+      }
+      return { nonApparies, absents };
+    }
+
+    return {
+      VERSION, K_ELO, K_LISSAGE, ADV_DOM_DEFAUT, ADV_DOM_LIGUE, PLANCHER_LAMBDA, MAX_GOALS,
+      buildTeamIndices, prepare, eloOf, matchProbabilities, eloCoverage,
+    };
+  })();
+
   global.Modele = {
     poissonPmf,
     poissonOutcomes,
     v1,
+    v2,
     // Raccourci demandé : Modele.v1_poisson(home, away) avec les indices de
     // Modele.v1.buildTeamIndices.
     v1_poisson: v1.matchProbabilities,
