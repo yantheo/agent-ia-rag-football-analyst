@@ -171,6 +171,12 @@
             .stat-menu ul { flex-direction: row; gap: 6px; }
             .stat-menu button { white-space: nowrap; }
         }
+        .mode-tabs { display: inline-flex; gap: 4px; padding: 3px; margin: 8px 0 10px;
+            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; }
+        .mode-tabs button { background: none; border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+            color: var(--text-secondary); font: inherit; font-size: 0.8rem; padding: 5px 12px; }
+        .mode-tabs button.active { border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark); font-weight: 600; }
+        td.val .muted { color: var(--text-muted); font-weight: 400; font-size: 0.78rem; }
     </style>
 </head>
 <body>
@@ -229,10 +235,14 @@
 
             <div class="table-block">
                 <h3>&#9876; Meilleures attaques</h3>
-                <p class="sub">Buts marqués/match, relatif à la moyenne du championnat</p>
+                <div class="mode-tabs" id="attaque-tabs" role="tablist">
+                    <button type="button" data-mode="indice" class="active">Indice</button>
+                    <button type="button" data-mode="buts">Nombre de buts</button>
+                </div>
+                <p class="sub" id="attaque-sub">Buts marqués/match, relatif à la moyenne du championnat</p>
                 <div class="tbl-scroll">
                     <table>
-                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th>Indice</th></tr></thead>
+                        <thead><tr><th>#</th><th>Équipe</th><th>Championnat</th><th id="attaque-col">Indice</th></tr></thead>
                         <tbody id="tbl-attaque"></tbody>
                     </table>
                 </div>
@@ -575,7 +585,37 @@
         .slice(0, TOP_N);
 
       renderTable('tbl-forme', forme, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2), null, todayMap);
-      renderTable('tbl-attaque', attaque, r => r.attackIndex.toFixed(2) + '×', null, todayMap);
+      // Onglets Indice / Nombre de buts. L'indice (par defaut) corrige le
+      // nombre de matchs joues et le niveau offensif du championnat ; le
+      // nombre de buts est le total brut en championnat, a comparer avec
+      // prudence entre ligues (pas le meme nombre de matchs ni de buts/match).
+      const attaqueButs = [...withIndices]
+        .sort((a, b) => b.buts_pour - a.buts_pour || a.matchs_joues - b.matchs_joues)
+        .slice(0, TOP_N);
+      const ATTAQUE_MODES = {
+        indice: {
+          rows: attaque, col: 'Indice', sub: 'Buts marqués/match, relatif à la moyenne du championnat',
+          fmt: r => r.attackIndex.toFixed(2) + '×',
+        },
+        buts: {
+          rows: attaqueButs, col: 'Buts',
+          sub: 'Total brut de buts marqués en championnat (sans correction du nombre de matchs ni du niveau du championnat)',
+          fmt: r => `${r.buts_pour} <span class="muted">en ${r.matchs_joues} m</span>`,
+        },
+      };
+      function renderAttaque(mode) {
+        const m = ATTAQUE_MODES[mode] || ATTAQUE_MODES.indice;
+        renderTable('tbl-attaque', m.rows, m.fmt, null, todayMap);
+        document.getElementById('attaque-col').textContent = m.col;
+        document.getElementById('attaque-sub').textContent = m.sub;
+        document.querySelectorAll('#attaque-tabs button').forEach(b =>
+          b.classList.toggle('active', b.dataset.mode === mode));
+      }
+      document.getElementById('attaque-tabs').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-mode]');
+        if (btn) renderAttaque(btn.dataset.mode);
+      });
+      renderAttaque('indice');
       renderTable('tbl-defense', defense, r => r.defenseIndex.toFixed(2) + '×', null, todayMap);
       renderTable('tbl-efficacite', efficacite, r => r.ratioVsLigue.toFixed(2) + '×', null, todayMap);
       renderTable('tbl-possession', possession, r => (r.score >= 0 ? '+' : '') + r.score.toFixed(2), null, todayMap);
