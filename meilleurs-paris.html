@@ -130,9 +130,17 @@
             text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
         }
         .xleague { color: var(--gold); border-bottom: 1px dotted var(--gold); cursor: help; }
-        .confidence-badge.eleve { background: rgba(34,197,94,0.18); color: var(--green-primary); }
-        .confidence-badge.moyen { background: rgba(251,191,36,0.18); color: var(--gold); }
-        .confidence-badge.faible { background: rgba(239,68,68,0.15); color: var(--red); }
+        /* Badge du modele : echelle neutre (le rouge evoquait un "mauvais pari",
+           alors qu'un match equilibre n'est pas un mauvais pari en soi). */
+        .confidence-badge.net { background: rgba(34,197,94,0.22); color: var(--green-primary); }
+        .confidence-badge.leger { background: rgba(134,239,172,0.10); color: #86efac; }
+        .confidence-badge.ouvert { background: rgba(148,163,184,0.14); color: #cbd5e1; }
+        .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 0.78rem;
+            color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 10px 14px; margin: 0 0 12px; }
+        .legend .confidence-badge { padding: 2px 9px; font-size: 0.7rem; }
+        .legend .sep { flex-basis: 100%; height: 0; }
+        .legend b { color: var(--text-secondary); font-weight: 600; }
         .badges-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
         .ia-badge {
             position: relative; font-size: 0.68rem; color: var(--text-muted); white-space: nowrap;
@@ -235,6 +243,15 @@
             <button class="btn secondary" id="regenerate-btn">&#8635; Régénérer</button>
         </div>
 
+        <div class="legend" id="legend" style="display:none">
+            <span><b>Badge</b> = favori selon notre modèle statistique (Elo des clubs + buts de la saison) :</span>
+            <span class="confidence-badge net">≥ 60 %</span><span>favori net</span>
+            <span class="confidence-badge leger">45–60 %</span><span>léger favori</span>
+            <span class="confidence-badge ouvert">&lt; 45 %</span><span>match ouvert</span>
+            <span class="sep"></span>
+            <span><b>IA : Faible / Moyen / Élevé</b> = avis de l'agent IA dans son rapport, indépendant du badge (non calibré). La couleur décrit l'équilibre du match, pas la qualité du pari.</span>
+        </div>
+
         <div id="results"></div>
     </main>
 
@@ -308,20 +325,19 @@
     return m ? m[1].trim().replace(/[.,:;]+$/, '') : null;
   }
 
-  function confidenceClass(label) {
-    const norm = (label || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-    if (norm.indexOf('elev') !== -1) return 'eleve';
-    if (norm.indexOf('moyen') !== -1) return 'moyen';
-    return 'faible';
-  }
 
   // Classe de couleur pour le badge de probabilité statistique (modèle
   // Poisson), continue et indépendante du jugement de l'IA.
+  // Seuils recalés sur le modèle v2 (probabilités plus réalistes que la v1 :
+  // la plupart des matchs entre 35 et 60 %). Décrit le match, pas la qualité
+  // du pari.
+  const SEUIL_FAVORI_NET = 0.60;
+  const SEUIL_LEGER_FAVORI = 0.45;
   function probabilityClass(p) {
-    if (p == null) return 'faible';
-    if (p >= 0.70) return 'eleve';
-    if (p >= 0.50) return 'moyen';
-    return 'faible';
+    if (p == null) return 'ouvert';
+    if (p >= SEUIL_FAVORI_NET) return 'net';
+    if (p >= SEUIL_LEGER_FAVORI) return 'leger';
+    return 'ouvert';
   }
 
   async function loadTodayMatches() {
@@ -536,6 +552,7 @@
     if (!results.length) {
       resultsEl.innerHTML = '<div class="empty-state">Aucune analyse exploitable pour l\'instant. Essaie de régénérer ou d\'augmenter le nombre de matchs analysés.</div>';
       metaRow.style.display = 'none';
+      document.getElementById('legend').style.display = 'none';
       return;
     }
 
@@ -544,6 +561,7 @@
     }
 
     metaRow.style.display = 'flex';
+    document.getElementById('legend').style.display = 'flex';
     const when = meta.generatedAt ? new Date(meta.generatedAt).toLocaleString('fr-FR') : '';
     cachedNote.textContent = `${results.length} match(s) retenu(s)` + (meta.analyzedCount ? ` sur ${meta.analyzedCount} analysé(s)` : '') + (when ? ` — généré le ${when}` : '');
 
