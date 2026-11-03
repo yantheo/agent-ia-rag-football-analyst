@@ -270,6 +270,27 @@ precision des passes (marqueurs de style, pouvoir predictif residuel quasi nul).
 ~7,5, de 3 (Liga) a 37 (Ligue 2) — estimation elle-meme bruitee (18-24 equipes par ligue). N'agit que
 sur T en v2. A reestimer avec plus de journees.
 
+**Piste v3b « Elo + saison en cours » — en réflexion, NON implémentée (2026-11-03).** Constat sur les
+18 matchs du 2026-11-03 (résultats connus) : v2 nettement meilleure en C1 (Brier 0,370) mais pas mieux
+que le hasard en Championship (0,668 ; v1 0,583). Exemple : Derby, 2e plus faible du Championship sur la
+saison, seulement 5e plus faible en ClubElo (l'Elo garde la mémoire des saisons passées).
+- Principe (repris de FiveThirtyEight SPI : note de départ + saison, poids croissant) :
+  `Elo saison = Elo moyen du championnat + ln(att/def)/(2k)` (indices v2 lissés) ;
+  `Elo v3 = w·Elo saison + (1−w)·ClubElo`, `w = j/(j+J0)`.
+- **v3 « tout match » testée et rejetée** : Brier 0,545 (J0=10) vs 0,519 en v2. L'Elo saison, ancré sur la
+  moyenne de la ligue, tire les clubs dominants (PSG 56 % -> 44 %, Bayern, Sporting) vers leur ligue :
+  c'est le biais v1 (Galatasaray) que la v2 corrigeait.
+- **v3b** : mélange **uniquement pour les matchs internes à un championnat** (même adversaires, saison
+  comparable) ; **v2 pure pour les matchs inter-championnats** (Coupes d'Europe).
+- Résultat a posteriori sur le 2026-11-03 : Brier ~0,503, 13/18 favoris (v2 : 0,519, 11/18). **Règle
+  choisie après avoir vu les résultats -> chiffre optimiste par construction** : figer J0 (10 proposé)
+  AVANT de mesurer, puis juger uniquement sur les soirées suivantes (colonne expérimentale dans
+  `comparaison.html`, Meilleurs Paris inchangé).
+- Leviers associés à tester séparément (une `version_modele` chacun) : K_LISSAGE plus faible (~7,5 estimé)
+  et avantage du terrain par championnat lissé vers 65 (mesuré le 2026-11-03 : Championship ~58,
+  Serie A ~8, Eredivisie ~-24, Bundesliga ~97, bruit ±25) — jamais par équipe (6 matchs = bruit).
+- Script de calcul : `suivi-pronos/v3-2026-11-03.js` (dossier local, non versionné).
+
 **Ce qu'il ne faut pas attendre** : comparer v1 et v2 par Brier score apparie demande ~600 matchs
 logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; detecter un avantage
 reel contre un bookmaker, plusieurs milliers de paris. Le pari n'est pas l'instrument de validation du
