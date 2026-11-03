@@ -1,0 +1,785 @@
+{
+ "_doc": "Genere par tools/build_elo_snapshot.py - ne pas editer a la main.",
+ "source": "http://clubelo.com/ (page d'accueil)",
+ "date_classement_clubelo": "2026-11-02",
+ "genere_le": "2026-11-03",
+ "moyennes_championnats": {
+  "Premier League": 1838,
+  "Championship": 1611,
+  "Liga": 1766,
+  "Serie A": 1740,
+  "Bundesliga": 1752,
+  "Ligue 1 McDonald's": 1713,
+  "Ligue 2": 1540,
+  "Liga Portugal Betclic": 1595,
+  "Eredivisie": 1559,
+  "Süper Lig": 1606
+ },
+ "equipes": {
+  "academico-pt": {
+   "clubelo": "Ac Viseu",
+   "elo": 1533
+  },
+  "ado-nl": {
+   "clubelo": "Den Haag",
+   "elo": 1447
+  },
+  "ajax-nl": {
+   "clubelo": "Ajax",
+   "elo": 1702
+  },
+  "alanya-tr": {
+   "clubelo": "Alanyaspor",
+   "elo": 1555
+  },
+  "alaves-esp": {
+   "clubelo": "Alaves",
+   "elo": 1710
+  },
+  "alverca-pt": {
+   "clubelo": "Alverca",
+   "elo": 1543
+  },
+  "amed-tr": {
+   "clubelo": "Amed SK",
+   "elo": 1721
+  },
+  "angers-fr": {
+   "clubelo": "Angers",
+   "elo": 1599
+  },
+  "annecy-fr": {
+   "clubelo": "Annecy",
+   "elo": 1551
+  },
+  "arouca-pt": {
+   "clubelo": "Arouca",
+   "elo": 1584
+  },
+  "arsenal-eng": {
+   "clubelo": "Arsenal",
+   "elo": 2044
+  },
+  "asse-fr": {
+   "clubelo": "Saint-Etienne",
+   "elo": 1614
+  },
+  "aston-villa-eng": {
+   "clubelo": "Aston Villa",
+   "elo": 1901
+  },
+  "atalanta-it": {
+   "clubelo": "Atalanta",
+   "elo": 210
+  },
+  "atletico-esp": {
+   "clubelo": "Atlético",
+   "elo": 1921
+  },
+  "augsbourg-de": {
+   "clubelo": "Augsburg",
+   "elo": 1711
+  },
+  "auxerre-fr": {
+   "clubelo": "Auxerre",
+   "elo": 1640
+  },
+  "az-nl": {
+   "clubelo": "AZ",
+   "elo": 1681
+  },
+  "barcelone-esp": {
+   "clubelo": "Barcelona",
+   "elo": 2027
+  },
+  "bayern-munich-de": {
+   "clubelo": "Bayern München",
+   "elo": 2039
+  },
+  "benfica-pt": {
+   "clubelo": "Benfica",
+   "elo": 554
+  },
+  "besiktas-tr": {
+   "clubelo": "Besiktas",
+   "elo": 1706
+  },
+  "betis-esp": {
+   "clubelo": "Betis",
+   "elo": 1827
+  },
+  "bilbao-esp": {
+   "clubelo": "Athletic Club",
+   "elo": 1770
+  },
+  "birmingham-eng": {
+   "clubelo": "Birmingham",
+   "elo": 1645
+  },
+  "blackburn-eng": {
+   "clubelo": "Blackburn",
+   "elo": 1585
+  },
+  "bologne-it": {
+   "clubelo": "Bologna",
+   "elo": 1772
+  },
+  "bolton-eng": {
+   "clubelo": "Bolton",
+   "elo": 1538
+  },
+  "boulogne-fr": {
+   "clubelo": "Boulogne",
+   "elo": 1486
+  },
+  "bournemouth-eng": {
+   "clubelo": "Bournemouth",
+   "elo": 1887
+  },
+  "braga-pt": {
+   "clubelo": "Braga",
+   "elo": 1707
+  },
+  "breme-de": {
+   "clubelo": "Werder",
+   "elo": 1714
+  },
+  "brentford-eng": {
+   "clubelo": "Brentford",
+   "elo": 1853
+  },
+  "brest-fr": {
+   "clubelo": "Brest",
+   "elo": 1684
+  },
+  "brighton-eng": {
+   "clubelo": "Brighton",
+   "elo": 1903
+  },
+  "bristol-city-eng": {
+   "clubelo": "Bristol City",
+   "elo": 1580
+  },
+  "burnley-eng": {
+   "clubelo": "Burnley",
+   "elo": 1635
+  },
+  "cagliari-it": {
+   "clubelo": "Cagliari",
+   "elo": 1654
+  },
+  "cardiff-eng": {
+   "clubelo": "Cardiff",
+   "elo": 1578
+  },
+  "casa-pia-pt": {
+   "clubelo": "Casa Pia",
+   "elo": 1493
+  },
+  "celta-vigo-esp": {
+   "clubelo": "Celta",
+   "elo": 1747
+  },
+  "charlton-eng": {
+   "clubelo": "Charlton",
+   "elo": 1534
+  },
+  "chelsea-eng": {
+   "clubelo": "Chelsea",
+   "elo": 1892
+  },
+  "cologne-de": {
+   "clubelo": "Köln",
+   "elo": 1656
+  },
+  "come-it": {
+   "clubelo": "Como",
+   "elo": 1827
+  },
+  "coventry-eng": {
+   "clubelo": "Coventry",
+   "elo": 1705
+  },
+  "crystal-palace-eng": {
+   "clubelo": "Crystal Palace",
+   "elo": 1810
+  },
+  "deportivo-esp": {
+   "clubelo": "Depor",
+   "elo": 112
+  },
+  "derby-eng": {
+   "clubelo": "Derby",
+   "elo": 1554
+  },
+  "dijon-fr": {
+   "clubelo": "Dijon",
+   "elo": 1548
+  },
+  "dortmund-de": {
+   "clubelo": "Dortmund",
+   "elo": 1895
+  },
+  "dunkerque-fr": {
+   "clubelo": "Dunkerque",
+   "elo": 1526
+  },
+  "elche-esp": {
+   "clubelo": "Elche",
+   "elo": 1713
+  },
+  "elversberg-de": {
+   "clubelo": "Elversberg",
+   "elo": 1683
+  },
+  "erzurumspor-tr": {
+   "clubelo": "Erzurum",
+   "elo": 1585
+  },
+  "espanyol-esp": {
+   "clubelo": "Espanyol",
+   "elo": 1692
+  },
+  "estrela-pt": {
+   "clubelo": "Estrela Amadora",
+   "elo": 1475
+  },
+  "everton-eng": {
+   "clubelo": "Everton",
+   "elo": 1827
+  },
+  "eyup-tr": {
+   "clubelo": "Eyupspor",
+   "elo": 1501
+  },
+  "famalicao-pt": {
+   "clubelo": "Famalicao",
+   "elo": 1598
+  },
+  "fenerbahce-tr": {
+   "clubelo": "Fenerbahçe",
+   "elo": 1767
+  },
+  "feyenoord-nl": {
+   "clubelo": "Feyenoord",
+   "elo": 1729
+  },
+  "fiorentina-it": {
+   "clubelo": "Fiorentina",
+   "elo": 1716
+  },
+  "fortuna-nl": {
+   "clubelo": "Sittard",
+   "elo": 1511
+  },
+  "francfort-de": {
+   "clubelo": "Frankfurt",
+   "elo": 1738
+  },
+  "fribourg-de": {
+   "clubelo": "Freiburg",
+   "elo": 1786
+  },
+  "frosinone-it": {
+   "clubelo": "Frosinone",
+   "elo": 1707
+  },
+  "fulham-eng": {
+   "clubelo": "Fulham",
+   "elo": 1801
+  },
+  "gae-nl": {
+   "clubelo": "Go Ahead Eagles",
+   "elo": 1524
+  },
+  "galatasaray-tr": {
+   "clubelo": "Galatasaray",
+   "elo": 1815
+  },
+  "gaziantep-fk-tr": {
+   "clubelo": "Gaziantep",
+   "elo": 1515
+  },
+  "genclerbirligi-tr": {
+   "clubelo": "Genclerbirligi",
+   "elo": 1566
+  },
+  "genoa-it": {
+   "clubelo": "Genoa",
+   "elo": 1686
+  },
+  "getafe-esp": {
+   "clubelo": "Getafe",
+   "elo": 1684
+  },
+  "gil-vicente-pt": {
+   "clubelo": "Gil Vicente",
+   "elo": 423
+  },
+  "goztepe-tr": {
+   "clubelo": "Göztepe",
+   "elo": 1635
+  },
+  "grenoble-fr": {
+   "clubelo": "Grenoble",
+   "elo": 1480
+  },
+  "groningen-nl": {
+   "clubelo": "Groningen",
+   "elo": 1514
+  },
+  "guingamp-fr": {
+   "clubelo": "Guingamp",
+   "elo": 1529
+  },
+  "hambourg-de": {
+   "clubelo": "Hamburg",
+   "elo": 1677
+  },
+  "heerenveen-nl": {
+   "clubelo": "Heerenveen",
+   "elo": 1571
+  },
+  "hoffenheim-de": {
+   "clubelo": "Hoffenheim",
+   "elo": 1734
+  },
+  "hull-eng": {
+   "clubelo": "Hull",
+   "elo": 1642
+  },
+  "inter-milan-it": {
+   "clubelo": "Internazionale",
+   "elo": 1940
+  },
+  "ipswich-eng": {
+   "clubelo": "Ipswich",
+   "elo": 1702
+  },
+  "juventus-it": {
+   "clubelo": "Juventus",
+   "elo": 1827
+  },
+  "kasmpasa-tr": {
+   "clubelo": "Kasimpasa",
+   "elo": 1583
+  },
+  "kocaelispor-tr": {
+   "clubelo": "Kocaelispor",
+   "elo": 1581
+  },
+  "konyaspor-tr": {
+   "clubelo": "Konyaspor",
+   "elo": 1540
+  },
+  "lazio-it": {
+   "clubelo": "Lazio",
+   "elo": 1808
+  },
+  "le-havre-fr": {
+   "clubelo": "Le Havre",
+   "elo": 1585
+  },
+  "le-mans-fr": {
+   "clubelo": "Le Mans",
+   "elo": 1580
+  },
+  "lecce-it": {
+   "clubelo": "Lecce",
+   "elo": 1608
+  },
+  "leeds-eng": {
+   "clubelo": "Leeds",
+   "elo": 1807
+  },
+  "leipzig-de": {
+   "clubelo": "RB Leipzig",
+   "elo": 1831
+  },
+  "lens-fr": {
+   "clubelo": "Lens",
+   "elo": 1801
+  },
+  "levante-esp": {
+   "clubelo": "Levante",
+   "elo": 1709
+  },
+  "leverkusen-de": {
+   "clubelo": "Leverkusen",
+   "elo": 1865
+  },
+  "lille-fr": {
+   "clubelo": "Lille",
+   "elo": 1773
+  },
+  "lincoln-eng": {
+   "clubelo": "Lincoln City",
+   "elo": 1600
+  },
+  "liverpool-eng": {
+   "clubelo": "Liverpool",
+   "elo": 1939
+  },
+  "lorient-fr": {
+   "clubelo": "Lorient",
+   "elo": 157
+  },
+  "lyon-fr": {
+   "clubelo": "Lyon",
+   "elo": 1791
+  },
+  "malaga-esp": {
+   "clubelo": "Malaga",
+   "elo": 1659
+  },
+  "man-city-eng": {
+   "clubelo": "Man City",
+   "elo": 2010
+  },
+  "man-united-eng": {
+   "clubelo": "Man United",
+   "elo": 1847
+  },
+  "marseille-fr": {
+   "clubelo": "Marseille",
+   "elo": 1764
+  },
+  "mayence-de": {
+   "clubelo": "Mainz",
+   "elo": 1725
+  },
+  "metz-fr": {
+   "clubelo": "Metz",
+   "elo": 1551
+  },
+  "mgladbach-de": {
+   "clubelo": "Gladbach",
+   "elo": 1671
+  },
+  "middlesbrough-eng": {
+   "clubelo": "Middlesbrough",
+   "elo": 1672
+  },
+  "milan-it": {
+   "clubelo": "Milan",
+   "elo": 1830
+  },
+  "millwall-eng": {
+   "clubelo": "Millwall",
+   "elo": 1640
+  },
+  "monaco-fr": {
+   "clubelo": "Monaco",
+   "elo": 1790
+  },
+  "montpellier-fr": {
+   "clubelo": "Montpellier",
+   "elo": 1611
+  },
+  "monza-it": {
+   "clubelo": "Monza",
+   "elo": 1635
+  },
+  "moreirense-pt": {
+   "clubelo": "Moreirense",
+   "elo": 1552
+  },
+  "nacional-pt": {
+   "clubelo": "Nacional",
+   "elo": 1481
+  },
+  "nancy-fr": {
+   "clubelo": "Nancy",
+   "elo": 1531
+  },
+  "nantes-fr": {
+   "clubelo": "Nantes",
+   "elo": 1559
+  },
+  "naples-it": {
+   "clubelo": "Napoli",
+   "elo": 1826
+  },
+  "nec-nl": {
+   "clubelo": "Nijmegen",
+   "elo": 1590
+  },
+  "newcastle-eng": {
+   "clubelo": "Newcastle",
+   "elo": 1853
+  },
+  "nice-fr": {
+   "clubelo": "Nice",
+   "elo": 1685
+  },
+  "norwich-eng": {
+   "clubelo": "Norwich",
+   "elo": 1610
+  },
+  "nottingham-eng": {
+   "clubelo": "Forest",
+   "elo": 1789
+  },
+  "osasuna-esp": {
+   "clubelo": "Osasuna",
+   "elo": 1707
+  },
+  "paderborn-de": {
+   "clubelo": "Paderborn",
+   "elo": 1669
+  },
+  "paris-fc-fr": {
+   "clubelo": "Paris FC",
+   "elo": 1710
+  },
+  "parme-it": {
+   "clubelo": "Parma",
+   "elo": 1649
+  },
+  "pau-fr": {
+   "clubelo": "Pau",
+   "elo": 1524
+  },
+  "pec-nl": {
+   "clubelo": "Zwolle",
+   "elo": 1468
+  },
+  "porto-pt": {
+   "clubelo": "Porto",
+   "elo": 1832
+  },
+  "portsmouth-eng": {
+   "clubelo": "Portsmouth",
+   "elo": 1579
+  },
+  "preston-eng": {
+   "clubelo": "Preston",
+   "elo": 1509
+  },
+  "psg-fr": {
+   "clubelo": "Paris SG",
+   "elo": 1981
+  },
+  "psv-nl": {
+   "clubelo": "PSV",
+   "elo": 1783
+  },
+  "qpr-eng": {
+   "clubelo": "QPR",
+   "elo": 1588
+  },
+  "real-madrid-esp": {
+   "clubelo": "Real Madrid",
+   "elo": 1996
+  },
+  "real-sociedad-esp": {
+   "clubelo": "Real Sociedad",
+   "elo": 1790
+  },
+  "red-star-fr": {
+   "clubelo": "Red Star",
+   "elo": 1558
+  },
+  "reims-fr": {
+   "clubelo": "Reims",
+   "elo": 1639
+  },
+  "rennes-fr": {
+   "clubelo": "Rennes",
+   "elo": 1752
+  },
+  "rize-tr": {
+   "clubelo": "Rizespor",
+   "elo": 1555
+  },
+  "rodez-fr": {
+   "clubelo": "Rodez",
+   "elo": 1558
+  },
+  "rome-it": {
+   "clubelo": "Roma",
+   "elo": 1866
+  },
+  "samsunspor-tr": {
+   "clubelo": "Samsunspor",
+   "elo": 1570
+  },
+  "santa-clara-pt": {
+   "clubelo": "Santa Clara",
+   "elo": 1581
+  },
+  "santander-esp": {
+   "clubelo": "Santander",
+   "elo": 1681
+  },
+  "sassuolo-it": {
+   "clubelo": "Sassuolo",
+   "elo": 1671
+  },
+  "schalke-04-de": {
+   "clubelo": "Schalke",
+   "elo": 1637
+  },
+  "seville-esp": {
+   "clubelo": "Sevilla",
+   "elo": 1723
+  },
+  "sheff-utd-eng": {
+   "clubelo": "Sheffield United",
+   "elo": 1623
+  },
+  "southampton-eng": {
+   "clubelo": "Southampton",
+   "elo": 1718
+  },
+  "sparta-nl": {
+   "clubelo": "Sparta",
+   "elo": 1506
+  },
+  "sporting-pt": {
+   "clubelo": "Sporting",
+   "elo": 1856
+  },
+  "stoke-eng": {
+   "clubelo": "Stoke",
+   "elo": 1574
+  },
+  "strasbourg-fr": {
+   "clubelo": "Strasbourg",
+   "elo": 1728
+  },
+  "stuttgart-de": {
+   "clubelo": "Stuttgart",
+   "elo": 1821
+  },
+  "sunderland-eng": {
+   "clubelo": "Sunderland",
+   "elo": 1732
+  },
+  "swansea-eng": {
+   "clubelo": "Swansea",
+   "elo": 1621
+  },
+  "torino-it": {
+   "clubelo": "Torino",
+   "elo": 1689
+  },
+  "tottenham-eng": {
+   "clubelo": "Tottenham",
+   "elo": 1819
+  },
+  "toulouse-fr": {
+   "clubelo": "Toulouse",
+   "elo": 1688
+  },
+  "trabzon-tr": {
+   "clubelo": "Trabzonspor",
+   "elo": 1699
+  },
+  "troyes-fr": {
+   "clubelo": "Troyes",
+   "elo": 1601
+  },
+  "twente-nl": {
+   "clubelo": "Twente",
+   "elo": 1684
+  },
+  "udinese-it": {
+   "clubelo": "Udinese",
+   "elo": 1665
+  },
+  "union-berlin-de": {
+   "clubelo": "Union Berlin",
+   "elo": 1684
+  },
+  "utrecht-nl": {
+   "clubelo": "Utrecht",
+   "elo": 1584
+  },
+  "valence-esp": {
+   "clubelo": "Valencia",
+   "elo": 1743
+  },
+  "vallecano-esp": {
+   "clubelo": "Rayo Vallecano",
+   "elo": 1741
+  },
+  "venezia-it": {
+   "clubelo": "Venezia",
+   "elo": 1640
+  },
+  "villarreal-esp": {
+   "clubelo": "Villarreal",
+   "elo": 1795
+  },
+  "vitoria-sc-pt": {
+   "clubelo": "Guimaraes",
+   "elo": 1576
+  },
+  "watford-eng": {
+   "clubelo": "Watford",
+   "elo": 1516
+  },
+  "west-bromwich-eng": {
+   "clubelo": "West Brom",
+   "elo": 1611
+  },
+  "west-ham-eng": {
+   "clubelo": "West Ham",
+   "elo": 1759
+  },
+  "willem-ii-nl": {
+   "clubelo": "Willem II",
+   "elo": 1393
+  },
+  "wolverhampton-eng": {
+   "clubelo": "Wolves",
+   "elo": 1714
+  },
+  "wrexham-eng": {
+   "clubelo": "Wrexham",
+   "elo": 1607
+  },
+  "bodglimt-eu": {
+   "clubelo": "Bodø/Glimt",
+   "elo": 1776
+  },
+  "qarabag-eu": {
+   "clubelo": "Karabakh Agdam",
+   "elo": 1596
+  },
+  "olympiakos-eu": {
+   "clubelo": "Olympiakos",
+   "elo": 1746
+  },
+  "club-bruges-eu": {
+   "clubelo": "Brugge",
+   "elo": 1836
+  },
+  "shakhtar-eu": {
+   "clubelo": "Shakhtar",
+   "elo": 1694
+  },
+  "lask-eu": {
+   "clubelo": "LASK",
+   "elo": 1637
+  },
+  "slovan-eu": {
+   "clubelo": "Slovan",
+   "elo": 1551
+  }
+ },
+ "equipes_sans_elo": [
+  "basaksehir-tr",
+  "cambuur-nl",
+  "clermont-fr",
+  "corum-tr",
+  "estoril-pt",
+  "excelsior-nl",
+  "laval-fr",
+  "maritimo-pt",
+  "rio-ave-pt",
+  "sochaux-fr",
+  "telstar-nl"
+ ]
+}
