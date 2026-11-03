@@ -289,6 +289,15 @@ saison, seulement 5e plus faible en ClubElo (l'Elo garde la mémoire des saisons
 - Leviers associés à tester séparément (une `version_modele` chacun) : K_LISSAGE plus faible (~7,5 estimé)
   et avantage du terrain par championnat lissé vers 65 (mesuré le 2026-11-03 : Championship ~58,
   Serie A ~8, Eredivisie ~-24, Bundesliga ~97, bruit ±25) — jamais par équipe (6 matchs = bruit).
+- **Mesure de la saison = buts seulement** (att/def lissés). Autres stats volontairement exclues du
+  modèle : efficacité (composante des buts + forte régression vers la moyenne = double comptage),
+  forme 5 matchs (déjà dans les totaux, bruit), possession (style, pouvoir prédictif résiduel ~nul),
+  points réels vs attendus (mesure la chance : partir des buts l'ignore déjà), domicile/extérieur par
+  équipe (6-7 matchs = bruit). Ces stats relèvent de l'analyse IA (contexte), pas du modèle.
+- **Tirs cadrés (version séparée, après la v3b seule)** : attaque = 35 % buts + 65 % tirs cadrés
+  (plus stables, moins de chance, se stabilisent plus vite ; principe des xG). Limite : pas de tirs
+  cadrés concédés en base -> défense toujours sur les buts. `version_modele` distincte
+  (`v3b-...-tirs`) pour isoler l'effet de chaque changement.
 - Script de calcul : `suivi-pronos/v3-2026-11-03.js` (dossier local, non versionné).
 
 **Ce qu'il ne faut pas attendre** : comparer v1 et v2 par Brier score apparie demande ~600 matchs
