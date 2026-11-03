@@ -98,7 +98,8 @@
     return r.json();
   }
   // Étiquette des matchs entre championnats différents
-  const cl = m => /champions/i.test(m.championnat || '') ? 'Champions League' : "Coupe d'Europe";
+  const cl = m => /ligue des champions|champions league/i.test(m.championnat || '') ? 'Champions League' : "Coupe d'Europe";
+  const isEurope = (m, p) => /ligue des champions|champions league|europa|conference/i.test(m.championnat || '') || !!(p && p.crossLeague);
 
   function fav(p, m) {
     if (!p) return null;
@@ -134,7 +135,7 @@
     const flips = rows.filter(r => r.flip).length;
     const deg = rows.filter(r => r.p2 && r.p2.eloDegrade).length;
     const v1Missing = rows.filter(r => !r.p1).length;
-    const xl = rows.filter(r => r.p2 && r.p2.crossLeague).length;
+    const xl = rows.filter(r => isEurope(r.m, r.p2)).length;
     document.getElementById('summary').innerHTML = [
       `<span class="pill">Matchs : <b>${rows.length}</b></span>`,
       `<span class="pill">Favori qui change de camp : <b>${flips}</b></span>`,
@@ -145,7 +146,7 @@
     ].join('');
 
     document.getElementById('rows').innerHTML = rows.map(({ m, p1, p2, f1, f2, flip }) => {
-      const tags = (p2 && p2.crossLeague ? `<span class="tag x">${cl(m)}</span>` : '') +
+      const tags = (isEurope(m, p2) ? `<span class="tag x">${cl(m)}</span>` : '') +
         (p2 && p2.eloDegrade ? `<span class="tag dg" title="${esc(p2.eloDegradeDetail.join(' ; '))}">Elo dégradé</span>` : '') +
         (flip ? '<span class="tag fl">favori change</span>' : '');
       const esp = p2 ? p2.pHome + p2.pDraw / 2 : null;
@@ -172,7 +173,7 @@
     const r1 = rows.filter(r => r.f1).sort((a, b) => b.f1.prob - a.f1.prob);
     const r2 = rows.filter(r => r.f2).sort((a, b) => b.f2.prob - a.f2.prob);
     const pos1 = new Map(r1.map((r, i) => [key(r), i + 1]));
-    const label = r => `${esc(r.m.equipe_domicile)} – ${esc(r.m.equipe_exterieur)}${r.p2 && r.p2.crossLeague ? `<span class="tag x">${cl(r.m)}</span>` : ''}`;
+    const label = r => `${esc(r.m.equipe_domicile)} – ${esc(r.m.equipe_exterieur)}${isEurope(r.m, r.p2) ? `<span class="tag x">${cl(r.m)}</span>` : ''}`;
     document.getElementById('rank1').innerHTML = r1.map((r, i) =>
       `<tr><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f1.name)}</td><td class="n">${pct(r.f1.prob)}</td></tr>`).join('');
     document.getElementById('rank2').innerHTML = r2.map((r, i) => {

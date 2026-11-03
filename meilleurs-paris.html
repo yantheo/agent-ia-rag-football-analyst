@@ -219,7 +219,7 @@
         <div class="page-title">
             <h2>Meilleurs Paris du Jour</h2>
             <p>Les matchs les plus déséquilibrés du jour (modèle statistique), analysés par l'IA</p>
-            <p style="font-size:0.78rem;margin-top:6px">Badge principal = favori et sa probabilité (modèle statistique : Elo des clubs + buts de la saison). Badge "IA" = avis narratif de l'agent, non calibré contre des résultats réels — à prendre comme complément, pas comme mesure</p>
+            <p style="font-size:0.78rem;margin-top:6px">Badge principal = favori et sa probabilité (modèle statistique : Elo des clubs + buts de la saison). Badge "Confiance IA" = avis narratif de l'agent, non calibré contre des résultats réels — à prendre comme complément, pas comme mesure</p>
         </div>
 
         <div class="panel">
@@ -249,7 +249,7 @@
             <span class="confidence-badge leger">45–60 %</span><span>léger favori</span>
             <span class="confidence-badge ouvert">&lt; 45 %</span><span>match ouvert</span>
             <span class="sep"></span>
-            <span><b>IA : Faible / Moyen / Élevé</b> = avis de l'agent IA dans son rapport, indépendant du badge (non calibré). La couleur décrit l'équilibre du match, pas la qualité du pari.</span>
+            <span><b>Confiance IA : Faible / Moyen / Élevé</b> = avis de l'agent IA dans son rapport, indépendant du badge (non calibré). La couleur décrit l'équilibre du match, pas la qualité du pari.</span>
         </div>
 
         <div id="results"></div>
@@ -503,25 +503,28 @@
       if (cancelled) break;
       const { match: m, preGap, probs, fav } = toAnalyze[i];
       setProgress(i, toAnalyze.length, `Analyse ${i + 1}/${toAnalyze.length} — ${m.equipe_domicile} vs ${m.equipe_exterieur}…`);
+      // Le classement est statistique : un match retenu par le modèle reste
+      // dans la liste même si l'IA échoue ou ne donne pas d'indice de
+      // confiance (avant, il disparaissait — l'IA ne doit venir qu'en second).
+      let output = '', confidence = null;
       try {
-        const output = await analyzeMatch(m);
-        const confidence = extractConfidence(output);
-        if (confidence) {
-          results.push({
-            match: m,
-            output,
-            confidence,
-            confidenceRank: CONFIDENCE_RANK[confidence] || 0,
-            confidenceDetail: extractConfidenceDetail(output),
-            signal: extractSignal(output),
-            preGap,
-            probs,
-            fav,
-          });
-        }
+        output = await analyzeMatch(m);
+        confidence = extractConfidence(output);
       } catch (err) {
         console.error('Analyse échouée pour', m.equipe_domicile, 'vs', m.equipe_exterieur, err);
+        output = '<p style="color:var(--text-muted)">Analyse IA indisponible pour ce match (erreur de l\'agent). Le classement statistique reste valable ; régénère plus tard pour obtenir l\'analyse.</p>';
       }
+      results.push({
+        match: m,
+        output,
+        confidence,
+        confidenceRank: confidence ? (CONFIDENCE_RANK[confidence] || 0) : 0,
+        confidenceDetail: confidence ? extractConfidenceDetail(output) : null,
+        signal: extractSignal(output),
+        preGap,
+        probs,
+        fav,
+      });
     }
 
     setProgress(toAnalyze.length, toAnalyze.length, cancelled ? 'Annulé.' : 'Analyse terminée.');
@@ -581,8 +584,13 @@
     function matchTags(r) {
       if (!r.probs) return '';
       let out = '';
-      if (r.probs.crossLeague) {
-        const label = /champions/i.test(r.match.championnat || '') ? 'Champions League' : 'Coupe d\'Europe';
+      // Compétition européenne : d'après le nom de la compétition (les deux
+      // clubs peuvent être hors de nos championnats, ex. LASK - Slovan), ou
+      // deux championnats différents.
+      const comp = r.match.championnat || '';
+      const europe = /ligue des champions|champions league|europa|conference/i.test(comp);
+      if (europe || r.probs.crossLeague) {
+        const label = /ligue des champions|champions league/i.test(comp) ? 'Champions League' : 'Coupe d\'Europe';
         out += ` &middot; <span class="xleague" title="Équipes de championnats différents : rapport de force calculé avec l'Elo des clubs (ClubElo), comparable d'un championnat à l'autre">${label}</span>`;
       }
       if (r.probs.eloDegrade) {
@@ -602,7 +610,7 @@
       const flag = FLAG_MAP[r.match.country] || '';
       const iaTooltip = r.confidenceDetail
         ? escapeAttr(r.confidenceDetail)
-        : "Avis narratif de l'IA, non calibré contre des résultats réels";
+        : (r.confidence ? "Avis narratif de l'IA, non calibré contre des résultats réels" : "Pas d'indice de confiance IA pour ce match (analyse indisponible ou incomplète)");
       const card = document.createElement('div');
       card.className = 'rank-card';
       card.innerHTML = `
@@ -614,7 +622,7 @@
           </div>
           <div class="badges-col">
             <span class="confidence-badge ${probabilityClass(r.preGap)}" title="${favTitle(r)}">${favLabel(r)}${r.preGap != null ? (r.preGap * 100).toFixed(0) + '%' : '—'}</span>
-            <span class="ia-badge" tabindex="0" data-tooltip="${iaTooltip}">IA : ${r.confidence}</span>
+            <span class="ia-badge" tabindex="0" data-tooltip="${iaTooltip}">Confiance IA : ${r.confidence || '—'}</span>
           </div>
           <span class="rank-arrow">&#8250;</span>
         </div>
