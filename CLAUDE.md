@@ -137,6 +137,21 @@ qui choisit quels matchs du jour envoyer a l'agent, plutot que les N premiers pa
   depuis le frontend) ne permet de verifier que "Élevé" correspond a un vrai taux de reussite superieur.
   Mention explicite de cette limite dans l'UI. Pour vraiment calibrer, il faudrait un scraper de
   resultats + une table dediee + un acces en ecriture — evolution backend, pas frontend.
+- **Matchs inter-ligues (ajout du 2026-11-03)** : les indices etant relatifs a CHAQUE championnat, le
+  modele supposait qu'une equipe moyenne de Liga vaut une equipe moyenne de Premier League ou de Super
+  Lig (Barcelone - Aston Villa donne a 83 %). Entre deux championnats differents, les buts attendus sont
+  multiplies / divises par `exp(ELO_GOAL_K x ecart)`, ou ecart = difference d'Elo moyen des deux ligues
+  (table `LEAGUE_ELO`, source ClubElo, classement du 2026-11-02, a rafraichir de temps en temps).
+  `ELO_GOAL_K = 0.00225` calibre pour que deux equipes moyennes de leur ligue donnent la meme esperance
+  de resultat que la formule Elo `1/(1+10^(-ecart/400))` (100 pts = x1,25 sur les buts). Matchs internes a
+  un championnat : inchanges. Effet le 2026-11-03 : Barcelone - Aston Villa 83 % -> 73 %, Man United -
+  Rome 65 % -> 49 % (Rome), Galatasaray - Stuttgart 62 % (Galatasaray) -> 41 % (Stuttgart). Mention
+  "inter-ligues" sur la carte. Limite : la Ligue des Champions a son propre contexte (rotation, enjeu)
+  que le modele ignore.
+- **Badge** : nom du favori devant le pourcentage ("Rome 49%") et les 3 issues au survol — avant, "65%"
+  ne disait pas a quelle equipe il correspondait.
+- **Cache** : au chargement, le modele est recalcule sur les resultats en cache (`refreshModel`, sans
+  appel IA) : un changement de modele s'applique aux analyses deja faites sans consommer de credits.
 - Resultats mis en cache en `localStorage` (cle `meilleurs_paris_cache_v1`) par date du jour, pour ne
   pas re-declencher des appels OpenAI a chaque visite.
 

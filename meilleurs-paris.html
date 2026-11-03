@@ -129,6 +129,7 @@
             padding: 5px 14px; border-radius: 100px; font-size: 0.78rem; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
         }
+        .xleague { color: var(--gold); border-bottom: 1px dotted var(--gold); cursor: help; }
         .confidence-badge.eleve { background: rgba(34,197,94,0.18); color: var(--green-primary); }
         .confidence-badge.moyen { background: rgba(251,191,36,0.18); color: var(--gold); }
         .confidence-badge.faible { background: rgba(239,68,68,0.15); color: var(--red); }
@@ -349,6 +350,30 @@
   const AWAY_ADV = 0.94;
   const MAX_GOALS = 8; // troncature de la distribution de Poisson
 
+  // ---------- Force relative des championnats (matchs inter-ligues) ----------
+  // Les indices attaque/défense sont relatifs à la moyenne de CHAQUE
+  // championnat : sans correction, le modèle supposait qu'une équipe moyenne de
+  // Liga vaut une équipe moyenne de Premier League ou de Süper Lig (ex :
+  // Barcelone - Aston Villa donné à 83 %). Pour un match entre deux
+  // championnats différents (Ligue des Champions...), on corrige les buts
+  // attendus par l'écart de force des deux ligues.
+  // Source : Elo moyen par championnat publié par ClubElo (clubelo.com,
+  // classement du 2026-11-02). A rafraîchir de temps en temps (les écarts entre
+  // ligues bougent lentement) ; un championnat absent de la table = pas de
+  // correction.
+  const LEAGUE_ELO = {
+    'Premier League': 1838, 'Liga': 1766, 'Bundesliga': 1752, 'Serie A': 1740,
+    "Ligue 1 McDonald's": 1713, 'Championship': 1611, 'Süper Lig': 1606,
+    'Liga Portugal Betclic': 1595, 'Eredivisie': 1559, 'Ligue 2': 1540,
+  };
+  // Conversion écart Elo -> buts : buts attendus x exp(K x écart) pour la ligue
+  // la plus forte, / exp(K x écart) pour l'autre. K calibré pour que deux
+  // équipes "moyennes" de leur ligue (1,4 but/match) donnent la même espérance
+  // de résultat (victoire + nul/2) que la formule Elo 1/(1+10^(-écart/400)) :
+  // 100 pts d'écart = x1,25 sur les buts, espérance 0,64 (écart < 0,01 jusqu'à
+  // 300 pts, l'écart max entre nos championnats).
+  const ELO_GOAL_K = 0.00225;
+
   function poissonPmf(lambda, k) {
     let logP = -lambda + k * Math.log(lambda);
     for (let i = 2; i <= k; i++) logP -= Math.log(i);
@@ -382,6 +407,7 @@
         attackIndex: attackRate / avg,
         defenseIndex: defenseRate / avg,
         leagueAvg: avg,
+        league: t.championnat,
       };
     });
     return map;
@@ -392,8 +418,19 @@
   function matchProbabilities(home, away) {
     if (!home || !away) return null;
     const avg = (home.leagueAvg + away.leagueAvg) / 2;
-    const lambdaHome = avg * home.attackIndex * away.defenseIndex * HOME_ADV;
-    const lambdaAway = avg * away.attackIndex * home.defenseIndex * AWAY_ADV;
+    let lambdaHome = avg * home.attackIndex * away.defenseIndex * HOME_ADV;
+    let lambdaAway = avg * away.attackIndex * home.defenseIndex * AWAY_ADV;
+
+    // Correction de force des ligues, uniquement entre deux championnats
+    // différents et connus (un match interne à un championnat est inchangé).
+    const crossLeague = home.league !== away.league;
+    const eloH = LEAGUE_ELO[home.league], eloA = LEAGUE_ELO[away.league];
+    const leagueAdjusted = crossLeague && eloH != null && eloA != null;
+    if (leagueAdjusted) {
+      const f = Math.exp(ELO_GOAL_K * (eloH - eloA));
+      lambdaHome *= f;
+      lambdaAway /= f;
+    }
 
     let pHome = 0, pDraw = 0, pAway = 0;
     for (let i = 0; i <= MAX_GOALS; i++) {
@@ -411,7 +448,7 @@
       pHome: pHome / total,
       pDraw: pDraw / total,
       pAway: pAway / total,
-      lambdaHome, lambdaAway,
+      lambdaHome, lambdaAway, crossLeague, leagueAdjusted,
     };
   }
 
@@ -431,7 +468,7 @@
     const scored = matches.map(m => {
       const probs = matchProbabilities(indices[m.team_id_domicile], indices[m.team_id_exterieur]);
       const gap = probs ? Math.max(probs.pHome, probs.pDraw, probs.pAway) : null;
-      return { match: m, preGap: gap, probs };
+      return { match: m, preGap: gap, probs, fav: favoriteOf(probs) };
     });
     scored.sort((a, b) => {
       if (a.preGap == null && b.preGap == null) return 0;
@@ -440,6 +477,30 @@
       return b.preGap - a.preGap;
     });
     return scored;
+  }
+
+  // Issue la plus probable : 'home' / 'draw' / 'away' (le badge affichait un
+  // pourcentage sans dire à quelle équipe il correspondait).
+  function favoriteOf(probs) {
+    if (!probs) return null;
+    const max = Math.max(probs.pHome, probs.pDraw, probs.pAway);
+    return max === probs.pHome ? 'home' : max === probs.pAway ? 'away' : 'draw';
+  }
+
+  // Recalcule le modèle (sans IA) sur des résultats déjà analysés, par ex. le
+  // cache du jour après un changement du modèle : les rapports IA sont gardés,
+  // seules les probabilités, le favori et l'ordre sont mis à jour.
+  async function refreshModel(results) {
+    const teams = await fetchAllTeams();
+    const indices = buildTeamIndices(teams, computeLeagueAverages(teams));
+    results.forEach(r => {
+      const probs = matchProbabilities(indices[r.match.team_id_domicile], indices[r.match.team_id_exterieur]);
+      r.probs = probs;
+      r.preGap = probs ? Math.max(probs.pHome, probs.pDraw, probs.pAway) : null;
+      r.fav = favoriteOf(probs);
+    });
+    results.sort((a, b) => ((b.preGap || 0) - (a.preGap || 0)) || (b.confidenceRank - a.confidenceRank));
+    return results;
   }
 
   async function analyzeMatch(match) {
@@ -523,7 +584,7 @@
 
     for (let i = 0; i < toAnalyze.length; i++) {
       if (cancelled) break;
-      const { match: m, preGap } = toAnalyze[i];
+      const { match: m, preGap, probs, fav } = toAnalyze[i];
       setProgress(i, toAnalyze.length, `Analyse ${i + 1}/${toAnalyze.length} — ${m.equipe_domicile} vs ${m.equipe_exterieur}…`);
       try {
         const output = await analyzeMatch(m);
@@ -537,6 +598,8 @@
             confidenceDetail: extractConfidenceDetail(output),
             signal: extractSignal(output),
             preGap,
+            probs,
+            fav,
           });
         }
       } catch (err) {
@@ -587,6 +650,19 @@
       return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     }
 
+    // Nom du favori devant le pourcentage ("Rome 65%") + détail des 3 issues
+    // au survol.
+    function favLabel(r) {
+      if (!r.fav) return '';
+      const name = r.fav === 'home' ? r.match.equipe_domicile : r.fav === 'away' ? r.match.equipe_exterieur : 'Nul';
+      return `${name} `;
+    }
+    function favTitle(r) {
+      if (!r.probs) return 'Probabilité du favori — modèle statistique Poisson';
+      const p = v => Math.round(v * 100) + '%';
+      return escapeAttr(`Modèle Poisson — ${r.match.equipe_domicile} ${p(r.probs.pHome)} · Nul ${p(r.probs.pDraw)} · ${r.match.equipe_exterieur} ${p(r.probs.pAway)}`);
+    }
+
     resultsEl.innerHTML = '';
     results.forEach((r, idx) => {
       const flag = FLAG_MAP[r.match.country] || '';
@@ -600,10 +676,10 @@
           <div class="rank-num">#${idx + 1}</div>
           <div class="rank-teams">
             <div class="vs">${r.match.equipe_domicile} <span style="color:var(--text-muted)">vs</span> ${r.match.equipe_exterieur}</div>
-            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}</div>
+            <div class="league">${flag} ${r.match.championnat} &middot; ${r.match.heure || '--:--'}${r.signal ? ' &middot; ' + r.signal : ''}${r.probs && r.probs.crossLeague ? ` &middot; <span class="xleague" title="${r.probs.leagueAdjusted ? 'Équipes de championnats différents : probabilités corrigées par la force relative des deux ligues (Elo moyen ClubElo)' : 'Équipes de championnats différents : force relative des ligues inconnue, probabilités non corrigées'}">inter-ligues${r.probs.leagueAdjusted ? '' : ' (non corrigé)'}</span>` : ''}</div>
           </div>
           <div class="badges-col">
-            <span class="confidence-badge ${probabilityClass(r.preGap)}" title="Probabilité du favori — modèle statistique Poisson">${r.preGap != null ? (r.preGap * 100).toFixed(0) + '%' : '—'}</span>
+            <span class="confidence-badge ${probabilityClass(r.preGap)}" title="${favTitle(r)}">${favLabel(r)}${r.preGap != null ? (r.preGap * 100).toFixed(0) + '%' : '—'}</span>
             <span class="ia-badge" tabindex="0" data-tooltip="${iaTooltip}">IA : ${r.confidence}</span>
           </div>
           <span class="rank-arrow">&#8250;</span>
@@ -636,6 +712,11 @@
   const cache = loadCache();
   if (cache && cache.date === todayStr() && cache.results && cache.results.length) {
     renderResults(cache.results, { generatedAt: cache.generatedAt });
+    // Met à jour les probabilités du cache avec le modèle actuel (sans IA),
+    // puis réaffiche ; en cas d'échec réseau on garde l'affichage du cache.
+    refreshModel(cache.results)
+      .then(res => renderResults(res, { generatedAt: cache.generatedAt }))
+      .catch(err => console.warn('Recalcul du modèle sur le cache échoué', err));
   } else {
     document.getElementById('results').innerHTML = '<div class="empty-state">Clique sur « Générer les meilleurs paris » pour lancer l\'analyse des matchs du jour.</div>';
   }
