@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Comparaison v1 / v2</title>
+<title>Comparaison des modèles</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -40,31 +40,43 @@
   .ranks { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 900px) { .ranks { grid-template-columns: 1fr; } }
   #err { color: var(--red); }
+  td.odds { white-space: nowrap; }
+  td.odds input { width: 4.2em; background: var(--card2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 3px 5px; font: 0.8rem 'JetBrains Mono', monospace; margin-right: 3px; }
+  td.warn { color: var(--gold); font-weight: 700; }
+  .controls button.sec { background: var(--card); color: var(--text); border: 1px solid var(--border); }
   code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Comparaison des modèles v1 / v2</h1>
+  <h1>Comparaison des modèles v1 / v2 / v3b</h1>
   <p class="lead">Outil de diagnostic (pas une page publique). Pour chaque match, <b>v1</b> (<code>v1-poisson-k6</code>, en production) et
-    <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson) sont calculés dans la même passe, sur les mêmes données.</p>
+    <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson) sont calculés dans la même passe, sur les mêmes données.
+    <b>v3b</b> (<code>v3b-elo-saison-j10</code>, <b>expérimental</b>, non branché sur Meilleurs Paris) : Elo = mélange ClubElo / saison
+    (w = j/(j+10)), uniquement pour les matchs internes à un championnat ; identique à la v2 en Coupe d'Europe.</p>
+  <p class="note"><b>Marché</b> : saisir les cotes 1 / N / 2 d'un match -> probabilités sans marge (méthode de la puissance) et écart
+    max avec v2 / v3b en points (en or si ≥ 10 pts). Les cotes restent dans ce navigateur (<code>localStorage</code>) : « Exporter CSV »
+    pour les journaliser. Un gros écart avec le marché signale d'abord une erreur probable du modèle, pas une valeur.</p>
   <p class="note">Espérance = P(1) + ½·P(N) : c'est elle (pas P(1)) qui se compare à la cible Elo 1/(1+10^(−dE/400)).
     Lignes surlignées = le favori change de camp entre v1 et v2. « Champions League » = équipes de championnats différents. Elo : instantané ClubElo versionné (<code>elo-clubs.json</code>).</p>
 
   <div class="controls">
     <label>Date <input type="date" id="date"></label>
     <button id="go">Calculer</button>
+    <button id="csv" class="sec">Exporter CSV (matchs avec cotes)</button>
     <span id="status" class="muted"></span><span id="err"></span>
   </div>
 
   <div class="summary" id="summary"></div>
+  <div class="summary" id="summary-mk"></div>
 
   <h2>Matchs</h2>
   <div class="scroll"><table>
     <thead><tr>
       <th>Match</th><th>Compétition</th><th>Elo dom</th><th>Elo ext</th><th>dE</th>
       <th>v1 : favori</th><th>v2 : favori</th><th>Δ P(1)</th><th>Espérance v2</th><th>Cible Elo</th>
-      <th>T v2 (buts)</th><th>v1 P(1/N/2)</th><th>v2 P(1/N/2)</th>
+      <th>T v2 (buts)</th><th>v1 P(1/N/2)</th><th>v2 P(1/N/2)</th><th>v3b P(1/N/2)</th>
+      <th>Cotes 1 / N / 2</th><th>Marché P(1/N/2)</th><th>Écart v2</th><th>Écart v3b</th>
     </tr></thead>
     <tbody id="rows"></tbody>
   </table></div>
@@ -97,6 +109,16 @@
     if (!r.ok) throw new Error(`${path} : ${r.status}`);
     return r.json();
   }
+  // Cotes saisies, par date et par match (diagnostic personnel : localStorage suffit, export CSV pour journaliser).
+  const COTES_KEY = 'comparaison_cotes_v1';
+  function loadCotes() { try { return JSON.parse(localStorage.getItem(COTES_KEY)) || {}; } catch (e) { return {}; } }
+  function saveCotes(o) { try { localStorage.setItem(COTES_KEY, JSON.stringify(o)); } catch (e) { /* stockage indisponible */ } }
+  let current = null; // { dateStr, rows, eloData }
+  const rowKey = (dateStr, m) => `${dateStr}|${m.team_id_domicile}|${m.team_id_exterieur}`;
+  const trio = p => p ? `${pct(p.pHome)} / ${pct(p.pDraw)} / ${pct(p.pAway)}` : '—';
+  // Écart max sur les 3 issues, en points de pourcentage
+  const ecart = (p, mk) => p && mk ? 100 * Math.max(Math.abs(p.pHome - mk.pHome), Math.abs(p.pDraw - mk.pDraw), Math.abs(p.pAway - mk.pAway)) : null;
+
   // Étiquette des matchs entre championnats différents
   const cl = m => /ligue des champions|champions league/i.test(m.championnat || '') ? 'Champions League' : "Coupe d'Europe";
   const isEurope = (m, p) => /ligue des champions|champions league|europa|conference/i.test(m.championnat || '') || !!(p && p.crossLeague);
@@ -120,18 +142,84 @@
 
     const iV1 = Modele.v1.buildTeamIndices(teams, Modele.v1.computeLeagueAverages(teams));
     const ctx = Modele.v2.prepare(teams, eloData, mapping);
+    const ctx3 = Modele.v3b.prepare(teams, eloData, mapping);
+    const cotes = loadCotes();
     Modele.v2.eloCoverage(ctx, matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur]));
 
     const rows = matches.map(m => {
       const p1 = Modele.v1_poisson(iV1[m.team_id_domicile], iV1[m.team_id_exterieur]);
       const p2 = Modele.v2.matchProbabilities(ctx, m.team_id_domicile, m.team_id_exterieur);
+      const p3 = Modele.v3b.matchProbabilities(ctx3, m.team_id_domicile, m.team_id_exterieur);
       const f1 = fav(p1, m), f2 = fav(p2, m);
-      return { m, p1, p2, f1, f2, flip: !!(f1 && f2 && f1.side !== f2.side) };
+      const key = rowKey(dateStr, m), c = cotes[key] || null;
+      return { m, p1, p2, p3, f1, f2, key, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
+        flip: !!(f1 && f2 && f1.side !== f2.side) };
     });
-    return { rows, eloData };
+    return { dateStr, rows, eloData };
   }
 
-  function render({ rows, eloData }) {
+  function marketCells(r) {
+    const e2 = ecart(r.p2, r.mk), e3 = ecart(r.p3, r.mk);
+    const fmt = e => e == null ? '—' : e.toFixed(0) + ' pts';
+    return `<td class="n mk">${r.mk ? `${trio(r.mk)} <span class="muted">(marge ${(r.mk.marge * 100).toFixed(1)} %)</span>` : '—'}</td>
+      <td class="n ${e2 != null && e2 >= 10 ? 'warn' : ''}">${fmt(e2)}</td>
+      <td class="n ${e3 != null && e3 >= 10 ? 'warn' : ''}">${fmt(e3)}</td>`;
+  }
+
+  function renderMarketSummary() {
+    const withMk = current.rows.filter(r => r.mk);
+    const moy = f => withMk.length ? (withMk.reduce((a, r) => a + f(r), 0) / withMk.length).toFixed(1) + ' pts' : '—';
+    const fav = (p, mk) => { const a = [p.pHome, p.pDraw, p.pAway], b = [mk.pHome, mk.pDraw, mk.pAway];
+      return a.indexOf(Math.max(...a)) === b.indexOf(Math.max(...b)); };
+    const same = k => withMk.filter(r => r[k] && fav(r[k], r.mk)).length;
+    document.getElementById('summary-mk').innerHTML = withMk.length ? [
+      `<span class="pill">Matchs avec cotes : <b>${withMk.length}</b></span>`,
+      `<span class="pill">Écart max moyen au marché — v2 : <b>${moy(r => ecart(r.p2, r.mk) || 0)}</b>, v3b : <b>${moy(r => ecart(r.p3, r.mk) || 0)}</b></span>`,
+      `<span class="pill">Même favori que le marché — v2 : <b>${same('p2')}/${withMk.length}</b>, v3b : <b>${same('p3')}/${withMk.length}</b></span>`,
+    ].join('') : '<span class="pill muted">Aucune cote saisie pour cette date.</span>';
+  }
+
+  function onOddsInput(ev) {
+    const tr = ev.target.closest('tr[data-key]');
+    if (!tr) return;
+    const r = current.rows.find(x => x.key === tr.dataset.key);
+    const vals = [...tr.querySelectorAll('td.odds input')].map(i => parseFloat(i.value.replace(',', '.')));
+    const all = loadCotes();
+    if (vals.every(v => v > 1)) { r.cotes = vals; all[r.key] = vals; }
+    else { r.cotes = null; delete all[r.key]; }
+    saveCotes(all);
+    r.mk = r.cotes ? Modele.marche.demarginer(r.cotes) : null;
+    tr.querySelectorAll('td.mkc').forEach(td => td.remove());
+    tr.insertAdjacentHTML('beforeend', marketCells(r).replace(/<td class="/g, '<td class="mkc '));
+    renderMarketSummary();
+  }
+
+  function exportCsv() {
+    if (!current) return;
+    const rows = current.rows.filter(r => r.mk);
+    if (!rows.length) { alert('Aucune cote saisie pour cette date.'); return; }
+    const f = v => v == null ? '' : v.toFixed(4);
+    const P = p => p ? [f(p.pHome), f(p.pDraw), f(p.pAway)] : ['', '', ''];
+    const head = ['date', 'heure', 'championnat', 'domicile', 'exterieur', 'team_id_dom', 'team_id_ext',
+      'cote_1', 'cote_n', 'cote_2', 'marge', 'marche_1', 'marche_n', 'marche_2',
+      'v1_1', 'v1_n', 'v1_2', 'v2_1', 'v2_n', 'v2_2', 'v3b_1', 'v3b_n', 'v3b_2', 'v3b_melange',
+      'versions', 'methode_demarginage', 'elo_clubelo_du'];
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const lines = rows.map(r => [current.dateStr, r.m.heure, r.m.championnat, r.m.equipe_domicile, r.m.equipe_exterieur,
+      r.m.team_id_domicile, r.m.team_id_exterieur, ...r.cotes, f(r.mk.marge), ...P(r.mk), ...P(r.p1), ...P(r.p2), ...P(r.p3),
+      r.p3 ? r.p3.melange : '', `${Modele.v1.VERSION};${Modele.v2.VERSION};${Modele.v3b.VERSION}`, Modele.marche.METHODE,
+      current.eloData.date_classement_clubelo].map(q).join(','));
+    const blob = new Blob(['\ufeff' + [head.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `comparaison-marche-${current.dateStr}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function render(data) {
+    current = data;
+    const { rows, eloData } = data;
     const flips = rows.filter(r => r.flip).length;
     const deg = rows.filter(r => r.p2 && r.p2.eloDegrade).length;
     const v1Missing = rows.filter(r => !r.p1).length;
@@ -145,15 +233,16 @@
       `<span class="pill">Elo ClubElo du <b>${esc(eloData.date_classement_clubelo)}</b></span>`,
     ].join('');
 
-    document.getElementById('rows').innerHTML = rows.map(({ m, p1, p2, f1, f2, flip }) => {
+    document.getElementById('rows').innerHTML = rows.map(r => {
+      const { m, p1, p2, p3, f1, f2, flip } = r;
       const tags = (isEurope(m, p2) ? `<span class="tag x">${cl(m)}</span>` : '') +
         (p2 && p2.eloDegrade ? `<span class="tag dg" title="${esc(p2.eloDegradeDetail.join(' ; '))}">Elo dégradé</span>` : '') +
         (flip ? '<span class="tag fl">favori change</span>' : '');
       const esp = p2 ? p2.pHome + p2.pDraw / 2 : null;
       const cible = p2 ? 1 / (1 + Math.pow(10, -p2.dE / 400)) : null;
       const d = p1 && p2 ? p2.pHome - p1.pHome : null;
-      const trio = p => p ? `${pct(p.pHome)} / ${pct(p.pDraw)} / ${pct(p.pAway)}` : '—';
-      return `<tr class="${flip ? 'flip' : ''}">
+      const odd = i => `<input inputmode="decimal" aria-label="${['Cote 1', 'Cote N', 'Cote 2'][i]}" value="${r.cotes ? r.cotes[i] : ''}">`;
+      return `<tr class="${flip ? 'flip' : ''}" data-key="${esc(r.key)}">
         <td><b>${esc(m.equipe_domicile)}</b> – <b>${esc(m.equipe_exterieur)}</b>${tags}</td>
         <td class="muted">${esc(m.championnat)}</td>
         <td class="n">${p2 ? p2.eloHome : '—'}</td><td class="n">${p2 ? p2.eloAway : '—'}</td>
@@ -164,9 +253,14 @@
         <td class="n">${esp == null ? '—' : esp.toFixed(3)}</td>
         <td class="n">${cible == null ? '—' : cible.toFixed(3)}</td>
         <td class="n">${p2 ? p2.T.toFixed(2) : '—'}</td>
-        <td class="n muted">${trio(p1)}</td><td class="n">${trio(p2)}</td>
+ <td class="n muted">${trio(p1)}</td><td class="n">${trio(p2)}</td>
+        <td class="n">${trio(p3)}${p3 && p3.melange ? '' : ' <span class="muted" title="Match entre championnats ou données manquantes : v3b = v2">=v2</span>'}</td>
+        <td class="odds">${odd(0)}${odd(1)}${odd(2)}</td>
+        ${marketCells(r).replace(/<td class="/g, '<td class="mkc ')}
       </tr>`;
-    }).join('') || '<tr><td colspan="13" class="muted">Aucun match ce jour-là.</td></tr>';
+    }).join('') || '<tr><td colspan="18" class="muted">Aucun match ce jour-là.</td></tr>';
+
+    renderMarketSummary();
 
     // Classements côte à côte (mêmes règles que le pré-filtre : proba du favori décroissante)
     const key = r => `${r.m.team_id_domicile}|${r.m.team_id_exterieur}`;
@@ -203,6 +297,8 @@
   const qs = new URLSearchParams(location.search).get('date');
   document.getElementById('date').value = qs || new Date().toLocaleDateString('sv-SE');
   document.getElementById('go').addEventListener('click', go);
+  document.getElementById('csv').addEventListener('click', exportCsv);
+  document.getElementById('rows').addEventListener('input', onOddsInput);
   go();
 })();
 </script>

@@ -232,8 +232,13 @@ tort). Un match n'est pas une preuve : la vraie validation passe par les matchs 
 **Architecture.** Le modele vit dans `model.js` (objet global `Modele`, aussi chargeable sous Node).
 `Modele.v1` = modele historique (`v1-poisson-k6`), deplace a l'identique depuis `meilleurs-paris.html`
 (ecart 0 verifie) et **conserve comme reference : ne pas le modifier**. `Modele.v2` = `v2-elo-k13`.
-`comparaison.html` = outil de diagnostic v1/v2 (hors menu, non lie). `node model.tests.js` = tests
-chiffres (valeurs attendues calculees independamment, tolerance 0,005).
+`Modele.v3b` = `v3b-elo-saison-j10`, **experimental** (voir piste v3b), utilise uniquement par
+`comparaison.html`. `Modele.marche.demarginer([c1, cN, c2])` = probabilites du marche, marge retiree par la
+methode de la puissance. `comparaison.html` = outil de diagnostic v1/v2/v3b + marche (hors menu, non lie) :
+saisie des cotes 1/N/2 par match (`localStorage`, cle `comparaison_cotes_v1`, par date + team_id), ecart
+max au marche en points (en or si >= 10), resume "meme favori que le marche", export CSV pour journaliser
+(cotes, marche, v1, v2, v3b, versions). `node model.tests.js` = tests chiffres (valeurs attendues
+calculees independamment, tolerance 0,005).
 
 **Formules v2 (figees).** `dE = eloDom + advDomLigue - eloExt` (avantage du terrain +65 Elo, par
 championnat, jamais par equipe) ; `s = exp(2·k·dE)`, k = 0.00225 ; `T = mL·(attDom·defExt + attExt·defDom)`
@@ -270,7 +275,8 @@ precision des passes (marqueurs de style, pouvoir predictif residuel quasi nul).
 ~7,5, de 3 (Liga) a 37 (Ligue 2) — estimation elle-meme bruitee (18-24 equipes par ligue). N'agit que
 sur T en v2. A reestimer avec plus de journees.
 
-**Piste v3b « Elo + saison en cours » — en réflexion, NON implémentée (2026-11-03).** Constat sur les
+**Piste v3b « Elo + saison en cours » — expérimentale (2026-11-03), J0 = 10 figé le 2026-11-04,
+calculée dans `comparaison.html` uniquement (`Modele.v3b`), Meilleurs Paris reste en v2.** Constat sur les
 18 matchs du 2026-11-03 (résultats connus) : v2 nettement meilleure en C1 (Brier 0,370) mais pas mieux
 que le hasard en Championship (0,668 ; v1 0,583). Exemple : Derby, 2e plus faible du Championship sur la
 saison, seulement 5e plus faible en ClubElo (l'Elo garde la mémoire des saisons passées).
@@ -299,6 +305,21 @@ saison, seulement 5e plus faible en ClubElo (l'Elo garde la mémoire des saisons
   cadrés concédés en base -> défense toujours sur les buts. `version_modele` distincte
   (`v3b-...-tirs`) pour isoler l'effet de chaque changement.
 - Script de calcul : `suivi-pronos/v3-2026-11-03.js` (dossier local, non versionné).
+- **Cas Lens – Côme (C1, 2026-11-04) — motif des deux pistes ci-dessous.** v2 = v3b (match entre
+  championnats) : 43 / 24 / 32. Marché (cotes 3,60 / 3,80 / 1,95, sans marge) : 26 / 24,5 / 49,5, soit
+  ~17 pts d'écart et un favori inversé. ClubElo met déjà Côme devant (1827 vs 1801) : Lens n'est favori que
+  par l'avantage du terrain (+65). Même sans lui (34 / 25 / 41), le modèle reste loin du marché (dE
+  implicite du marché ≈ −83 vs +39 en v2) : l'écart vient surtout de ClubElo, l'avantage du terrain n'en
+  explique qu'une partie. La v3 « tout match » (rejetée) ne donnait que 40 / 25 / 35.
+- **Piste « alerte écart au marché » (à réfléchir pour la v3, non implémentée)** : sur Meilleurs Paris,
+  signaler un match si l'écart max entre le modèle et le marché démargé dépasse ~10 pts, pour qu'il ne
+  soit pas lu comme une « value » (43 % × 3,60 = 1,55 d'espérance apparente sur Lens : c'est une erreur du
+  modèle, pas une valeur). Prérequis : les cotes dans les données (aujourd'hui saisie manuelle dans
+  `comparaison.html`) -> scraper de cotes côté backend. Seuil à choisir à partir des écarts journalisés.
+- **Piste « avantage du terrain réduit en Coupe d'Europe » (à tester, `version_modele` distincte)** :
+  +65 partout est peut-être trop fort entre deux clubs proches en C1/C3/C4. À juger sur plusieurs soirées
+  de matchs européens (écart au marché journalisé + résultats), pas sur Lens – Côme seul : sur ce match ça
+  ne corrige qu'une partie de l'écart. À tester séparément de l'avantage par championnat ci-dessus.
 
 **Ce qu'il ne faut pas attendre** : comparer v1 et v2 par Brier score apparie demande ~600 matchs
 logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; detecter un avantage

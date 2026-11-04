@@ -245,11 +245,84 @@
     };
   })();
 
+  // ===========================================================================
+  // v3b — "v3b-elo-saison-j10" : EXPÉRIMENTAL, affiché uniquement dans
+  // comparaison.html (Meilleurs Paris reste en v2). Voir CLAUDE.md, piste v3b.
+  // ===========================================================================
+  //   Elo saison = Elo moyen du championnat + ln(att/def)/(2k)   (indices v2, K=13)
+  //   Elo v3b    = w·Elo saison + (1−w)·ClubElo,  w = j/(j+J0),  J0 = 10 (figé AVANT mesure)
+  // Mélange UNIQUEMENT pour les matchs internes à un championnat ; match entre
+  // championnats (Coupes d'Europe), équipe sans Elo ClubElo ou sans stats -> v2 pure.
+  // Le reste (T, avantage du terrain, plancher) est strictement celui de la v2.
+  const v3b = (function () {
+    const VERSION = 'v3b-elo-saison-j10';
+    const J0 = 10;
+
+    function prepare(teams, eloData, mapping) {
+      const ctx = v2.prepare(teams, eloData, mapping);
+      ctx.matchs = {};
+      teams.forEach(t => { ctx.matchs[t.team_id] = t.matchs_joues || 0; });
+      return ctx;
+    }
+
+    function eloMixte(ctx, teamId) {
+      const club = ctx.elo[teamId], i = ctx.indices[teamId];
+      if (!club || !i) return null;
+      const moy = ctx.eloLigue[i.league];
+      if (moy == null) return null;
+      const saison = moy + Math.log(i.att / i.def) / (2 * v2.K_ELO);
+      const n = ctx.matchs[teamId] || 0, w = n / (n + J0);
+      return { elo: w * saison + (1 - w) * club.elo, club: club.elo, saison, w };
+    }
+
+    function matchProbabilities(ctx, homeId, awayId) {
+      const p2 = v2.matchProbabilities(ctx, homeId, awayId);
+      if (!p2) return null;
+      const mH = eloMixte(ctx, homeId), mA = eloMixte(ctx, awayId);
+      if (p2.crossLeague || !mH || !mA) return Object.assign({}, p2, { version: VERSION, melange: false });
+      const elo = Object.assign({}, ctx.elo, { [homeId]: { elo: mH.elo }, [awayId]: { elo: mA.elo } });
+      const p = v2.matchProbabilities(Object.assign({}, ctx, { elo }), homeId, awayId);
+      return Object.assign(p, {
+        version: VERSION, melange: true, J0,
+        eloClubHome: mH.club, eloClubAway: mA.club,
+        eloSaisonHome: mH.saison, eloSaisonAway: mA.saison, wHome: mH.w, wAway: mA.w,
+      });
+    }
+
+    return { VERSION, J0, prepare, eloMixte, matchProbabilities };
+  })();
+
+  // ===========================================================================
+  // Marché : probabilités implicites des cotes 1/N/2, marge retirée par la
+  // méthode de la puissance (p_i = (1/cote_i)^k, k tel que Σ p_i = 1). Moins
+  // biaisée que la normalisation proportionnelle sur les gros outsiders.
+  // Repère de calibration du modèle, PAS un signal de pari.
+  // ===========================================================================
+  const marche = (function () {
+    const METHODE = 'puissance';
+    function demarginer(cotes) {
+      if (!Array.isArray(cotes) || cotes.length !== 3 || cotes.some(c => !(c > 1))) return null;
+      const q = cotes.map(c => 1 / c);
+      const somme = q.reduce((a, b) => a + b, 0);
+      let lo = 0.1, hi = 10, k = 1;
+      for (let it = 0; it < 100; it++) {
+        k = (lo + hi) / 2;
+        const s = q.reduce((a, x) => a + Math.pow(x, k), 0);
+        if (s > 1) lo = k; else hi = k;
+      }
+      const p = q.map(x => Math.pow(x, k));
+      return { pHome: p[0], pDraw: p[1], pAway: p[2], marge: somme - 1, k, methode: METHODE };
+    }
+    return { METHODE, demarginer };
+  })();
+
   global.Modele = {
     poissonPmf,
     poissonOutcomes,
     v1,
     v2,
+    v3b,
+    marche,
     // Raccourci demandé : Modele.v1_poisson(home, away) avec les indices de
     // Modele.v1.buildTeamIndices.
     v1_poisson: v1.matchProbabilities,
