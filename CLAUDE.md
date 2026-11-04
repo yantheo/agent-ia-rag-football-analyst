@@ -230,17 +230,16 @@ Valide le 2026-11-03 apres comparaison sur les 18 matchs du jour : Man United - 
 tort). Un match n'est pas une preuve : la vraie validation passe par les matchs logges (voir plus bas).
 
 **Architecture.** Le modele vit dans `model.js` (objet global `Modele`, aussi chargeable sous Node).
-`Modele.v1` = modele historique (`v1-poisson-k6`), deplace a l'identique depuis `meilleurs-paris.html`
-(ecart 0 verifie) et **conserve comme reference : ne pas le modifier**. `Modele.v2` = `v2-elo-k13`.
-`Modele.v3b` = `v3b-elo-saison-j10`, **ecartee le 2026-11-04** (voir piste v3b) : plus utilisee nulle
-part, conservee figee comme reference (comme v1). `Modele.moyenneV1V2` = `moy-v1v2-w50`, **candidate retenue
-pour la v3** (voir piste « moyenne v1/v2 »), affichee dans `comparaison.html` uniquement. `Modele.marche.demarginer([c1, cN, c2])` = probabilites du marche, marge retiree par la
-methode de la puissance. `comparaison.html` = outil de diagnostic v1/v2/moyenne v1-v2 + marche (hors menu, non lie ;
-classements du pre-filtre v1/v2 cote a cote) :
-saisie des cotes 1/N/2 par match (`localStorage`, cle `comparaison_cotes_v1`, par date + team_id), ecart
-max au marche en points (en or si >= 10), resume "meme favori que le marche", export CSV pour journaliser
-(cotes, marche, v1, v2, moyenne, versions ; les exports faits avant le retrait de la v3b ont aussi des colonnes v3b). `node model.tests.js` = tests chiffres (valeurs attendues
-calculees independamment, tolerance 0,005).
+**Seules v1 et v2 sont des modeles de reference.** `Modele.v1` = modele historique (`v1-poisson-k6`),
+deplace a l'identique depuis `meilleurs-paris.html` (ecart 0 verifie), **conserve comme reference : ne pas
+le modifier**. `Modele.v2` = `v2-elo-k13` (en production). `Modele.moyenneV1V2` = `moy-v1v2-w50`,
+**candidate retenue pour la v3** (voir « Piste v3 »), affichee dans `comparaison.html` uniquement.
+`Modele.marche.demarginer([c1, cN, c2])` = probabilites du marche, marge retiree par la methode de la
+puissance. `comparaison.html` = outil de diagnostic v1 / v2 / moyenne v1-v2 + marche (hors menu, non lie ;
+classements du pre-filtre v1/v2 et v2/v3 cote a cote ; dans la page, « v3 » = moyenne v1/v2) : saisie des cotes 1/N/2 par match (`localStorage`, cle
+`comparaison_cotes_v1`, par date + team_id), ecart max au marche en points (en or si >= 10), resume
+"meme favori que le marche", export CSV pour journaliser (cotes, marche, v1, v2, moyenne, versions).
+`node model.tests.js` = tests chiffres (valeurs attendues calculees independamment, tolerance 0,005).
 **Cache** : GitHub Pages sert `model.js` avec `max-age=600`. Les pages le chargent en
 `model.js?v=<date>` : **a chaque modification de `model.js`, changer ce `?v=` dans `comparaison.html` et
 `meilleurs-paris.html`**, sinon un navigateur garde l'ancien `model.js` avec la nouvelle page (vu le
@@ -281,66 +280,53 @@ precision des passes (marqueurs de style, pouvoir predictif residuel quasi nul).
 ~7,5, de 3 (Liga) a 37 (Ligue 2) — estimation elle-meme bruitee (18-24 equipes par ligue). N'agit que
 sur T en v2. A reestimer avec plus de journees.
 
-**Piste v3b « Elo + saison en cours » — ÉCARTÉE pour la v3 (décision de l'utilisateur, 2026-11-04,
-après réflexion ; retirée de `comparaison.html`, `Modele.v3b` conservé figé dans `model.js`).** La v3
-retenue est la moyenne v1/v2 (voir plus bas). Historique de la piste : J0 = 10 figé le 2026-11-04. Constat sur les
-18 matchs du 2026-11-03 (résultats connus) : v2 nettement meilleure en C1 (Brier 0,370) mais pas mieux
-que le hasard en Championship (0,668 ; v1 0,583). Exemple : Derby, 2e plus faible du Championship sur la
-saison, seulement 5e plus faible en ClubElo (l'Elo garde la mémoire des saisons passées).
-- Principe (repris de FiveThirtyEight SPI : note de départ + saison, poids croissant) :
-  `Elo saison = Elo moyen du championnat + ln(att/def)/(2k)` (indices v2 lissés) ;
-  `Elo v3 = w·Elo saison + (1−w)·ClubElo`, `w = j/(j+J0)`.
-- **v3 « tout match » testée et rejetée** : Brier 0,545 (J0=10) vs 0,519 en v2. L'Elo saison, ancré sur la
-  moyenne de la ligue, tire les clubs dominants (PSG 56 % -> 44 %, Bayern, Sporting) vers leur ligue :
-  c'est le biais v1 (Galatasaray) que la v2 corrigeait.
-- **v3b** : mélange **uniquement pour les matchs internes à un championnat** (même adversaires, saison
-  comparable) ; **v2 pure pour les matchs inter-championnats** (Coupes d'Europe).
-- Résultat a posteriori sur le 2026-11-03 : Brier ~0,503, 13/18 favoris (v2 : 0,519, 11/18). **Règle
-  choisie après avoir vu les résultats -> chiffre optimiste par construction** : figer J0 (10 proposé)
-  AVANT de mesurer, puis juger uniquement sur les soirées suivantes (colonne expérimentale dans
-  `comparaison.html`, Meilleurs Paris inchangé).
-- Leviers associés à tester séparément (une `version_modele` chacun) : K_LISSAGE plus faible (~7,5 estimé)
-  et avantage du terrain par championnat lissé vers 65 (mesuré le 2026-11-03 : Championship ~58,
-  Serie A ~8, Eredivisie ~-24, Bundesliga ~97, bruit ±25) — jamais par équipe (6 matchs = bruit).
+**Piste v3 — candidate retenue : moyenne v1/v2 (décision de l'utilisateur, 2026-11-04). PAS ENCORE
+IMPLÉMENTÉE dans Meilleurs Paris (qui reste en v2) ; colonne `moy-v1v2-w50` dans `comparaison.html` pour
+la suivre en attendant les résultats.** Le passage en prod se fera sur demande explicite, en changeant la
+`version_modele` affichée et le `?v=` de `model.js`.
+- **Principe** : P = 0,5·P(v1) + 0,5·P(v2) issue par issue, poids figé avant mesure. Idée d'ensemble :
+  v1 (buts de la saison + correction de ligue) et v2 (Elo des clubs) se trompent sur des cas différents
+  (v1 : clubs dominants d'une ligue faible, ex. Galatasaray ; v2 : dynamique de la saison, ex. Derby en
+  Championship, 2e plus faible sur la saison mais seulement 5e plus faible en ClubElo).
+- **Cas Lens – Côme (C1, 2026-11-04)** : v1 28 / 24,5 / 47 (2 pts du marché), v2 43 / 24,5 / 32
+  (17,5 pts), moyenne 36 / 24,5 / 40 (10 pts). Marché (cotes 3,60 / 3,80 / 1,95, sans marge) :
+  26 / 24,5 / 49,5. ClubElo met déjà Côme devant (1827 vs 1801) : en v2, Lens n'est favori que par
+  l'avantage du terrain (+65) ; même sans lui (34 / 25 / 41), la v2 reste loin du marché (dE implicite du
+  marché ≈ −83 vs +39 en v2).
+- **Man United – Roma (2026-11-03)** : moyenne ~37 / 23 / 40, Roma favorite, alors que le marché disait
+  47 / 21 / 32 — moins bonne que la v2 face au marché.
+- Remarque de l'utilisateur : les deux matchs ont été serrés sur le terrain (MU – Roma : Roma menait, MU
+  est revenu en fin de match, 3-2), la moyenne, plus équilibrée, colle à ce ressenti. À garder en tête :
+  un résultat ou une impression de match ne valide pas une probabilité (un 47 / 21 / 32 donne 53 % de ne
+  pas voir le favori gagner) ; seule la calibration sur des dizaines de soirées tranche (écart au marché
+  journalisé + Brier/log-loss sur les résultats). Variante à ne tester qu'ensuite (`version_modele`
+  distincte) : autre poids.
+- **Écarté (ne pas reintroduire sans nouvelle raison)** : mélange de l'Elo ClubElo avec un « Elo de la
+  saison » (`Elo saison = Elo moyen du championnat + ln(att/def)/(2k)`, poids j/(j+J0)), testé le
+  2026-11-03/04 puis supprimé du code à la demande de l'utilisateur. Appliqué à tous les matchs, il tirait
+  les clubs dominants vers le niveau de leur ligue (PSG 56 % -> 44 %), le biais v1 que la v2 corrigeait ;
+  restreint aux matchs internes à un championnat, son gain mesuré n'existait que sur la soirée qui avait
+  servi à choisir la règle.
+
+**Pistes à réfléchir pour la v3 (non implémentées, une `version_modele` chacune)** :
+- **Alerte « écart au marché »** : sur Meilleurs Paris, signaler un match si l'écart max entre le modèle et
+  le marché démargé dépasse ~10 pts, pour qu'il ne soit pas lu comme une « value » (43 % × 3,60 = 1,55
+  d'espérance apparente sur Lens : c'est une erreur du modèle, pas une valeur). Prérequis : les cotes dans
+  les données (aujourd'hui saisie manuelle dans `comparaison.html`) -> scraper de cotes côté backend.
+  Seuil à choisir à partir des écarts journalisés.
+- **Avantage du terrain réduit en Coupe d'Europe** : +65 partout est peut-être trop fort entre deux clubs
+  proches en C1/C3/C4. À juger sur plusieurs soirées de matchs européens (écart au marché journalisé +
+  résultats), pas sur Lens – Côme seul (ça ne corrige qu'une partie de l'écart).
+- **Avantage du terrain par championnat** lissé vers 65 (mesuré le 2026-11-03 : Championship ~58,
+  Serie A ~8, Eredivisie ~-24, Bundesliga ~97, bruit ±25) — jamais par équipe (6 matchs = bruit) ; et
+  **K_LISSAGE plus faible** (~7,5 estimé).
+- **Tirs cadrés** : attaque = 35 % buts + 65 % tirs cadrés (plus stables, moins de chance, se stabilisent
+  plus vite ; principe des xG). Limite : pas de tirs cadrés concédés en base -> défense toujours sur les buts.
 - **Mesure de la saison = buts seulement** (att/def lissés). Autres stats volontairement exclues du
   modèle : efficacité (composante des buts + forte régression vers la moyenne = double comptage),
   forme 5 matchs (déjà dans les totaux, bruit), possession (style, pouvoir prédictif résiduel ~nul),
   points réels vs attendus (mesure la chance : partir des buts l'ignore déjà), domicile/extérieur par
   équipe (6-7 matchs = bruit). Ces stats relèvent de l'analyse IA (contexte), pas du modèle.
-- **Tirs cadrés (version séparée, après la v3b seule)** : attaque = 35 % buts + 65 % tirs cadrés
-  (plus stables, moins de chance, se stabilisent plus vite ; principe des xG). Limite : pas de tirs
-  cadrés concédés en base -> défense toujours sur les buts. `version_modele` distincte
-  (`v3b-...-tirs`) pour isoler l'effet de chaque changement.
-- Script de calcul : `suivi-pronos/v3-2026-11-03.js` (dossier local, non versionné).
-- **Cas Lens – Côme (C1, 2026-11-04) — motif des deux pistes ci-dessous.** v2 = v3b (match entre
-  championnats) : 43 / 24 / 32. Marché (cotes 3,60 / 3,80 / 1,95, sans marge) : 26 / 24,5 / 49,5, soit
-  ~17 pts d'écart et un favori inversé. ClubElo met déjà Côme devant (1827 vs 1801) : Lens n'est favori que
-  par l'avantage du terrain (+65). Même sans lui (34 / 25 / 41), le modèle reste loin du marché (dE
-  implicite du marché ≈ −83 vs +39 en v2) : l'écart vient surtout de ClubElo, l'avantage du terrain n'en
-  explique qu'une partie. La v3 « tout match » (rejetée) ne donnait que 40 / 25 / 35.
-- **Piste « alerte écart au marché » (à réfléchir pour la v3, non implémentée)** : sur Meilleurs Paris,
-  signaler un match si l'écart max entre le modèle et le marché démargé dépasse ~10 pts, pour qu'il ne
-  soit pas lu comme une « value » (43 % × 3,60 = 1,55 d'espérance apparente sur Lens : c'est une erreur du
-  modèle, pas une valeur). Prérequis : les cotes dans les données (aujourd'hui saisie manuelle dans
-  `comparaison.html`) -> scraper de cotes côté backend. Seuil à choisir à partir des écarts journalisés.
-- **Piste « avantage du terrain réduit en Coupe d'Europe » (à tester, `version_modele` distincte)** :
-  +65 partout est peut-être trop fort entre deux clubs proches en C1/C3/C4. À juger sur plusieurs soirées
-  de matchs européens (écart au marché journalisé + résultats), pas sur Lens – Côme seul : sur ce match ça
-  ne corrige qu'une partie de l'écart. À tester séparément de l'avantage par championnat ci-dessus.
-- **Piste « moyenne v1/v2 » — RETENUE COMME v3 (décision de l'utilisateur, 2026-11-04), PAS ENCORE
-  IMPLÉMENTÉE dans Meilleurs Paris (qui reste en v2) ; colonne `moy-v1v2-w50` dans `comparaison.html`
-  pour la suivre en attendant les résultats.** Le passage en prod se fera sur demande explicite, en
-  changeant la `version_modele` affichée et le `?v=` de `model.js`. Description : P = 0,5·P(v1) + 0,5·P(v2) issue par issue, poids figé avant mesure. Idée
-  d'ensemble : v1 (buts de la saison + correction de ligue) et v2 (Elo des clubs) se trompent sur des cas
-  différents. Lens – Côme : v1 28 / 24,5 / 47 (2 pts du marché), v2 43 / 24,5 / 32 (17,5 pts), moyenne
-  36 / 24,5 / 40 (10 pts). Man United – Roma (2026-11-03) : moyenne ~37 / 23 / 40, Roma favorite, alors
-  que le marché disait 47 / 21 / 32 — moins bonne que la v2 face au marché. Remarque de l'utilisateur :
-  les deux matchs ont été serrés sur le terrain (MU – Roma : Roma menait, MU est revenu en fin de match,
-  3-2), la moyenne, plus équilibrée, colle à ce ressenti. À garder en tête : un résultat ou une
-  impression de match ne valide pas une probabilité (un 47 / 21 / 32 n'est pas « déséquilibré », il
-  donne 53 % de ne pas voir le favori gagner) ; seule la calibration sur des dizaines de soirées tranche
-  (écart au marché journalisé + Brier/log-loss sur les résultats). Variantes à ne tester qu'ensuite, une
-  `version_modele` chacune : autre poids (la v3b étant écartée, plus de moyenne v1/v3b).
 
 **Ce qu'il ne faut pas attendre** : comparer v1 et v2 par Brier score apparie demande ~600 matchs
 logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; detecter un avantage

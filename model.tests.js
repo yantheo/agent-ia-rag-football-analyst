@@ -86,36 +86,14 @@
     check('v1 conservée (Modele.v1_poisson, version v1-poisson-k6)',
       typeof M.v1_poisson === 'function' && M.v1.VERSION === 'v1-poisson-k6' && M.v1.SHRINK_K === 6);
 
-    // 9. v3b (expérimental) : Elo mixte sur un cas synthétique, valeurs calculées en Python.
-    //    h : 20 BP / 10 BC en 10 j, ClubElo 1700 ; a : 14 / 14, ClubElo 1650 ; ligue moy. Elo 1600.
-    //    mL = 1,7 ; Elo saison h = 1660,265, a = 1600 ; w = 0,5 -> 1680,132 et 1625.
-    const t3 = [
-      { team_id: 'h', championnat: 'L', buts_pour: 20, buts_contre: 10, matchs_joues: 10 },
-      { team_id: 'a', championnat: 'L', buts_pour: 14, buts_contre: 14, matchs_joues: 10 },
-    ];
-    const e3 = { equipes: { h: { elo: 1700 }, a: { elo: 1650 } }, moyennes_championnats: { L: 1600 } };
-    const c3 = M.v3b.prepare(t3, e3, { equipes: { h: 'H', a: 'A' } });
-    const r3 = M.v3b.matchProbabilities(c3, 'h', 'a');
-    check('v3b : Elo mixte (J0 = 10) dans un même championnat',
-      r3.melange && Math.abs(r3.eloHome - 1680.132) < 0.01 && Math.abs(r3.eloAway - 1625) < 0.01,
-      `Elo ${r3.eloHome.toFixed(3)} / ${r3.eloAway.toFixed(3)} (attendu 1680,132 / 1625)`);
-    const p3v2 = M.v2.matchProbabilities(c3, 'h', 'a');
-    check('v3b : T identique à la v2', Math.abs(r3.T - p3v2.T) < 1e-12, `T ${r3.T.toFixed(3)}`);
-    const t3x = [t3[0], Object.assign({}, t3[1], { championnat: 'M' })];
-    const e3x = { equipes: e3.equipes, moyennes_championnats: { L: 1600, M: 1600 } };
-    const c3x = M.v3b.prepare(t3x, e3x, { equipes: { h: 'H', a: 'A' } });
-    const r3x = M.v3b.matchProbabilities(c3x, 'h', 'a'), r3x2 = M.v2.matchProbabilities(c3x, 'h', 'a');
-    check('v3b : match entre championnats = v2 pure',
-      !r3x.melange && r3x.pHome === r3x2.pHome && r3x.pAway === r3x2.pAway, `P(1) ${r3x.pHome.toFixed(3)}`);
-
-    // 10. Démarginage (puissance) — Lens – Côme 2026-11-04, cotes 3,60 / 3,80 / 1,95 (Python : 0,2596 / 0,2453 / 0,4951, marge 5,38 %)
+    // 9. Démarginage (puissance) — Lens – Côme 2026-11-04, cotes 3,60 / 3,80 / 1,95 (Python : 0,2596 / 0,2453 / 0,4951, marge 5,38 %)
     const mk = M.marche.demarginer([3.60, 3.80, 1.95]);
     check('Démarginage puissance : Lens – Côme',
       near(mk.pHome, 0.2596, 0.001) && near(mk.pDraw, 0.2453, 0.001) && near(mk.pAway, 0.4951, 0.001) && near(mk.marge, 0.0538, 0.001),
       `${mk.pHome.toFixed(4)} / ${mk.pDraw.toFixed(4)} / ${mk.pAway.toFixed(4)}, marge ${(mk.marge * 100).toFixed(2)} %`);
     check('Démarginage : cote invalide -> null', M.marche.demarginer([3.6, 0, 1.95]) === null);
 
-    // 11. Moyenne v1/v2 : 50/50 issue par issue, somme = 1, null si un modèle manque
+    // 10. Moyenne v1/v2 : 50/50 issue par issue, somme = 1, null si un modèle manque
     const mo = M.moyenneV1V2.combiner({ pHome: 0.281, pDraw: 0.245, pAway: 0.474 }, { pHome: 0.434, pDraw: 0.245, pAway: 0.321 });
     check('Moyenne v1/v2 : 50/50 (Lens – Côme)',
       near(mo.pHome, 0.3575, 1e-9) && near(mo.pDraw, 0.245, 1e-9) && near(mo.pAway, 0.3975, 1e-9) && M.moyenneV1V2.VERSION === 'moy-v1v2-w50',
