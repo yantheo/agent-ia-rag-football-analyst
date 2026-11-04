@@ -379,6 +379,17 @@ logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; 
 reel contre un bookmaker, plusieurs milliers de paris. Le pari n'est pas l'instrument de validation du
 modele : les matchs logges (joues ou non pariés) le sont.
 
+## Etat au 2026-11-05
+
+- En production : modele **v3** (moyenne v1/v2) sur Meilleurs Paris ; prompt n8n **v8** (niveau + forme) ;
+  scraper avec les nouveaux libelles « Niveau » et « Forme » ; page `equipe.html` (menu « Équipes »).
+- Scrape complet relance a la main le 2026-11-05 vers 0h36 (le precedent avait ete interrompu par le
+  redemarrage du conteneur) : **a verifier en reprise** (logs `Supabase sync OK` pour les 10
+  championnats, puis nouveaux libelles sur `equipe.html`, puis une analyse IA sur un match du week-end).
+- Suivi des modeles : `comparaison.html` (v1 / v2 / v3, marche, scores, Mon prono), predictions figees
+  dans `predictions-figees.json` (a completer avant chaque soiree si la page n'a pas ete ouverte avant
+  les matchs).
+
 ## Etat au 2026-11-02
 
 - Le modele Poisson (`dd9b9df`) est pousse et en ligne, ainsi que la page Championnats (`9da9c28`) et
