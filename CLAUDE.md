@@ -224,6 +224,11 @@ ppm moyen du championnat x J. Piege : `part x 3 x J` ignore les nuls (ecart moye
 les equipes « malchanceuses », championnats a beaucoup de nuls penalises dans les classements toutes
 ligues).
 
+**Forme (colonne `forme_championnat`, affichee « Forme »)** — meme refonte le 2026-11-05 cote backend
+(`analyser_forme_actuelle`) : « Excellente forme / Bonne forme / Forme moyenne / Méforme / En crise (X pts
+sur 15) » + nuances (series, invaincue / sans victoire, en regain de forme / en perte de vitesse, en dents
+de scie, beaucoup de nuls). Prompt n8n v8. Rien a changer cote frontend (affichage tel quel).
+
 ## Classements domicile / exterieur (ajout du 2026-11-03)
 
 - **Source** : classements domicile et exterieur publies par footmercato (vue
