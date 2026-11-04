@@ -233,7 +233,8 @@ tort). Un match n'est pas une preuve : la vraie validation passe par les matchs 
 `Modele.v1` = modele historique (`v1-poisson-k6`), deplace a l'identique depuis `meilleurs-paris.html`
 (ecart 0 verifie) et **conserve comme reference : ne pas le modifier**. `Modele.v2` = `v2-elo-k13`.
 `Modele.v3b` = `v3b-elo-saison-j10`, **experimental** (voir piste v3b), utilise uniquement par
-`comparaison.html`. `Modele.marche.demarginer([c1, cN, c2])` = probabilites du marche, marge retiree par la
+`comparaison.html`. `Modele.moyenneV1V2` = `moy-v1v2-w50`, **experimental** (voir piste « moyenne v1/v2 »),
+idem. `Modele.marche.demarginer([c1, cN, c2])` = probabilites du marche, marge retiree par la
 methode de la puissance. `comparaison.html` = outil de diagnostic v1/v2/v3b + marche (hors menu, non lie) :
 saisie des cotes 1/N/2 par match (`localStorage`, cle `comparaison_cotes_v1`, par date + team_id), ecart
 max au marche en points (en or si >= 10), resume "meme favori que le marche", export CSV pour journaliser
@@ -320,6 +321,18 @@ saison, seulement 5e plus faible en ClubElo (l'Elo garde la mémoire des saisons
   +65 partout est peut-être trop fort entre deux clubs proches en C1/C3/C4. À juger sur plusieurs soirées
   de matchs européens (écart au marché journalisé + résultats), pas sur Lens – Côme seul : sur ce match ça
   ne corrige qu'une partie de l'écart. À tester séparément de l'avantage par championnat ci-dessus.
+- **Piste « moyenne v1/v2 » (idée de l'utilisateur, 2026-11-04 ; colonne expérimentale `moy-v1v2-w50`
+  dans `comparaison.html`)** : P = 0,5·P(v1) + 0,5·P(v2) issue par issue, poids figé avant mesure. Idée
+  d'ensemble : v1 (buts de la saison + correction de ligue) et v2 (Elo des clubs) se trompent sur des cas
+  différents. Lens – Côme : v1 28 / 24,5 / 47 (2 pts du marché), v2 43 / 24,5 / 32 (17,5 pts), moyenne
+  36 / 24,5 / 40 (10 pts). Man United – Roma (2026-11-03) : moyenne ~37 / 23 / 40, Roma favorite, alors
+  que le marché disait 47 / 21 / 32 — moins bonne que la v2 face au marché. Remarque de l'utilisateur :
+  les deux matchs ont été serrés sur le terrain (MU – Roma : Roma menait, MU est revenu en fin de match,
+  3-2), la moyenne, plus équilibrée, colle à ce ressenti. À garder en tête : un résultat ou une
+  impression de match ne valide pas une probabilité (un 47 / 21 / 32 n'est pas « déséquilibré », il
+  donne 53 % de ne pas voir le favori gagner) ; seule la calibration sur des dizaines de soirées tranche
+  (écart au marché journalisé + Brier/log-loss sur les résultats). Variantes à ne tester qu'ensuite, une
+  `version_modele` chacune : autre poids, moyenne v1/v3b.
 
 **Ce qu'il ne faut pas attendre** : comparer v1 et v2 par Brier score apparie demande ~600 matchs
 logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; detecter un avantage

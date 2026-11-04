@@ -316,7 +316,26 @@
     return { METHODE, demarginer };
   })();
 
+  // ===========================================================================
+  // Moyenne v1/v2 — "moy-v1v2-w50" : EXPÉRIMENTAL, comparaison.html uniquement.
+  // P = w·P(v1) + (1−w)·P(v2) sur chaque issue, w = 0,5 figé AVANT toute mesure
+  // (2026-11-04). Idée : v1 (buts de la saison) et v2 (Elo des clubs) se trompent
+  // sur des cas différents (v1 : clubs dominants d'une ligue faible ; v2 :
+  // dynamique de la saison), la moyenne peut réduire l'erreur. Voir CLAUDE.md.
+  // ===========================================================================
+  const moyenneV1V2 = (function () {
+    const VERSION = 'moy-v1v2-w50';
+    const W_V1 = 0.5;
+    function combiner(p1, p2) {
+      if (!p1 || !p2) return null;
+      const m = k => W_V1 * p1[k] + (1 - W_V1) * p2[k];
+      return { pHome: m('pHome'), pDraw: m('pDraw'), pAway: m('pAway'), version: VERSION, W_V1 };
+    }
+    return { VERSION, W_V1, combiner };
+  })();
+
   global.Modele = {
+    moyenneV1V2,
     poissonPmf,
     poissonOutcomes,
     v1,

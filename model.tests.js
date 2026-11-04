@@ -115,6 +115,13 @@
       `${mk.pHome.toFixed(4)} / ${mk.pDraw.toFixed(4)} / ${mk.pAway.toFixed(4)}, marge ${(mk.marge * 100).toFixed(2)} %`);
     check('Démarginage : cote invalide -> null', M.marche.demarginer([3.6, 0, 1.95]) === null);
 
+    // 11. Moyenne v1/v2 : 50/50 issue par issue, somme = 1, null si un modèle manque
+    const mo = M.moyenneV1V2.combiner({ pHome: 0.281, pDraw: 0.245, pAway: 0.474 }, { pHome: 0.434, pDraw: 0.245, pAway: 0.321 });
+    check('Moyenne v1/v2 : 50/50 (Lens – Côme)',
+      near(mo.pHome, 0.3575, 1e-9) && near(mo.pDraw, 0.245, 1e-9) && near(mo.pAway, 0.3975, 1e-9) && M.moyenneV1V2.VERSION === 'moy-v1v2-w50',
+      `${mo.pHome.toFixed(4)} / ${mo.pDraw.toFixed(4)} / ${mo.pAway.toFixed(4)}`);
+    check('Moyenne v1/v2 : null si v1 absente', M.moyenneV1V2.combiner(null, mo) === null);
+
     return results;
   }
 
