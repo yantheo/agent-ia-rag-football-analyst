@@ -209,6 +209,17 @@ exclure les lignes orphelines d'une saison precedente). Le championnat choisi es
   du maximum. Ici il est affiche a cote de "Pts / att." et les equipes d'un meme championnat ont
   quasiment le meme nombre de matchs, donc les vrais points sont comparables et lisibles.
 
+## Niveau d'equipe (colonne `etat_fiabilite`, affichee « Niveau » dans index.html) — 2026-11-05
+
+Calcule par le scraper backend (`niveaux_championnat`, voir le CLAUDE.md du repo backend) : palier =
+rang dans le championnat selon les points par match lisses (Tête de championnat / Haut de tableau /
+Milieu de tableau / Bas de tableau / Zone rouge) + nuances factuelles (invaincue, rarement / souvent
+battue, beaucoup de nuls, résultats au-dessus / en dessous de ses stats). Remplace les anciens libelles
+(DOMINANCE / « Profil Instable / Ne tient pas le score »...). Colonne non renommee en base. Le modele
+v1/v2/v3 ne l'utilise pas. Prompt n8n correspondant : v7 (`prompts-n8n/`, local). A noter : le tableau
+« Surperforment / Malchanceuses » de `championnats.html` utilise encore `part x 3 x J`, biaise vers le
+negatif (ignore les nuls) ; le backend utilise la version recalee sur la moyenne du championnat.
+
 ## Classements domicile / exterieur (ajout du 2026-11-03)
 
 - **Source** : classements domicile et exterieur publies par footmercato (vue
