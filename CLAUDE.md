@@ -235,7 +235,8 @@ tort). Un match n'est pas une preuve : la vraie validation passe par les matchs 
 `Modele.v3b` = `v3b-elo-saison-j10`, **experimental** (voir piste v3b), utilise uniquement par
 `comparaison.html`. `Modele.moyenneV1V2` = `moy-v1v2-w50`, **experimental** (voir piste « moyenne v1/v2 »),
 idem. `Modele.marche.demarginer([c1, cN, c2])` = probabilites du marche, marge retiree par la
-methode de la puissance. `comparaison.html` = outil de diagnostic v1/v2/v3b + marche (hors menu, non lie) :
+methode de la puissance. `comparaison.html` = outil de diagnostic v1/v2/v3b + marche (hors menu, non lie ; classements du
+pre-filtre v1/v2 et v2/v3b cote a cote) :
 saisie des cotes 1/N/2 par match (`localStorage`, cle `comparaison_cotes_v1`, par date + team_id), ecart
 max au marche en points (en or si >= 10), resume "meme favori que le marche", export CSV pour journaliser
 (cotes, marche, v1, v2, v3b, versions). `node model.tests.js` = tests chiffres (valeurs attendues

@@ -88,6 +88,15 @@
     <div class="scroll"><table><thead><tr><th>#</th><th>v1</th><th>Favori</th><th>%</th></tr></thead><tbody id="rank1"></tbody></table></div>
     <div class="scroll"><table><thead><tr><th>#</th><th>v2</th><th>Favori</th><th>%</th><th>vs v1</th></tr></thead><tbody id="rank2"></tbody></table></div>
   </div>
+
+  <h2>Classements v2 (prod) / v3b (expérimental)</h2>
+  <p class="note">Même règle (probabilité du favori décroissante). Δ % = variation de la probabilité du favori v3b par rapport à
+    la v2 sur le même match ; flèche = gain/perte de rang de v2 à v3b. Lignes surlignées = le favori change de camp entre v2 et v3b.
+    « =v2 » : match entre championnats ou données manquantes, la v3b reprend la v2.</p>
+  <div class="ranks">
+    <div class="scroll"><table><thead><tr><th>#</th><th>v2</th><th>Favori</th><th>%</th></tr></thead><tbody id="rank2b"></tbody></table></div>
+    <div class="scroll"><table><thead><tr><th>#</th><th>v3b</th><th>Favori</th><th>%</th><th>Δ %</th><th>vs v2</th></tr></thead><tbody id="rank3"></tbody></table></div>
+  </div>
 </main>
 
 <script src="model.js?v=2026-11-04b"></script>
@@ -152,10 +161,10 @@
       const p2 = Modele.v2.matchProbabilities(ctx, m.team_id_domicile, m.team_id_exterieur);
       const p3 = Modele.v3b.matchProbabilities(ctx3, m.team_id_domicile, m.team_id_exterieur);
       const pm = Modele.moyenneV1V2.combiner(p1, p2);
-      const f1 = fav(p1, m), f2 = fav(p2, m);
+      const f1 = fav(p1, m), f2 = fav(p2, m), f3 = fav(p3, m);
       const key = rowKey(dateStr, m), c = cotes[key] || null;
-      return { m, p1, p2, p3, pm, f1, f2, key, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
-        flip: !!(f1 && f2 && f1.side !== f2.side) };
+      return { m, p1, p2, p3, pm, f1, f2, f3, key, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
+        flip: !!(f1 && f2 && f1.side !== f2.side), flip3: !!(f2 && f3 && f2.side !== f3.side) };
     });
     return { dateStr, rows, eloData };
   }
@@ -280,6 +289,24 @@
         : before - (i + 1) > 0 ? `<span class="up">▲ ${before - (i + 1)}</span>`
         : before - (i + 1) < 0 ? `<span class="down">▼ ${(i + 1) - before}</span>` : '<span class="muted">=</span>';
       return `<tr class="${r.flip ? 'flip' : ''}"><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f2.name)}</td><td class="n">${pct(r.f2.prob)}</td><td class="n">${mv}</td></tr>`;
+    }).join('');
+
+    // v2 / v3b
+    const r3 = rows.filter(r => r.f3).sort((a, b) => b.f3.prob - a.f3.prob);
+    const pos2 = new Map(r2.map((r, i) => [key(r), i + 1]));
+    document.getElementById('rank2b').innerHTML = r2.map((r, i) =>
+      `<tr class="${r.flip3 ? 'flip' : ''}"><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f2.name)}</td><td class="n">${pct(r.f2.prob)}</td></tr>`).join('');
+    document.getElementById('rank3').innerHTML = r3.map((r, i) => {
+      const before = pos2.get(key(r));
+      const mv = before == null ? '<span class="muted">nouveau</span>'
+        : before - (i + 1) > 0 ? `<span class="up">▲ ${before - (i + 1)}</span>`
+        : before - (i + 1) < 0 ? `<span class="down">▼ ${(i + 1) - before}</span>` : '<span class="muted">=</span>';
+      // Δ sur la probabilité de la même issue que le favori v3b, pour que le signe ait un sens
+      const k = { home: 'pHome', draw: 'pDraw', away: 'pAway' }[r.f3.side];
+      const d = r.p2 ? (r.p3[k] - r.p2[k]) * 100 : null;
+      const delta = !r.p3.melange ? '<span class="muted">=v2</span>'
+        : `<span class="${d > 0 ? 'up' : d < 0 ? 'down' : 'muted'}">${d > 0 ? '+' : ''}${d.toFixed(0)} pts</span>`;
+      return `<tr class="${r.flip3 ? 'flip' : ''}"><td class="n">${i + 1}</td><td>${label(r)}${r.flip3 ? '<span class="tag fl">favori change</span>' : ''}</td><td>${esc(r.f3.name)}</td><td class="n">${pct(r.f3.prob)}</td><td class="n">${delta}</td><td class="n">${mv}</td></tr>`;
     }).join('');
   }
 
