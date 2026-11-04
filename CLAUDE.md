@@ -238,7 +238,15 @@ le modifier**. `Modele.v2` = `v2-elo-k13` (en production). `Modele.moyenneV1V2` 
 puissance. `comparaison.html` = outil de diagnostic v1 / v2 / moyenne v1-v2 + marche (hors menu, non lie ;
 classements du pre-filtre v1/v2 et v2/v3 cote a cote ; dans la page, « v3 » = moyenne v1/v2) : saisie des cotes 1/N/2 par match (`localStorage`, cle
 `comparaison_cotes_v1`, par date + team_id), ecart max au marche en points (en or si >= 10), resume
-"meme favori que le marche", export CSV pour journaliser (cotes, marche, v1, v2, moyenne, versions).
+"meme favori que le marche", export CSV pour journaliser (cotes, scores, marche, v1, v2, moyenne, versions).
+**Resultats** (section de `comparaison.html`) : saisie du score final par match (`localStorage`, cle
+`comparaison_scores_v1`), P(issue reelle) par modele, bilan Brier / log-loss / favoris pour v1, v2, v3 (et
+le marche sur les matchs avec cotes), Europe vs championnats. **Le bilan utilise les predictions figees
+avant le match** : d'abord `predictions-figees.json` (versionne, cle `date|team_id_dom|team_id_ext`,
+`p1`/`p2`/`pm`), sinon le gel automatique du navigateur (`comparaison_figees_v1`, fait quand la page est
+ouverte avant le coup d'envoi), sinon recalcul marque « recalculees » (biaise : apres le scrape de nuit,
+les stats incluent le match). Ne jamais modifier une valeur deja figee ; ajouter les nouvelles soirees au
+fichier (meme format) avant les matchs.
 `node model.tests.js` = tests chiffres (valeurs attendues calculees independamment, tolerance 0,005).
 **Cache** : GitHub Pages sert `model.js` avec `max-age=600`. Les pages le chargent en
 `model.js?v=<date>` : **a chaque modification de `model.js`, changer ce `?v=` dans `comparaison.html` et

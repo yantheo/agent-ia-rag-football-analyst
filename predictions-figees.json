@@ -1,0 +1,189 @@
+{
+ "_info": "Predictions figees AVANT les matchs (P 1/N/2). Prioritaires sur le recalcul dans comparaison.html : apres un scrape, les stats incluent le match et le recalcul serait biaise. Cle = date|team_id_dom|team_id_ext. p1 = v1, p2 = v2, pm = v3 (moyenne v1/v2). Ne jamais modifier une valeur deja figee.",
+ "predictions": {
+  "2026-11-04|fenerbahce-tr|liverpool-eng": {
+   "p1": [
+    0.2384,
+    0.2416,
+    0.52
+   ],
+   "p2": [
+    0.2339,
+    0.2387,
+    0.5273
+   ],
+   "pm": [
+    0.2362,
+    0.2402,
+    0.5237
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|aek-eu|real-madrid-esp": {
+   "p1": null,
+   "p2": null,
+   "pm": null,
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|wrexham-eng|middlesbrough-eng": {
+   "p1": [
+    0.2487,
+    0.2223,
+    0.529
+   ],
+   "p2": [
+    0.3813,
+    0.2375,
+    0.3813
+   ],
+   "pm": [
+    0.315,
+    0.2299,
+    0.4551
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|cardiff-eng|west-ham-eng": {
+   "p1": [
+    0.2734,
+    0.2078,
+    0.5188
+   ],
+   "p2": [
+    0.2209,
+    0.2031,
+    0.576
+   ],
+   "pm": [
+    0.2471,
+    0.2055,
+    0.5474
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|dortmund-de|betis-esp": {
+   "p1": [
+    0.484,
+    0.2486,
+    0.2674
+   ],
+   "p2": [
+    0.5697,
+    0.2252,
+    0.205
+   ],
+   "pm": [
+    0.5269,
+    0.2369,
+    0.2362
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|viking-eu|sabah-eu": {
+   "p1": null,
+   "p2": null,
+   "pm": null,
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|psv-nl|club-bruges-eu": {
+   "p1": null,
+   "p2": [
+    0.4186,
+    0.2048,
+    0.3766
+   ],
+   "pm": null,
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|slavia-eu|arsenal-eng": {
+   "p1": null,
+   "p2": null,
+   "pm": null,
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|bristol-city-eng|wolverhampton-eng": {
+   "p1": [
+    0.3125,
+    0.2577,
+    0.4297
+   ],
+   "p2": [
+    0.2793,
+    0.2498,
+    0.4709
+   ],
+   "pm": [
+    0.2959,
+    0.2538,
+    0.4503
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|lens-fr|come-it": {
+   "p1": [
+    0.2812,
+    0.2447,
+    0.4741
+   ],
+   "p2": [
+    0.4343,
+    0.2448,
+    0.3209
+   ],
+   "pm": [
+    0.3577,
+    0.2448,
+    0.3975
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|leipzig-de|man-city-eng": {
+   "p1": [
+    0.2952,
+    0.207,
+    0.4978
+   ],
+   "p2": [
+    0.2229,
+    0.2009,
+    0.5762
+   ],
+   "pm": [
+    0.2591,
+    0.2039,
+    0.537
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  },
+  "2026-11-04|porto-pt|naples-it": {
+   "p1": [
+    0.4752,
+    0.2521,
+    0.2727
+   ],
+   "p2": [
+    0.4816,
+    0.2403,
+    0.278
+   ],
+   "pm": [
+    0.4784,
+    0.2462,
+    0.2753
+   ],
+   "fige_le": "2026-11-04T07:30",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50"
+  }
+ }
+}
