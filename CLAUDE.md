@@ -29,7 +29,7 @@ Pages actuelles :
   que `championnats.html` : "Tous les championnats" par defaut (20 joueurs par tableau), ou un seul
   championnat (10 joueurs — `TOP_N_ALL` / `TOP_N_LEAGUE`), filtre cote client sans nouvelle requete.
 
-- **`equipe.html?team=<team_id>`** — Fiche d'une equipe (hors menu, comme `comparaison.html`) : niveau et
+- **`equipe.html?team=<team_id>`** — Fiche d'une equipe (menu « Équipes », apres Championnats ; sans `?team=`, liste de toutes les equipes par championnat) : niveau et
   forme decoupes en palier + nuances, classement (dont domicile / exterieur), forme, attaque, defense, jeu,
   joueurs cles, avec le **rang dans le championnat** sur chaque stat chiffree ; menu deroulant de toutes les
   equipes. Chaque nom d'equipe est un lien vers cette page (`teamLink()` + CSS `a.team-link`, duplique

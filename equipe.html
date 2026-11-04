@@ -130,6 +130,12 @@
         .score-res { display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 0.75rem; margin: 1px; }
         .note { color: var(--text-muted); font-size: 0.78rem; margin-top: 18px; max-width: 100ch; }
         .state { color: var(--text-muted); padding: 40px 0; text-align: center; }
+        .leagues { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+        .league-list { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+        .league-list h3 { font-size: 0.9rem; color: var(--green-primary); padding: 10px 14px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); }
+        .league-list a { display: flex; gap: 10px; padding: 5px 14px; color: var(--text-primary); text-decoration: none; font-size: 0.86rem; }
+        .league-list a:hover { background: var(--green-dark); color: var(--green-primary); }
+        .league-list a span { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; min-width: 22px; text-align: right; }
         .state.err { color: var(--red); }
 
         @media (max-width: 960px) { .grid { grid-template-columns: 1fr 1fr; } }
@@ -156,6 +162,7 @@
                 <nav class="nav-links">
                     <a href="index.html" id="nav-calendar">Calendrier</a>
                     <a href="championnats.html" id="nav-leagues">Championnats</a>
+                    <a href="equipe.html" id="nav-team" class="active">Équipes</a>
                     <a href="meilleures-equipes.html" id="nav-teams">Meilleures Équipes</a>
                     <a href="pires-equipes.html" id="nav-worst-teams">Pires Équipes</a>
                     <a href="buteurs-passeurs.html" id="nav-scorers">Buteurs &amp; Passeurs</a>
@@ -343,6 +350,15 @@
         (pour les buts encaissés et les cartons : le moins). Buteurs et passeurs : probablement toutes compétitions (page principale du club).</p>`;
   }
 
+  // Sans équipe choisie (arrivée par le menu) : toutes les équipes par championnat.
+  function renderAll(all) {
+    const byLeague = {};
+    all.forEach(t => (byLeague[t.championnat] = byLeague[t.championnat] || []).push(t));
+    $('content').innerHTML = `<div class="leagues">${Object.keys(byLeague).sort().map(lg =>
+      `<div class="league-list"><h3>${esc(lg)}</h3>${byLeague[lg].sort((a, b) => (a.position || 99) - (b.position || 99)).map(t =>
+        `<a href="equipe.html?team=${encodeURIComponent(t.team_id)}"><span>${t.position ?? ''}</span>${esc(t.equipe)}</a>`).join('')}</div>`).join('')}</div>`;
+  }
+
   function fillPicker(all, current) {
     const byLeague = {};
     all.forEach(t => (byLeague[t.championnat] = byLeague[t.championnat] || []).push(t));
@@ -358,7 +374,7 @@
     try {
       const all = (await sb('classements_foot', 'select=team_id,equipe,championnat,position,updated_at')).filter(fresh);
       fillPicker(all, teamId);
-      if (!teamId) { $('content').innerHTML = '<div class="state">Choisis une équipe dans la liste, ou clique sur un nom d\'équipe dans les autres pages.</div>'; return; }
+      if (!teamId) { renderAll(all); return; }
       const [rows] = await Promise.all([sb('classements_foot', `team_id=eq.${encodeURIComponent(teamId)}&select=*`)]);
       const t = rows[0];
       if (!t) { $('content').innerHTML = `<div class="state err">Équipe introuvable : ${esc(teamId)}</div>`; return; }
