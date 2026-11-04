@@ -49,14 +49,12 @@
 </head>
 <body>
 <main>
-  <h1>Comparaison des modèles v1 / v2 / v3b / moyenne</h1>
+  <h1>Comparaison des modèles v1 / v2 / moyenne</h1>
   <p class="lead">Outil de diagnostic (pas une page publique). Pour chaque match, <b>v1</b> (<code>v1-poisson-k6</code>, en production) et
     <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson) sont calculés dans la même passe, sur les mêmes données.
-    <b>v3b</b> (<code>v3b-elo-saison-j10</code>, <b>expérimental</b>, non branché sur Meilleurs Paris) : Elo = mélange ClubElo / saison
-    (w = j/(j+10)), uniquement pour les matchs internes à un championnat ; identique à la v2 en Coupe d'Europe.
-    <b>Moy. v1/v2</b> (<code>moy-v1v2-w50</code>, <b>expérimental</b>) : moyenne 50/50 des probabilités v1 et v2, issue par issue.</p>
+    <b>Moy. v1/v2</b> (<code>moy-v1v2-w50</code>, <b>candidate v3</b>, non branchée sur Meilleurs Paris) : moyenne 50/50 des probabilités v1 et v2, issue par issue.</p>
   <p class="note"><b>Marché</b> : saisir les cotes 1 / N / 2 d'un match -> probabilités sans marge (méthode de la puissance) et écart
-    max avec v2 / v3b en points (en or si ≥ 10 pts). Les cotes restent dans ce navigateur (<code>localStorage</code>) : « Exporter CSV »
+    max avec v2 / moyenne en points (en or si ≥ 10 pts). Les cotes restent dans ce navigateur (<code>localStorage</code>) : « Exporter CSV »
     pour les journaliser. Un gros écart avec le marché signale d'abord une erreur probable du modèle, pas une valeur.</p>
   <p class="note">Espérance = P(1) + ½·P(N) : c'est elle (pas P(1)) qui se compare à la cible Elo 1/(1+10^(−dE/400)).
     Lignes surlignées = le favori change de camp entre v1 et v2. « Champions League » = équipes de championnats différents. Elo : instantané ClubElo versionné (<code>elo-clubs.json</code>).</p>
@@ -76,8 +74,8 @@
     <thead><tr>
       <th>Match</th><th>Compétition</th><th>Elo dom</th><th>Elo ext</th><th>dE</th>
       <th>v1 : favori</th><th>v2 : favori</th><th>Δ P(1)</th><th>Espérance v2</th><th>Cible Elo</th>
-      <th>T v2 (buts)</th><th>v1 P(1/N/2)</th><th>v2 P(1/N/2)</th><th>v3b P(1/N/2)</th><th>Moy. v1/v2 P(1/N/2)</th>
-      <th>Cotes 1 / N / 2</th><th>Marché P(1/N/2)</th><th>Écart v2</th><th>Écart v3b</th><th>Écart moy.</th>
+      <th>T v2 (buts)</th><th>v1 P(1/N/2)</th><th>v2 P(1/N/2)</th><th>Moy. v1/v2 P(1/N/2)</th>
+      <th>Cotes 1 / N / 2</th><th>Marché P(1/N/2)</th><th>Écart v2</th><th>Écart moy.</th>
     </tr></thead>
     <tbody id="rows"></tbody>
   </table></div>
@@ -89,14 +87,6 @@
     <div class="scroll"><table><thead><tr><th>#</th><th>v2</th><th>Favori</th><th>%</th><th>vs v1</th></tr></thead><tbody id="rank2"></tbody></table></div>
   </div>
 
-  <h2>Classements v2 (prod) / v3b (expérimental)</h2>
-  <p class="note">Même règle (probabilité du favori décroissante). Δ % = variation de la probabilité du favori v3b par rapport à
-    la v2 sur le même match ; flèche = gain/perte de rang de v2 à v3b. Lignes surlignées = le favori change de camp entre v2 et v3b.
-    « =v2 » : match entre championnats ou données manquantes, la v3b reprend la v2.</p>
-  <div class="ranks">
-    <div class="scroll"><table><thead><tr><th>#</th><th>v2</th><th>Favori</th><th>%</th></tr></thead><tbody id="rank2b"></tbody></table></div>
-    <div class="scroll"><table><thead><tr><th>#</th><th>v3b</th><th>Favori</th><th>%</th><th>Δ %</th><th>vs v2</th></tr></thead><tbody id="rank3"></tbody></table></div>
-  </div>
 </main>
 
 <script src="model.js?v=2026-11-04b"></script>
@@ -152,29 +142,26 @@
 
     const iV1 = Modele.v1.buildTeamIndices(teams, Modele.v1.computeLeagueAverages(teams));
     const ctx = Modele.v2.prepare(teams, eloData, mapping);
-    const ctx3 = Modele.v3b.prepare(teams, eloData, mapping);
     const cotes = loadCotes();
     Modele.v2.eloCoverage(ctx, matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur]));
 
     const rows = matches.map(m => {
       const p1 = Modele.v1_poisson(iV1[m.team_id_domicile], iV1[m.team_id_exterieur]);
       const p2 = Modele.v2.matchProbabilities(ctx, m.team_id_domicile, m.team_id_exterieur);
-      const p3 = Modele.v3b.matchProbabilities(ctx3, m.team_id_domicile, m.team_id_exterieur);
       const pm = Modele.moyenneV1V2.combiner(p1, p2);
-      const f1 = fav(p1, m), f2 = fav(p2, m), f3 = fav(p3, m);
+      const f1 = fav(p1, m), f2 = fav(p2, m);
       const key = rowKey(dateStr, m), c = cotes[key] || null;
-      return { m, p1, p2, p3, pm, f1, f2, f3, key, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
-        flip: !!(f1 && f2 && f1.side !== f2.side), flip3: !!(f2 && f3 && f2.side !== f3.side) };
+      return { m, p1, p2, pm, f1, f2, key, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
+        flip: !!(f1 && f2 && f1.side !== f2.side) };
     });
     return { dateStr, rows, eloData };
   }
 
   function marketCells(r) {
-    const e2 = ecart(r.p2, r.mk), e3 = ecart(r.p3, r.mk), em = ecart(r.pm, r.mk);
+    const e2 = ecart(r.p2, r.mk), em = ecart(r.pm, r.mk);
     const fmt = e => e == null ? '—' : e.toFixed(0) + ' pts';
     return `<td class="n mk">${r.mk ? `${trio(r.mk)} <span class="muted">(marge ${(r.mk.marge * 100).toFixed(1)} %)</span>` : '—'}</td>
       <td class="n ${e2 != null && e2 >= 10 ? 'warn' : ''}">${fmt(e2)}</td>
-      <td class="n ${e3 != null && e3 >= 10 ? 'warn' : ''}">${fmt(e3)}</td>
       <td class="n ${em != null && em >= 10 ? 'warn' : ''}">${fmt(em)}</td>`;
   }
 
@@ -186,8 +173,8 @@
     const same = k => withMk.filter(r => r[k] && fav(r[k], r.mk)).length;
     document.getElementById('summary-mk').innerHTML = withMk.length ? [
       `<span class="pill">Matchs avec cotes : <b>${withMk.length}</b></span>`,
-      `<span class="pill">Écart max moyen au marché — v2 : <b>${moy(r => ecart(r.p2, r.mk) || 0)}</b>, v3b : <b>${moy(r => ecart(r.p3, r.mk) || 0)}</b>, moy. v1/v2 : <b>${withMk.filter(r => r.pm).length ? (withMk.filter(r => r.pm).reduce((a, r) => a + ecart(r.pm, r.mk), 0) / withMk.filter(r => r.pm).length).toFixed(1) + ' pts' : '—'}</b></span>`,
-      `<span class="pill">Même favori que le marché — v2 : <b>${same('p2')}/${withMk.length}</b>, v3b : <b>${same('p3')}/${withMk.length}</b>, moy. v1/v2 : <b>${same('pm')}/${withMk.filter(r => r.pm).length}</b></span>`,
+      `<span class="pill">Écart max moyen au marché — v2 : <b>${moy(r => ecart(r.p2, r.mk) || 0)}</b>, moy. v1/v2 : <b>${withMk.filter(r => r.pm).length ? (withMk.filter(r => r.pm).reduce((a, r) => a + ecart(r.pm, r.mk), 0) / withMk.filter(r => r.pm).length).toFixed(1) + ' pts' : '—'}</b></span>`,
+      `<span class="pill">Même favori que le marché — v2 : <b>${same('p2')}/${withMk.length}</b>, moy. v1/v2 : <b>${same('pm')}/${withMk.filter(r => r.pm).length}</b></span>`,
     ].join('') : '<span class="pill muted">Aucune cote saisie pour cette date.</span>';
   }
 
@@ -214,12 +201,12 @@
     const P = p => p ? [f(p.pHome), f(p.pDraw), f(p.pAway)] : ['', '', ''];
     const head = ['date', 'heure', 'championnat', 'domicile', 'exterieur', 'team_id_dom', 'team_id_ext',
       'cote_1', 'cote_n', 'cote_2', 'marge', 'marche_1', 'marche_n', 'marche_2',
-      'v1_1', 'v1_n', 'v1_2', 'v2_1', 'v2_n', 'v2_2', 'v3b_1', 'v3b_n', 'v3b_2', 'v3b_melange', 'moy_1', 'moy_n', 'moy_2',
+      'v1_1', 'v1_n', 'v1_2', 'v2_1', 'v2_n', 'v2_2', 'moy_1', 'moy_n', 'moy_2',
       'versions', 'methode_demarginage', 'elo_clubelo_du'];
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = rows.map(r => [current.dateStr, r.m.heure, r.m.championnat, r.m.equipe_domicile, r.m.equipe_exterieur,
-      r.m.team_id_domicile, r.m.team_id_exterieur, ...r.cotes, f(r.mk.marge), ...P(r.mk), ...P(r.p1), ...P(r.p2), ...P(r.p3),
-      r.p3 ? r.p3.melange : '', ...P(r.pm), `${Modele.v1.VERSION};${Modele.v2.VERSION};${Modele.v3b.VERSION};${Modele.moyenneV1V2.VERSION}`, Modele.marche.METHODE,
+      r.m.team_id_domicile, r.m.team_id_exterieur, ...r.cotes, f(r.mk.marge), ...P(r.mk), ...P(r.p1), ...P(r.p2), ...P(r.pm),
+      `${Modele.v1.VERSION};${Modele.v2.VERSION};${Modele.moyenneV1V2.VERSION}`, Modele.marche.METHODE,
       current.eloData.date_classement_clubelo].map(q).join(','));
     const blob = new Blob(['\ufeff' + [head.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
@@ -246,7 +233,7 @@
     ].join('');
 
     document.getElementById('rows').innerHTML = rows.map(r => {
-      const { m, p1, p2, p3, pm, f1, f2, flip } = r;
+      const { m, p1, p2, pm, f1, f2, flip } = r;
       const tags = (isEurope(m, p2) ? `<span class="tag x">${cl(m)}</span>` : '') +
         (p2 && p2.eloDegrade ? `<span class="tag dg" title="${esc(p2.eloDegradeDetail.join(' ; '))}">Elo dégradé</span>` : '') +
         (flip ? '<span class="tag fl">favori change</span>' : '');
@@ -266,12 +253,11 @@
         <td class="n">${cible == null ? '—' : cible.toFixed(3)}</td>
         <td class="n">${p2 ? p2.T.toFixed(2) : '—'}</td>
  <td class="n muted">${trio(p1)}</td><td class="n">${trio(p2)}</td>
-        <td class="n">${trio(p3)}${p3 && p3.melange ? '' : ' <span class="muted" title="Match entre championnats ou données manquantes : v3b = v2">=v2</span>'}</td>
         <td class="n">${trio(pm)}</td>
         <td class="odds">${odd(0)}${odd(1)}${odd(2)}</td>
         ${marketCells(r).replace(/<td class="/g, '<td class="mkc ')}
       </tr>`;
-    }).join('') || '<tr><td colspan="20" class="muted">Aucun match ce jour-là.</td></tr>';
+    }).join('') || '<tr><td colspan="18" class="muted">Aucun match ce jour-là.</td></tr>';
 
     renderMarketSummary();
 
@@ -291,23 +277,6 @@
       return `<tr class="${r.flip ? 'flip' : ''}"><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f2.name)}</td><td class="n">${pct(r.f2.prob)}</td><td class="n">${mv}</td></tr>`;
     }).join('');
 
-    // v2 / v3b
-    const r3 = rows.filter(r => r.f3).sort((a, b) => b.f3.prob - a.f3.prob);
-    const pos2 = new Map(r2.map((r, i) => [key(r), i + 1]));
-    document.getElementById('rank2b').innerHTML = r2.map((r, i) =>
-      `<tr class="${r.flip3 ? 'flip' : ''}"><td class="n">${i + 1}</td><td>${label(r)}</td><td>${esc(r.f2.name)}</td><td class="n">${pct(r.f2.prob)}</td></tr>`).join('');
-    document.getElementById('rank3').innerHTML = r3.map((r, i) => {
-      const before = pos2.get(key(r));
-      const mv = before == null ? '<span class="muted">nouveau</span>'
-        : before - (i + 1) > 0 ? `<span class="up">▲ ${before - (i + 1)}</span>`
-        : before - (i + 1) < 0 ? `<span class="down">▼ ${(i + 1) - before}</span>` : '<span class="muted">=</span>';
-      // Δ sur la probabilité de la même issue que le favori v3b, pour que le signe ait un sens
-      const k = { home: 'pHome', draw: 'pDraw', away: 'pAway' }[r.f3.side];
-      const d = r.p2 ? (r.p3[k] - r.p2[k]) * 100 : null;
-      const delta = !r.p3.melange ? '<span class="muted">=v2</span>'
-        : `<span class="${d > 0 ? 'up' : d < 0 ? 'down' : 'muted'}">${d > 0 ? '+' : ''}${d.toFixed(0)} pts</span>`;
-      return `<tr class="${r.flip3 ? 'flip' : ''}"><td class="n">${i + 1}</td><td>${label(r)}${r.flip3 ? '<span class="tag fl">favori change</span>' : ''}</td><td>${esc(r.f3.name)}</td><td class="n">${pct(r.f3.prob)}</td><td class="n">${delta}</td><td class="n">${mv}</td></tr>`;
-    }).join('');
   }
 
   async function go() {
