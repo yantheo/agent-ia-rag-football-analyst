@@ -500,7 +500,7 @@
     try {
       const [teams, todayMap] = await Promise.all([
         supabaseGetSplit('classements_foot',
-          'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,points,' +
+          'select=team_id,equipe,championnat,buts_pour,buts_contre,matchs_joues,points,victoires,nuls,' +
           'ratio_conversion_num,possession_en_pourcentage,taux_victoire,' +
           'forme_recente_championnat,forme_recente_globale,classement_domicile,classement_exterieur,updated_at'),
         fetchTodayMatchMap().catch(err => { console.error('Chargement "joue aujourd\'hui" échoué', err); return {}; }),
@@ -575,13 +575,25 @@
       // Même formule que meilleures-equipes.html, tri inversé : les équipes dont
       // les points reels sont les plus EN-DESSOUS de ce que leur difference de
       // buts laisse attendre — candidates a un rebond statistique.
+      // Revision du 2026-11-05 (alignee sur le niveau backend et championnats.html) :
+      // points reels = 3V + N (hors penalites) ; points attendus recales sur les
+      // points par match moyens du championnat de l'equipe (part x 2 x ppmRef),
+      // et non part x 3 : cela ignorait les nuls, rendait presque toutes les
+      // equipes "malchanceuses" et penalisait les championnats a beaucoup de nuls.
+      const ppmRef = {};
+      teams.forEach(t => {
+        if (!t.championnat || !t.matchs_joues) return;
+        const a = ppmRef[t.championnat] || (ppmRef[t.championnat] = { pts: 0, j: 0 });
+        a.pts += 3 * (t.victoires || 0) + (t.nuls || 0); a.j += t.matchs_joues;
+      });
       const chance = eligibles
-        .filter(t => t.points != null && (t.buts_pour || t.buts_contre))
+        .filter(t => t.victoires != null && t.nuls != null && (t.buts_pour || t.buts_contre) && ppmRef[t.championnat])
         .map(t => {
           const bp = Math.pow(t.buts_pour || 0, 1.3);
           const bc = Math.pow(t.buts_contre || 0, 1.3);
-          const expectedPct = (bp + bc) > 0 ? bp / (bp + bc) : 0.5;
-          const actualPct = t.points / (t.matchs_joues * 3);
+          const ref = ppmRef[t.championnat].pts / ppmRef[t.championnat].j;
+          const expectedPct = ((bp + bc) > 0 ? bp / (bp + bc) : 0.5) * 2 * ref / 3;
+          const actualPct = (3 * t.victoires + t.nuls) / (t.matchs_joues * 3);
           return { equipe: t.equipe, teamId: t.team_id, championnat: t.championnat, ecart: (actualPct - expectedPct) * 100 };
         })
         .sort((a, b) => a.ecart - b.ecart)

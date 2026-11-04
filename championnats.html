@@ -415,6 +415,10 @@
     const avgRatio = weightedAvg(elig.filter(t => t.ratio_conversion_num > 0), 'ratio_conversion_num');
     const avgPoss = weightedAvg(elig.filter(t => t.possession_en_pourcentage), 'possession_en_pourcentage');
     const avgVict = weightedAvg(elig, 'taux_victoire');
+    // Points par match moyens du championnat en 3V+N (sans penalites) : reference
+    // des points attendus (meme calcul que le niveau cote backend, ecart_points_attendus).
+    const jTot = teams.reduce((s, t) => s + (t.matchs_joues || 0), 0);
+    const ppmRef = jTot ? teams.reduce((s, t) => s + 3 * (t.victoires || 0) + (t.nuls || 0), 0) / jTot : 1.5;
 
     return [
       {
@@ -462,19 +466,25 @@
       },
       {
         // Expectation pythagoricienne (exposant 1.3) sur buts pour/contre.
+        // Revision du 2026-11-05, alignee sur le niveau backend :
+        //  - points reels = 3V + N (une penalite de points n'est pas de la malchance) ;
+        //  - points attendus = part x 2 x ppm moyen du championnat x J. L'ancienne
+        //    formule part x 3 x J supposait 3 points distribues par match (nuls
+        //    ignores) et rendait presque toutes les equipes "malchanceuses"
+        //    (ecart moyen -1,06 pt sur nos 192 equipes, ~0 apres correction).
         best: '&#127808; Surperforment', worst: '&#128148; Malchanceuses',
-        sub: 'Points réels vs points attendus selon la différence de buts — positif = candidate à la régression, négatif = pourrait rebondir',
+        sub: 'Points réels (3V+N, hors pénalités) vs points attendus selon les buts marqués/encaissés, recalés sur la moyenne du championnat — positif = candidate à la régression, négatif = pourrait rebondir',
         mid: 'Pts / att.', val: 'Écart',
         score: t => {
-          if (t.points == null || !(t.buts_pour || t.buts_contre)) return null;
+          if (t.victoires == null || t.nuls == null || !(t.buts_pour || t.buts_contre)) return null;
           const bp = Math.pow(t.buts_pour || 0, 1.3), bc = Math.pow(t.buts_contre || 0, 1.3);
           // Ecart en vrais points (et non en % du max comme sur
           // meilleures-equipes.html) : lisible a cote de "Pts / att.", et
           // comparable puisque les equipes d'un meme championnat ont
           // quasiment le meme nombre de matchs joues.
-          return t.points - (bp / (bp + bc)) * t.matchs_joues * 3;
+          return 3 * t.victoires + t.nuls - (bp / (bp + bc)) * t.matchs_joues * 2 * ppmRef;
         },
-        middle: r => mono(`${r.points} / ${(r.points - r.score).toFixed(1)}`),
+        middle: r => mono(`${3 * r.victoires + r.nuls} / ${(3 * r.victoires + r.nuls - r.score).toFixed(1)}`),
         fmt: r => signed(r.score, 1) + ' pts',
         cls: r => (r.score < 0 ? 'down' : ''),
       },

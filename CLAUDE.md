@@ -216,9 +216,13 @@ rang dans le championnat selon les points par match lisses (Tête de championnat
 Milieu de tableau / Bas de tableau / Zone rouge) + nuances factuelles (invaincue, rarement / souvent
 battue, beaucoup de nuls, résultats au-dessus / en dessous de ses stats). Remplace les anciens libelles
 (DOMINANCE / « Profil Instable / Ne tient pas le score »...). Colonne non renommee en base. Le modele
-v1/v2/v3 ne l'utilise pas. Prompt n8n correspondant : v7 (`prompts-n8n/`, local). A noter : le tableau
-« Surperforment / Malchanceuses » de `championnats.html` utilise encore `part x 3 x J`, biaise vers le
-negatif (ignore les nuls) ; le backend utilise la version recalee sur la moyenne du championnat.
+v1/v2/v3 ne l'utilise pas. Prompt n8n correspondant : v7 (`prompts-n8n/`, local), deploye le 2026-11-05.
+**Points reels vs attendus** (« Surperforment / Malchanceuses » de `championnats.html`, « Performance vs
+attendu » / « Equipes malchanceuses » de `meilleures-equipes.html` / `pires-equipes.html`) alignes le
+meme jour sur le backend : points reels = 3V+N (hors penalites), attendus = part pythagoricienne x 2 x
+ppm moyen du championnat x J. Piege : `part x 3 x J` ignore les nuls (ecart moyen -1,06 pt, presque toutes
+les equipes « malchanceuses », championnats a beaucoup de nuls penalises dans les classements toutes
+ligues).
 
 ## Classements domicile / exterieur (ajout du 2026-11-03)
 
