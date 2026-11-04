@@ -295,7 +295,8 @@
             .teams-display { flex-direction: column; gap: 16px !important; }
             .team-big .name { font-size: 1.2rem; }
         }
-    </style>
+            a.team-link { color: inherit; text-decoration: none; } a.team-link:hover { color: var(--green-primary); text-decoration: underline; }
+</style>
 </head>
 <body>
     <div class="bg-pattern"></div>
@@ -369,6 +370,12 @@
     </footer>
 
     <script>
+
+  // Lien vers la fiche équipe (equipe.html?team=<team_id>)
+  function teamLink(teamId, name) {
+    const e = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return teamId ? `<a class="team-link" href="equipe.html?team=${encodeURIComponent(teamId)}">${e(name)}</a>` : e(name);
+  }
         // --- CONFIG ---
         const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
@@ -657,7 +664,7 @@
                 return `<div class="comparison-card">
                     <div class="card-title">${title}</div>
                     <table class="comparison-table">
-                        <thead><tr><th class="home">${homeName}</th><th class="stat"></th><th class="away">${awayName}</th></tr></thead>
+                        <thead><tr><th class="home">${home ? teamLink(home.team_id, homeName) : homeName}</th><th class="stat"></th><th class="away">${away ? teamLink(away.team_id, awayName) : awayName}</th></tr></thead>
                         <tbody>${makeRows(stats)}</tbody>
                     </table>
                 </div>`;
@@ -765,7 +772,7 @@
                 return `<div class="comparison-card">
                     <div class="card-title">${title}</div>
                     <table class="comparison-table">
-                        <thead><tr><th class="home">${homeName}</th><th class="stat"></th><th class="away">${awayName}</th></tr></thead>
+                        <thead><tr><th class="home">${home ? teamLink(home.team_id, homeName) : homeName}</th><th class="stat"></th><th class="away">${away ? teamLink(away.team_id, awayName) : awayName}</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
                 </div>`;

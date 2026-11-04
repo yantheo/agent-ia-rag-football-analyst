@@ -166,7 +166,8 @@
         footer p { font-size: 0.875rem; color: var(--text-muted); }
 
         @media (max-width: 768px) { .header-content { flex-direction: column; gap: 16px; } }
-    </style>
+            a.team-link { color: inherit; text-decoration: none; } a.team-link:hover { color: var(--green-primary); text-decoration: underline; }
+</style>
 </head>
 <body>
     <div class="bg-pattern"></div>
@@ -290,6 +291,12 @@
     </footer>
 
 <script>
+
+  // Lien vers la fiche équipe (equipe.html?team=<team_id>)
+  function teamLink(teamId, name) {
+    const e = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return teamId ? `<a class="team-link" href="equipe.html?team=${encodeURIComponent(teamId)}">${e(name)}</a>` : e(name);
+  }
 (function () {
   'use strict';
 
@@ -423,7 +430,7 @@
       <tr>
         <td class="rank">${i + 1}</td>
         <td class="player">${esc(r.nom)}</td>
-        <td class="team">${esc(r.equipe)}${playingTodayBadge(r.teamId, todayMap)}</td>
+        <td class="team">${teamLink(r.teamId, r.equipe)}${playingTodayBadge(r.teamId, todayMap)}</td>
         <td class="val">${valueFormatter(r)}</td>
       </tr>
     `).join('');
@@ -439,7 +446,7 @@
       <tr>
         <td class="rank">${i + 1}</td>
         <td class="player">${esc(r.nom)}</td>
-        <td class="team">${esc(r.equipe)}${playingTodayBadge(r.teamId, todayMap)}</td>
+        <td class="team">${teamLink(r.teamId, r.equipe)}${playingTodayBadge(r.teamId, todayMap)}</td>
         <td class="val">${r.valeur}</td>
         <td class="val">${r.qualityScore >= 0 ? '+' : ''}${r.qualityScore.toFixed(2)}</td>
       </tr>

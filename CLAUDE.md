@@ -29,6 +29,12 @@ Pages actuelles :
   que `championnats.html` : "Tous les championnats" par defaut (20 joueurs par tableau), ou un seul
   championnat (10 joueurs — `TOP_N_ALL` / `TOP_N_LEAGUE`), filtre cote client sans nouvelle requete.
 
+- **`equipe.html?team=<team_id>`** — Fiche d'une equipe (hors menu, comme `comparaison.html`) : niveau et
+  forme decoupes en palier + nuances, classement (dont domicile / exterieur), forme, attaque, defense, jeu,
+  joueurs cles, avec le **rang dans le championnat** sur chaque stat chiffree ; menu deroulant de toutes les
+  equipes. Chaque nom d'equipe est un lien vers cette page (`teamLink()` + CSS `a.team-link`, duplique
+  dans championnats, meilleures / pires equipes, buteurs-passeurs et l'en-tete de la comparaison d'index).
+
 **Header/navigation dupliques dans chaque page** (pas de build, pas d'include) : ajouter une page ou
 modifier le menu implique de modifier le `<nav class="nav-links">` et le CSS `.header-content` de
 toutes les pages. Le menu est centre sous le logo (`flex-direction: column`).

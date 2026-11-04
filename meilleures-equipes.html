@@ -177,7 +177,8 @@
             color: var(--text-secondary); font: inherit; font-size: 0.8rem; padding: 5px 12px; }
         .mode-tabs button.active { border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark); font-weight: 600; }
         td.val .muted { color: var(--text-muted); font-weight: 400; font-size: 0.78rem; }
-    </style>
+            a.team-link { color: inherit; text-decoration: none; } a.team-link:hover { color: var(--green-primary); text-decoration: underline; }
+</style>
 </head>
 <body>
     <div class="bg-pattern"></div>
@@ -330,6 +331,12 @@
     </footer>
 
 <script>
+
+  // Lien vers la fiche équipe (equipe.html?team=<team_id>)
+  function teamLink(teamId, name) {
+    const e = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return teamId ? `<a class="team-link" href="equipe.html?team=${encodeURIComponent(teamId)}">${e(name)}</a>` : e(name);
+  }
 (function () {
   'use strict';
 
@@ -455,7 +462,7 @@
     tbody.innerHTML = rows.map((r, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
-        <td class="team">${r.equipe}${playingTodayBadge(r.teamId || r.team_id, todayMap || {})}</td>
+        <td class="team">${teamLink(r.teamId || r.team_id, r.equipe)}${playingTodayBadge(r.teamId || r.team_id, todayMap || {})}</td>
         <td class="league">${r.championnat}</td>
         <td class="val ${valueClass ? valueClass(r) : ''}">${valueFormatter(r)}</td>
       </tr>
@@ -685,7 +692,7 @@
         tbody.innerHTML = rows.length ? rows.map((r, i) => `
           <tr>
             <td class="rank">${i + 1}</td>
-            <td class="team">${r.equipe}${playingTodayBadge(r.team_id, todayMap || {})}</td>
+            <td class="team">${teamLink(r.team_id, r.equipe)}${playingTodayBadge(r.team_id, todayMap || {})}</td>
             <td class="league">${r.championnat}</td>
             <td class="num">${r.s.j}</td>
             <td class="num">${r.s.v}-${r.s.n}-${r.s.d}</td>
