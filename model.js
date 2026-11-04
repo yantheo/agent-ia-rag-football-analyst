@@ -7,8 +7,10 @@
  *
  * Versions (chaque version est figée : changer une formule ou une constante =
  * nouvelle version_modele, sinon les logs/comparaisons deviennent inexploitables) :
- *   - Modele.v1 : "v1-poisson-k6" — modèle historique (en production sur main).
- *     CONSERVÉ TEL QUEL comme référence de comparaison, ne pas le modifier.
+ *   - Modele.v1 : "v1-poisson-k6" — modèle historique, référence (ne pas le modifier).
+ *   - Modele.v2 : "v2-elo-k13" — Elo des clubs + Poisson, référence (prod du 2026-11-03 au 2026-11-05).
+ *   - Modele.v3 : "moy-v1v2-w50" — moyenne 50/50 de v1 et v2, EN PRODUCTION (Meilleurs Paris)
+ *     depuis le 2026-11-05. Repli explicite sur la v2 quand la v1 n'est pas calculable.
  */
 (function (global) {
   'use strict';
@@ -270,7 +272,7 @@
   })();
 
   // ===========================================================================
-  // Moyenne v1/v2 — "moy-v1v2-w50" : EXPÉRIMENTAL, comparaison.html uniquement.
+  // Moyenne v1/v2 — "moy-v1v2-w50" : brique de calcul de la v3 (voir Modele.v3).
   // P = w·P(v1) + (1−w)·P(v2) sur chaque issue, w = 0,5 figé AVANT toute mesure
   // (2026-11-04). Idée : v1 (buts de la saison) et v2 (Elo des clubs) se trompent
   // sur des cas différents (v1 : clubs dominants d'une ligue faible ; v2 :
@@ -287,8 +289,38 @@
     return { VERSION, W_V1, combiner };
   })();
 
+  // ===========================================================================
+  // v3 — EN PRODUCTION depuis le 2026-11-05 : moyenne v1/v2 (même VERSION
+  // 'moy-v1v2-w50', formule inchangée). Même interface que la v2 (prepare /
+  // matchProbabilities / eloCoverage) et mêmes métadonnées (crossLeague,
+  // eloDegrade, dE, T...) reprises de la v2.
+  // Repli EXPLICITE : si la v1 n'est pas calculable (équipe sans stats de saison,
+  // ex. adversaire de Coupe d'Europe hors de nos championnats), on renvoie la v2
+  // avec v3Repli = true et version = v2 — jamais une moyenne silencieusement
+  // incomplète.
+  // ===========================================================================
+  const v3 = (function () {
+    const VERSION = moyenneV1V2.VERSION;
+    function prepare(teams, eloData, mapping) {
+      return { v1: v1.buildTeamIndices(teams, v1.computeLeagueAverages(teams)), v2: v2.prepare(teams, eloData, mapping) };
+    }
+    function matchProbabilities(ctx, homeId, awayId) {
+      const p2 = v2.matchProbabilities(ctx.v2, homeId, awayId);
+      if (!p2) return null;
+      const p1 = v1.matchProbabilities(ctx.v1[homeId], ctx.v1[awayId]);
+      const detail = { probV1: p1 ? { pHome: p1.pHome, pDraw: p1.pDraw, pAway: p1.pAway } : null,
+                       probV2: { pHome: p2.pHome, pDraw: p2.pDraw, pAway: p2.pAway } };
+      if (!p1) return Object.assign({}, p2, detail, { version: v2.VERSION, v3Repli: true });
+      const m = moyenneV1V2.combiner(p1, p2);
+      return Object.assign({}, p2, detail, { pHome: m.pHome, pDraw: m.pDraw, pAway: m.pAway, version: VERSION, v3Repli: false });
+    }
+    function eloCoverage(ctx, teamIds) { return v2.eloCoverage(ctx.v2, teamIds); }
+    return { VERSION, prepare, matchProbabilities, eloCoverage };
+  })();
+
   global.Modele = {
     moyenneV1V2,
+    v3,
     poissonPmf,
     poissonOutcomes,
     v1,

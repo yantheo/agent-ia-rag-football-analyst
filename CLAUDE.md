@@ -141,6 +141,10 @@ qui choisit quels matchs du jour envoyer a l'agent, plutot que les N premiers pa
   desormais `Modele.v2` (Elo des clubs) ; l'etiquette "inter-ligues" est devenue "Champions League"
   (ou "Coupe d'Europe"), et "Elo approximatif" signale une equipe sans Elo ClubElo. Le paragraphe
   ci-dessous decrit la correction v1, conservee dans `Modele.v1` comme reference.
+- **v3 EN PRODUCTION depuis le 2026-11-05** (voir « Piste v3 ») : la page utilise `Modele.v3` (moyenne
+  50/50 v1/v2, `moy-v1v2-w50`). Repli explicite sur la v2 si la v1 est incalculable (equipe sans stats de
+  saison) : badge « v2 seule ». Seuils des badges (60 % / 45 %) gardes tels quels, a revoir avec les
+  donnees (la moyenne resserre un peu les probabilites).
 - **Matchs inter-ligues (ajout du 2026-11-03, v1)** : les indices etant relatifs a CHAQUE championnat, le
   modele supposait qu'une equipe moyenne de Liga vaut une equipe moyenne de Premier League ou de Super
   Lig (Barcelone - Aston Villa donne a 83 %). Entre deux championnats differents, les buts attendus sont
@@ -223,7 +227,7 @@ exclure les lignes orphelines d'une saison precedente). Le championnat choisi es
   backend (pull + restart + scrape) -> frontend, mais le repli evite de casser les pages en cas de
   decalage.
 
-## Modele de prediction v2 (2026-11-03) — utilise par meilleurs-paris.html
+## Modeles de prediction v1 / v2 (references) et v3 (en production depuis le 2026-11-05)
 
 Valide le 2026-11-03 apres comparaison sur les 18 matchs du jour : Man United - Roma, cotes 2,00 / 4,20 /
 2,90 demargees en puissance = 47 / 21 / 32 % ; v2 = 46 / 23 / 32 %, v1 = 28 / 23 / 49 % (Roma favorite a
@@ -232,8 +236,11 @@ tort). Un match n'est pas une preuve : la vraie validation passe par les matchs 
 **Architecture.** Le modele vit dans `model.js` (objet global `Modele`, aussi chargeable sous Node).
 **Seules v1 et v2 sont des modeles de reference.** `Modele.v1` = modele historique (`v1-poisson-k6`),
 deplace a l'identique depuis `meilleurs-paris.html` (ecart 0 verifie), **conserve comme reference : ne pas
-le modifier**. `Modele.v2` = `v2-elo-k13` (en production). `Modele.moyenneV1V2` = `moy-v1v2-w50`,
-**candidate retenue pour la v3** (voir « Piste v3 »), affichee dans `comparaison.html` uniquement.
+le modifier**. `Modele.v2` = `v2-elo-k13` (production du 2026-11-03 au 2026-11-05, reference).
+**`Modele.v3` = EN PRODUCTION (Meilleurs Paris) depuis le 2026-11-05** : moyenne v1/v2 (`Modele.moyenneV1V2`,
+`moy-v1v2-w50`), meme interface et memes metadonnees que la v2 (`prepare` / `matchProbabilities` /
+`eloCoverage`), repli explicite sur la v2 (`v3Repli: true`, `version = v2-elo-k13`) si la v1 est
+incalculable. `comparaison.html` affiche v1, v2 et v3 (meme calcul que la prod) pour continuer a tester.
 `Modele.marche.demarginer([c1, cN, c2])` = probabilites du marche, marge retiree par la methode de la
 puissance. `comparaison.html` = outil de diagnostic v1 / v2 / moyenne v1-v2 + marche (hors menu, non lie ;
 classements du pre-filtre v1/v2 et v2/v3 cote a cote ; dans la page, « v3 » = moyenne v1/v2) : saisie des cotes 1/N/2 par match (`localStorage`, cle
@@ -247,6 +254,10 @@ avant le match** : d'abord `predictions-figees.json` (versionne, cle `date|team_
 ouverte avant le coup d'envoi), sinon recalcul marque « recalculees » (biaise : apres le scrape de nuit,
 les stats incluent le match). Ne jamais modifier une valeur deja figee ; ajouter les nouvelles soirees au
 fichier (meme format) avant les matchs.
+**Mon prono** (meme section) : probabilites 1/N/2 de l'utilisateur en %, normalisees, `localStorage`
+`comparaison_prono_v1` = `{p, saisi_le}`. Compte dans le bilan comme un modele seulement si `saisi_le` est
+avant `date_match` (sinon « apres coup », exclu) ; verrouille en lecture seule une fois le match commence.
+But : mesurer si l'intuition « dynamique / forme » de l'utilisateur apporte quelque chose aux modeles.
 `node model.tests.js` = tests chiffres (valeurs attendues calculees independamment, tolerance 0,005).
 **Cache** : GitHub Pages sert `model.js` avec `max-age=600`. Les pages le chargent en
 `model.js?v=<date>` : **a chaque modification de `model.js`, changer ce `?v=` dans `comparaison.html` et
@@ -288,10 +299,11 @@ precision des passes (marqueurs de style, pouvoir predictif residuel quasi nul).
 ~7,5, de 3 (Liga) a 37 (Ligue 2) — estimation elle-meme bruitee (18-24 equipes par ligue). N'agit que
 sur T en v2. A reestimer avec plus de journees.
 
-**Piste v3 — candidate retenue : moyenne v1/v2 (décision de l'utilisateur, 2026-11-04). PAS ENCORE
-IMPLÉMENTÉE dans Meilleurs Paris (qui reste en v2) ; colonne `moy-v1v2-w50` dans `comparaison.html` pour
-la suivre en attendant les résultats.** Le passage en prod se fera sur demande explicite, en changeant la
-`version_modele` affichée et le `?v=` de `model.js`.
+**v3 — moyenne v1/v2 (décision de l'utilisateur, 2026-11-04), EN PRODUCTION sur Meilleurs Paris depuis
+le 2026-11-05 (`Modele.v3`).** v1 et v2 restent les références, comparées à la v3 dans `comparaison.html`
+(résultats, marché, « mon prono »). Bilan des deux premières soirées (23 matchs, avant mise en prod) :
+Brier v2 0,543, v3 0,551, v1 0,569 — trop peu pour conclure, la décision repose sur le raisonnement
+(erreurs complémentaires) et sera jugée sur les soirées suivantes.
 - **Principe** : P = 0,5·P(v1) + 0,5·P(v2) issue par issue, poids figé avant mesure. Idée d'ensemble :
   v1 (buts de la saison + correction de ligue) et v2 (Elo des clubs) se trompent sur des cas différents
   (v1 : clubs dominants d'une ligue faible, ex. Galatasaray ; v2 : dynamique de la saison, ex. Derby en

@@ -100,6 +100,23 @@
       `${mo.pHome.toFixed(4)} / ${mo.pDraw.toFixed(4)} / ${mo.pAway.toFixed(4)}`);
     check('Moyenne v1/v2 : null si v1 absente', M.moyenneV1V2.combiner(null, mo) === null);
 
+    // 11. v3 (prod) : moyenne v1/v2 quand les deux existent, repli v2 explicite sinon
+    const t4 = [
+      { team_id: 'h', championnat: 'L', buts_pour: 20, buts_contre: 10, matchs_joues: 10 },
+      { team_id: 'a', championnat: 'L', buts_pour: 14, buts_contre: 14, matchs_joues: 10 },
+    ];
+    const e4 = { equipes: { h: { elo: 1700 }, a: { elo: 1650 }, x: { elo: 1800 } }, moyennes_championnats: { L: 1600 } };
+    const c4 = M.v3.prepare(t4, e4, { equipes: { h: 'H', a: 'A', x: 'X' } });
+    const r4 = M.v3.matchProbabilities(c4, 'h', 'a');
+    const i4 = M.v1.buildTeamIndices(t4, M.v1.computeLeagueAverages(t4));
+    const q1 = M.v1_poisson(i4.h, i4.a), q2 = M.v2.matchProbabilities(M.v2.prepare(t4, e4, { equipes: { h: 'H', a: 'A', x: 'X' } }), 'h', 'a');
+    check('v3 = ½ v1 + ½ v2 (issue par issue)',
+      !r4.v3Repli && r4.version === 'moy-v1v2-w50' && near(r4.pHome, (q1.pHome + q2.pHome) / 2, 1e-12) && near(r4.pAway, (q1.pAway + q2.pAway) / 2, 1e-12),
+      `P(1) ${r4.pHome.toFixed(4)} = (${q1.pHome.toFixed(4)} + ${q2.pHome.toFixed(4)}) / 2`);
+    const r4x = M.v3.matchProbabilities(c4, 'h', 'x'); // 'x' : Elo connu, pas de stats de saison -> pas de v1
+    check('v3 : repli explicite sur la v2 sans v1', r4x && r4x.v3Repli === true && r4x.version === 'v2-elo-k13' && r4x.probV1 === null,
+      r4x ? `version ${r4x.version}, repli ${r4x.v3Repli}` : 'null');
+
     return results;
   }
 

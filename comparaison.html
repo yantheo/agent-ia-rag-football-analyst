@@ -54,8 +54,8 @@
 <main>
   <h1>Comparaison des modèles v1 / v2 / v3 (= moyenne v1/v2)</h1>
   <p class="lead">Outil de diagnostic (pas une page publique). Pour chaque match, <b>v1</b> (<code>v1-poisson-k6</code>, référence historique) et
-    <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson, <b>en production</b>) sont calculés dans la même passe, sur les mêmes données.
-    <b>v3 = moyenne v1/v2</b> (<code>moy-v1v2-w50</code>, candidate pour la prochaine version, <b>pas encore branchée sur Meilleurs Paris</b>) :
+    <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson, référence, production du 03/11 au 05/11) sont calculés dans la même passe, sur les mêmes données.
+    <b>v3 = moyenne v1/v2</b> (<code>moy-v1v2-w50</code>, <b>en production sur Meilleurs Paris depuis le 05/11</b> ; « =v2 » : v1 incalculable, repli sur la v2 comme en prod) :
     P(v3) = ½·P(v1) + ½·P(v2), issue par issue.</p>
   <p class="note"><b>Marché</b> : saisir les cotes 1 / N / 2 d'un match -> probabilités sans marge (méthode de la puissance) et écart
     max avec v2 / v3 en points (en or si ≥ 10 pts). Les cotes restent dans ce navigateur (<code>localStorage</code>) : « Exporter CSV »
@@ -89,9 +89,12 @@
     <b>Les prédictions utilisées sont celles figées avant le match</b> (fichier <code>predictions-figees.json</code>, ou figées
     automatiquement dans ce navigateur quand la page est ouverte avant le coup d'envoi). Sinon, la page recalcule avec les stats
     actuelles, qui incluent peut-être déjà le match : ligne marquée « recalculée », à prendre avec prudence.
-    Brier : 0 = parfait, 0,667 = 1/3 partout ; plus bas = meilleur. Bilan sur les matchs où v1, v2 et v3 ont tous une prédiction.</p>
+    Brier : 0 = parfait, 0,667 = 1/3 partout ; plus bas = meilleur. Bilan v1 / v2 / v3 sur les matchs où les trois ont une prédiction.
+    <b>Mon prono</b> : tes probabilités en % (ex. 30 / 25 / 45, normalisées si la somme n'est pas 100), à saisir <b>avant le coup d'envoi</b> :
+    un prono saisi après le début du match est marqué « après coup » et exclu du bilan ; une fois le match commencé, un prono valide est verrouillé.
+    Restent dans ce navigateur (export CSV pour les garder).</p>
   <div class="scroll"><table class="bilan"><thead><tr><th>Modèle</th><th>Matchs</th><th>Brier</th><th>Brier Europe</th><th>Brier championnats</th><th>Log-loss</th><th>Favoris justes</th></tr></thead><tbody id="bilan"></tbody></table></div>
-  <div class="scroll" style="margin-top:12px"><table><thead><tr><th>Match</th><th>Score</th><th>Issue</th><th>v1</th><th>v2</th><th>v3 = moy. v1/v2</th><th>Marché</th><th>Prédictions</th></tr></thead><tbody id="res-rows"></tbody></table></div>
+  <div class="scroll" style="margin-top:12px"><table><thead><tr><th>Match</th><th>Score</th><th>Mon prono % (1 / N / 2)</th><th>Issue</th><th>v1</th><th>v2</th><th>v3 = moy. v1/v2</th><th>Marché</th><th>Mon prono</th><th>Prédictions</th></tr></thead><tbody id="res-rows"></tbody></table></div>
 
   <h2>Classements du pré-filtre (probabilité du favori décroissante)</h2>
   <p class="note">Ce que Meilleurs Paris enverrait à l'IA dans cet ordre. Flèche = gain/perte de rang de v1 à v2.</p>
@@ -100,7 +103,7 @@
     <div class="scroll"><table><thead><tr><th>#</th><th>v2</th><th>Favori</th><th>%</th><th>vs v1</th></tr></thead><tbody id="rank2"></tbody></table></div>
   </div>
 
-  <h2>Classements v2 (production) / v3 = moyenne v1/v2</h2>
+  <h2>Classements v2 (référence) / v3 = moyenne v1/v2 (production)</h2>
   <p class="note">Même règle (probabilité du favori décroissante). <b>v3 = moyenne 50/50 de v1 et v2</b> (<code>moy-v1v2-w50</code>).
     Δ % = variation, de v2 à v3, de la probabilité de l'issue que la v3 donne favorite ; flèche = gain/perte de rang de v2 à v3.
     Lignes surlignées = le favori change de camp entre v2 et v3. Matchs absents de la v3 : pas de v1 (équipe sans stats de saison).</p>
@@ -110,7 +113,7 @@
   </div>
 </main>
 
-<script src="model.js?v=2026-11-04c"></script>
+<script src="model.js?v=2026-11-05a"></script>
 <script>
 (function () {
   'use strict';
@@ -135,7 +138,7 @@
   function loadCotes() { try { return JSON.parse(localStorage.getItem(COTES_KEY)) || {}; } catch (e) { return {}; } }
   function saveCotes(o) { try { localStorage.setItem(COTES_KEY, JSON.stringify(o)); } catch (e) { /* stockage indisponible */ } }
   // Scores saisis et prédictions figées automatiquement (matchs pas encore commencés), par date + match.
-  const SCORES_KEY = 'comparaison_scores_v1', FIGEES_KEY = 'comparaison_figees_v1';
+  const SCORES_KEY = 'comparaison_scores_v1', FIGEES_KEY = 'comparaison_figees_v1', PRONO_KEY = 'comparaison_prono_v1';
   const load = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { return {}; } };
   const save = (k, o) => { try { localStorage.setItem(k, JSON.stringify(o)); } catch (e) { /* stockage indisponible */ } };
   const toP = a => a ? { pHome: a[0], pDraw: a[1], pAway: a[2] } : null;
@@ -168,7 +171,7 @@
     ]);
     let fichier = {};
     try { fichier = (await json('predictions-figees.json')).predictions || {}; } catch (e) { console.warn('predictions-figees.json indisponible', e); }
-    const figeesLocales = load(FIGEES_KEY), scores = load(SCORES_KEY);
+    const figeesLocales = load(FIGEES_KEY), scores = load(SCORES_KEY), pronos = load(PRONO_KEY);
     let nouvelles = 0;
 
     const iV1 = Modele.v1.buildTeamIndices(teams, Modele.v1.computeLeagueAverages(teams));
@@ -179,7 +182,8 @@
     const rows = matches.map(m => {
       const p1 = Modele.v1_poisson(iV1[m.team_id_domicile], iV1[m.team_id_exterieur]);
       const p2 = Modele.v2.matchProbabilities(ctx, m.team_id_domicile, m.team_id_exterieur);
-      const pm = Modele.moyenneV1V2.combiner(p1, p2);
+      // v3 = même calcul que la prod (Modele.v3) : moyenne v1/v2, repli explicite sur la v2 sans v1.
+      const pm = p1 && p2 ? Modele.moyenneV1V2.combiner(p1, p2) : p2 ? Object.assign({}, p2, { v3Repli: true }) : null;
       const f1 = fav(p1, m), f2 = fav(p2, m), fm = fav(pm, m);
       const key = rowKey(dateStr, m), c = cotes[key] || null;
       // Gel automatique : match pas encore commencé, jamais figé -> on enregistre les prédictions actuelles.
@@ -190,7 +194,7 @@
       }
       const fz = fichier[key] || figeesLocales[key] || null;
       const fige = fz ? { p1: toP(fz.p1), p2: toP(fz.p2), pm: toP(fz.pm), source: fichier[key] ? 'fichier' : 'navigateur', le: fz.fige_le } : null;
-      return { m, p1, p2, pm, f1, f2, fm, key, fige, score: scores[key] || null, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
+      return { m, p1, p2, pm, f1, f2, fm, key, fige, score: scores[key] || null, prono: pronos[key] || null, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
         flip: !!(f1 && f2 && f1.side !== f2.side), flipM: !!(f2 && fm && f2.side !== fm.side) };
     });
     if (nouvelles) save(FIGEES_KEY, figeesLocales);
@@ -229,12 +233,19 @@
     const a = arr(p), brier = a.reduce((s, x, i) => s + (x - (i === o ? 1 : 0)) ** 2, 0);
     return { p: a[o], brier, ll: -Math.log(Math.max(a[o], 1e-6)), hit: a.indexOf(Math.max(...a)) === o };
   }
+  const started = r => Date.parse(r.m.date_match) <= Date.now();
+  const pronoValide = r => !!(r.prono && Date.parse(r.prono.saisi_le) < Date.parse(r.m.date_match));
+  const pronoP = r => { if (!r.prono) return null; const t = r.prono.p.reduce((a, b) => a + b, 0);
+    return { pHome: r.prono.p[0] / t, pDraw: r.prono.p[1] / t, pAway: r.prono.p[2] / t }; };
   function resCells(r) {
     const cell = e => e ? `<td class="n">${pct(e.p)} <span class="${e.hit ? 'ok' : 'ko'}">${e.hit ? '✓' : '✗'}</span></td>` : '<td class="n muted">—</td>';
-    if (!r.score) return '<td class="n muted">—</td>' + '<td class="n muted">—</td>'.repeat(4) + `<td class="muted">${r.fige ? 'figées (' + r.fige.source + ')' : 'recalculées'}</td>`;
+    const pronoCell = o => !r.prono ? '<td class="n muted">—</td>'
+      : !pronoValide(r) ? '<td class="n warn" title="Saisi après le coup d\'envoi : exclu du bilan">après coup</td>'
+      : o == null ? '<td class="n muted">saisi ✓</td>' : cell(evalP(pronoP(r), o));
+    if (!r.score) return '<td class="n muted">—</td>' + '<td class="n muted">—</td>'.repeat(4) + pronoCell(null) + `<td class="muted">${r.fige ? 'figées (' + r.fige.source + ')' : 'recalculées'}</td>`;
     const o = issue(r.score), P = predsBilan(r);
     const lbl = ['1 (' + esc(r.m.equipe_domicile) + ')', 'N', '2 (' + esc(r.m.equipe_exterieur) + ')'][o];
-    return `<td>${lbl}</td>${cell(evalP(P.v1, o))}${cell(evalP(P.v2, o))}${cell(evalP(P.v3, o))}${cell(r.mk ? evalP(r.mk, o) : null)}` +
+    return `<td>${lbl}</td>${cell(evalP(P.v1, o))}${cell(evalP(P.v2, o))}${cell(evalP(P.v3, o))}${cell(r.mk ? evalP(r.mk, o) : null)}${pronoCell(o)}` +
       `<td class="${P.recalc ? 'warn' : 'muted'}">${P.recalc ? 'recalculées' : 'figées (' + r.fige.source + ')'}</td>`;
   }
   function renderBilan() {
@@ -252,30 +263,42 @@
     const recalc = common.filter(r => predsBilan(r).recalc).length;
     document.getElementById('bilan').innerHTML = !done.length
       ? '<tr><td colspan="7" class="muted">Aucun score saisi pour cette date.</td></tr>'
-      : line('v1', common, r => predsBilan(r).v1) + line('v2 (production)', common, r => predsBilan(r).v2) +
-        line('<b>v3 = moy. v1/v2</b>', common, r => predsBilan(r).v3) +
+      : line('v1', common, r => predsBilan(r).v1) + line('v2', common, r => predsBilan(r).v2) +
+        line('<b>v3 = moy. v1/v2 (production)</b>', common, r => predsBilan(r).v3) +
         line('Marché (matchs avec cotes)', done.filter(r => r.mk), r => r.mk) +
+        line('<b>Mon prono</b> (saisi avant le match)', done.filter(pronoValide), pronoP) +
         (recalc ? `<tr><td colspan="7" class="warn">${recalc} match(s) sans prédiction figée : bilan recalculé avec les stats actuelles, à prendre avec prudence.</td></tr>` : '');
   }
   function onScoreInput(ev) {
     const tr = ev.target.closest('tr[data-key]');
     if (!tr) return;
     const r = current.rows.find(x => x.key === tr.dataset.key);
-    const v = [...tr.querySelectorAll('td.score input')].map(i => i.value.trim());
-    const all = load(SCORES_KEY);
-    if (v.every(x => /^\d+$/.test(x))) { r.score = v.map(Number); all[r.key] = r.score; }
-    else { r.score = null; delete all[r.key]; }
-    save(SCORES_KEY, all);
+    if (ev.target.closest('td.prono')) {
+      if (started(r) && pronoValide(r)) return; // verrouillé (inputs en lecture seule)
+      const v = [...tr.querySelectorAll('td.prono input')].map(i => parseFloat(i.value.replace(',', '.')));
+      const all = load(PRONO_KEY);
+      if (v.every(x => x >= 0) && v.reduce((a, b) => a + b, 0) > 0) { r.prono = { p: v, saisi_le: new Date().toISOString() }; all[r.key] = r.prono; }
+      else { r.prono = null; delete all[r.key]; }
+      save(PRONO_KEY, all);
+    } else {
+      const v = [...tr.querySelectorAll('td.score:not(.prono) input')].map(i => i.value.trim());
+      const all = load(SCORES_KEY);
+      if (v.every(x => /^\d+$/.test(x))) { r.score = v.map(Number); all[r.key] = r.score; }
+      else { r.score = null; delete all[r.key]; }
+      save(SCORES_KEY, all);
+    }
     tr.querySelectorAll('td:not(.keep)').forEach(td => td.remove());
     tr.insertAdjacentHTML('beforeend', resCells(r));
     renderBilan();
   }
   function renderResults() {
     const sc = (r, i) => `<input inputmode="numeric" aria-label="${i ? 'Buts extérieur' : 'Buts domicile'}" value="${r.score ? r.score[i] : ''}">`;
+    const lock = r => started(r) && pronoValide(r);
+    const pr = (r, i) => `<input inputmode="decimal" aria-label="Mon prono ${['1', 'N', '2'][i]} (%)" value="${r.prono ? r.prono.p[i] : ''}"${lock(r) ? ' readonly title="Match commencé : prono verrouillé"' : ''}>`;
     document.getElementById('res-rows').innerHTML = current.rows.map(r =>
       `<tr data-key="${esc(r.key)}"><td class="keep"><b>${esc(r.m.equipe_domicile)}</b> – <b>${esc(r.m.equipe_exterieur)}</b>${isEurope(r.m, r.p2) ? `<span class="tag x">${cl(r.m)}</span>` : ''}</td>
-        <td class="score keep">${sc(r, 0)} – ${sc(r, 1)}</td>${resCells(r)}</tr>`).join('') ||
-      '<tr><td colspan="8" class="muted">Aucun match ce jour-là.</td></tr>';
+        <td class="score keep">${sc(r, 0)} – ${sc(r, 1)}</td><td class="score prono keep">${pr(r, 0)} ${pr(r, 1)} ${pr(r, 2)}</td>${resCells(r)}</tr>`).join('') ||
+      '<tr><td colspan="10" class="muted">Aucun match ce jour-là.</td></tr>';
     renderBilan();
   }
 
@@ -297,18 +320,18 @@
 
   function exportCsv() {
     if (!current) return;
-    const rows = current.rows.filter(r => r.mk || r.score);
+    const rows = current.rows.filter(r => r.mk || r.score || r.prono);
     if (!rows.length) { alert('Aucune cote ni aucun score saisi pour cette date.'); return; }
     const f = v => v == null ? '' : v.toFixed(4);
     const P = p => p ? [f(p.pHome), f(p.pDraw), f(p.pAway)] : ['', '', ''];
     const head = ['date', 'heure', 'championnat', 'domicile', 'exterieur', 'team_id_dom', 'team_id_ext',
       'cote_1', 'cote_n', 'cote_2', 'marge', 'marche_1', 'marche_n', 'marche_2',
-      'v1_1', 'v1_n', 'v1_2', 'v2_1', 'v2_n', 'v2_2', 'moy_1', 'moy_n', 'moy_2', 'buts_dom', 'buts_ext', 'predictions',
+      'v1_1', 'v1_n', 'v1_2', 'v2_1', 'v2_n', 'v2_2', 'moy_1', 'moy_n', 'moy_2', 'buts_dom', 'buts_ext', 'predictions', 'prono_1', 'prono_n', 'prono_2', 'prono_valide',
       'versions', 'methode_demarginage', 'elo_clubelo_du'];
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = rows.map(r => [current.dateStr, r.m.heure, r.m.championnat, r.m.equipe_domicile, r.m.equipe_exterieur,
       r.m.team_id_domicile, r.m.team_id_exterieur, ...(r.cotes || ['', '', '']), r.mk ? f(r.mk.marge) : '', ...P(r.mk), ...P(predsBilan(r).v1), ...P(predsBilan(r).v2), ...P(predsBilan(r).v3),
-      r.score ? r.score[0] : '', r.score ? r.score[1] : '', r.fige ? 'figees' : 'recalculees',
+      r.score ? r.score[0] : '', r.score ? r.score[1] : '', r.fige ? 'figees' : 'recalculees', ...P(pronoP(r)), r.prono ? pronoValide(r) : '',
       `${Modele.v1.VERSION};${Modele.v2.VERSION};${Modele.moyenneV1V2.VERSION}`, Modele.marche.METHODE,
       current.eloData.date_classement_clubelo].map(q).join(','));
     const blob = new Blob(['\ufeff' + [head.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
@@ -356,7 +379,7 @@
         <td class="n">${cible == null ? '—' : cible.toFixed(3)}</td>
         <td class="n">${p2 ? p2.T.toFixed(2) : '—'}</td>
  <td class="n muted">${trio(p1)}</td><td class="n">${trio(p2)}</td>
-        <td class="n">${trio(pm)}</td>
+        <td class="n">${trio(pm)}${pm && pm.v3Repli ? ' <span class="muted" title="v1 incalculable : la v3 reprend la v2 (comme sur Meilleurs Paris)">=v2</span>' : ''}</td>
         <td class="odds">${odd(0)}${odd(1)}${odd(2)}</td>
         ${marketCells(r).replace(/<td class="/g, '<td class="mkc ')}
       </tr>`;
