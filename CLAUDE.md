@@ -240,6 +240,10 @@ saisie des cotes 1/N/2 par match (`localStorage`, cle `comparaison_cotes_v1`, pa
 max au marche en points (en or si >= 10), resume "meme favori que le marche", export CSV pour journaliser
 (cotes, marche, v1, v2, v3b, versions). `node model.tests.js` = tests chiffres (valeurs attendues
 calculees independamment, tolerance 0,005).
+**Cache** : GitHub Pages sert `model.js` avec `max-age=600`. Les pages le chargent en
+`model.js?v=<date>` : **a chaque modification de `model.js`, changer ce `?v=` dans `comparaison.html` et
+`meilleurs-paris.html`**, sinon un navigateur garde l'ancien `model.js` avec la nouvelle page (vu le
+2026-11-04 : `Cannot read properties of undefined (reading 'combiner')`, tableau vide).
 
 **Formules v2 (figees).** `dE = eloDom + advDomLigue - eloExt` (avantage du terrain +65 Elo, par
 championnat, jamais par equipe) ; `s = exp(2·k·dE)`, k = 0.00225 ; `T = mL·(attDom·defExt + attExt·defDom)`
