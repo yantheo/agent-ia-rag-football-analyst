@@ -371,7 +371,7 @@
         </div>
     </footer>
 
-    <script src="model.js"></script>
+    <script src="model.js?v=2026-11-05b"></script>
     <script>
 
   // Lien vers la fiche équipe (equipe.html?team=<team_id>)
@@ -382,9 +382,9 @@
         // --- CONFIG ---
         const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
-        // Webhook de test (workflow n8n séparé) : seulement en local avec ?n8n=v3.
-        const N8N_WEBHOOK_URL = (location.hostname === 'localhost' && new URLSearchParams(location.search).get('n8n') === 'v3')
-            ? 'https://n8n.scribify.net/webhook/football-analyze-v3'
+        // Webhook de test (workflow n8n séparé) : seulement en local avec ?n8n=test.
+        const N8N_WEBHOOK_URL = (location.hostname === 'localhost' && new URLSearchParams(location.search).get('n8n') === 'test')
+            ? 'https://n8n.scribify.net/webhook/football-analyze-ia-modele'
             : 'https://n8n.scribify.net/webhook/football-analyze';
 
         const FLAG_MAP = {
@@ -799,7 +799,7 @@
                 </div>`;
         }
 
-        // --- MODELE v2 (model.js) : transmis à l'IA avec la demande d'analyse ---
+        // --- MODELE v3 (model.js, prod) : transmis à l'IA avec la demande d'analyse ---
         // Contexte chargé une fois (stats de saison + Elo + correspondance). En cas
         // d'échec, l'analyse part sans bloc "modele" (l'IA le signale "non fourni").
         let modelCtxPromise = null;
@@ -812,7 +812,7 @@
                 modelCtxPromise = Promise.all([
                     supabaseGet('classements_foot', 'select=team_id,championnat,buts_pour,buts_contre,matchs_joues'),
                     getJson('elo-clubs.json'), getJson('elo-mapping.json'),
-                ]).then(([teams, elo, mapping]) => Modele.v2.prepare(teams, elo, mapping));
+                ]).then(([teams, elo, mapping]) => Modele.v3.prepare(teams, elo, mapping));
                 modelCtxPromise.catch(() => { modelCtxPromise = null; });
             }
             return modelCtxPromise;
@@ -821,10 +821,10 @@
         async function modelBlock(match) {
             try {
                 const ctx = await loadModelContext();
-                const p = Modele.v2.matchProbabilities(ctx, match.team_id_domicile, match.team_id_exterieur);
+                const p = Modele.v3.matchProbabilities(ctx, match.team_id_domicile, match.team_id_exterieur);
                 return Modele.payloadModele(p, match.equipe_domicile, match.equipe_exterieur);
             } catch (err) {
-                console.warn('Modele v2 indisponible, analyse sans bloc modele', err);
+                console.warn('Modele v3 indisponible, analyse sans bloc modele', err);
                 return null;
             }
         }

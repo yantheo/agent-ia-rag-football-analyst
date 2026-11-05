@@ -317,25 +317,44 @@
     function eloCoverage(ctx, teamIds) { return v2.eloCoverage(ctx.v2, teamIds); }
     return { VERSION, prepare, matchProbabilities, eloCoverage };
   })();
-  // Bloc "modele" envoyé à l'agent IA (webhook n8n) avec la demande d'analyse :
-  // l'IA part du favori statistique au lieu d'en déduire un elle-même. Ne
-  // modifie aucune formule : simple mise en forme d'une prédiction v2.
-  // P(Over 2,5) : le total de deux Poisson indépendants est un Poisson de
-  // paramètre λdom + λext.
+
+  // ===========================================================================
+  // Bloc "modele" envoyé à l'agent IA (webhook n8n) avec la demande d'analyse,
+  // prompt v9 « IA modèle » : les chiffres viennent du modèle, l'IA les commente
+  // (CONFIRME / NUANCE / CONTREDIT) sans en inventer. Ne modifie aucune formule :
+  // simple mise en forme d'une prédiction (v3 en prod, ou v2 en repli).
+  // Buts : λdom / λext de la v2 (la v3 moyenne le 1X2, pas les buts attendus).
+  // - P(Over 2,5) : le total de deux Poisson indépendants est un Poisson(λdom + λext).
+  // - P(les deux marquent) = (1 − e^−λdom)(1 − e^−λext).
+  // Niveau du favori : mêmes seuils que les badges de Meilleurs Paris (60 / 45 %).
+  // Risque de nul : repère ~25 % de nuls en Europe -> < 22 % faible, > 28 % élevé.
+  // ===========================================================================
+  const SEUIL_FAVORI_NET = 0.60, SEUIL_LEGER_FAVORI = 0.45;
+  const SEUIL_NUL_FAIBLE = 0.22, SEUIL_NUL_ELEVE = 0.28;
+  function niveauFavori(pMax) {
+    return pMax >= SEUIL_FAVORI_NET ? 'favori net' : pMax >= SEUIL_LEGER_FAVORI ? 'léger favori' : 'match ouvert';
+  }
+  function risqueNul(pDraw) {
+    return pDraw < SEUIL_NUL_FAIBLE ? 'faible' : pDraw > SEUIL_NUL_ELEVE ? 'élevé' : 'normal';
+  }
   function payloadModele(p, nomDom, nomExt) {
     if (!p) return null;
     const r = x => Math.round(x * 1000) / 1000;
     const mu = p.lambdaHome + p.lambdaAway;
     const pUnder = poissonPmf(mu, 0) + poissonPmf(mu, 1) + poissonPmf(mu, 2);
+    const pBtts = (1 - Math.exp(-p.lambdaHome)) * (1 - Math.exp(-p.lambdaAway));
     const max = Math.max(p.pHome, p.pDraw, p.pAway);
     return {
       version: p.version,
       p_domicile: r(p.pHome), p_nul: r(p.pDraw), p_exterieur: r(p.pAway),
       favori: max === p.pHome ? nomDom : max === p.pAway ? nomExt : 'Nul',
+      niveau_favori: niveauFavori(max),
+      risque_nul: risqueNul(p.pDraw),
       buts_attendus_domicile: r(p.lambdaHome), buts_attendus_exterieur: r(p.lambdaAway),
-      buts_attendus_total: r(mu), p_over_2_5: r(1 - pUnder),
+      buts_attendus_total: r(mu), p_over_2_5: r(1 - pUnder), p_les_deux_marquent: r(pBtts),
       elo_domicile: Math.round(p.eloHome), elo_exterieur: Math.round(p.eloAway),
       elo_approximatif: !!p.eloDegrade,
+      championnats_differents: !!p.crossLeague,
     };
   }
 
@@ -344,7 +363,7 @@
     v3,
     poissonPmf,
     poissonOutcomes,
-    payloadModele,
+    payloadModele, niveauFavori, risqueNul,
     v1,
     v2,
     marche,

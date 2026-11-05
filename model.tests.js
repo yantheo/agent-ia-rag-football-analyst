@@ -124,6 +124,15 @@
       pl && pl.favori === 'Galatasaray' && near(pl.p_domicile, 0.459) && near(pl.p_over_2_5, 0.531)
         && near(pl.buts_attendus_total, 2.8, 0.001) && pl.version === 'v2-elo-k13',
       pl ? JSON.stringify(pl) : 'null');
+    // P(les deux marquent) = (1 − e^−1,585)(1 − e^−1,215) = 0,7951 × 0,7033 = 0,559 ;
+    // favori à 45,9 % -> léger favori ; nul 24,8 % -> risque normal.
+    check('payloadModele : BTTS, niveau du favori, risque de nul',
+      pl && near(pl.p_les_deux_marquent, 0.559) && pl.niveau_favori === 'léger favori' && pl.risque_nul === 'normal'
+        && pl.championnats_differents === false,
+      pl ? `BTTS ${pl.p_les_deux_marquent}, ${pl.niveau_favori}, nul ${pl.risque_nul}` : 'null');
+    check('Seuils niveau / nul',
+      M.niveauFavori(0.60) === 'favori net' && M.niveauFavori(0.599) === 'léger favori' && M.niveauFavori(0.449) === 'match ouvert'
+        && M.risqueNul(0.219) === 'faible' && M.risqueNul(0.28) === 'normal' && M.risqueNul(0.281) === 'élevé');
     check('payloadModele(null) = null (match non calculable)', M.payloadModele(null, 'A', 'B') === null);
 
     return results;

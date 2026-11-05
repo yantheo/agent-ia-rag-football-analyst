@@ -266,17 +266,17 @@
         </div>
     </footer>
 
-<script src="model.js?v=2026-11-05a"></script>
+<script src="model.js?v=2026-11-05b"></script>
 <script>
 (function () {
   'use strict';
 
   const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
-  // Webhook de test (workflow n8n séparé) : seulement en local avec ?n8n=v3,
+  // Webhook de test (workflow n8n séparé) : seulement en local avec ?n8n=test,
   // pour essayer un nouveau prompt sans toucher à la production.
-  const N8N_WEBHOOK_URL = (location.hostname === 'localhost' && new URLSearchParams(location.search).get('n8n') === 'v3')
-    ? 'https://n8n.scribify.net/webhook/football-analyze-v3'
+  const N8N_WEBHOOK_URL = (location.hostname === 'localhost' && new URLSearchParams(location.search).get('n8n') === 'test')
+    ? 'https://n8n.scribify.net/webhook/football-analyze-ia-modele'
     : 'https://n8n.scribify.net/webhook/football-analyze';
   const CACHE_KEY = 'meilleurs_paris_cache_v1';
   const MIN_RESULTS = 3;

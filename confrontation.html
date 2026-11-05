@@ -375,6 +375,7 @@
             <div class="page-title">
                 <h2>Confrontation</h2>
                 <p>Comparez deux équipes au choix, même sans match au calendrier, puis lancez l'analyse IA</p>
+                <p id="test-banner" style="display:none;color:var(--gold);margin-top:6px">Mode test : analyse envoyée au workflow n8n de test (prompt « IA modèle »)</p>
             </div>
 
             <div class="picker-bar">
@@ -411,7 +412,7 @@
         </div>
     </footer>
 
-<script src="model.js?v=2026-11-05a"></script>
+<script src="model.js?v=2026-11-05b"></script>
     <script>
   // Lien vers la fiche équipe (equipe.html?team=<team_id>)
   function teamLink(teamId, name) {
@@ -421,7 +422,12 @@
         // --- CONFIG ---
         const SUPABASE_URL = 'https://agjemodniueyxubrdtsx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnamVtb2RuaXVleXh1YnJkdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2OTY1NDIsImV4cCI6MjA4NTI3MjU0Mn0.kxb9GRa2h0M5-xl1RWqa32ePYeRHB3u109UBjBbrygw';
-        const N8N_WEBHOOK_URL = 'https://n8n.scribify.net/webhook/football-analyze';
+        // Webhook de test (workflow n8n séparé, prompt « IA modèle ») : seulement en
+        // local avec ?n8n=test. Comparer avec la prod : même affiche sur GitHub Pages.
+        const N8N_TEST = location.hostname === 'localhost' && new URLSearchParams(location.search).get('n8n') === 'test';
+        const N8N_WEBHOOK_URL = N8N_TEST
+            ? 'https://n8n.scribify.net/webhook/football-analyze-ia-modele'
+            : 'https://n8n.scribify.net/webhook/football-analyze';
 
         const FLAG_MAP = {
             fr: '\u{1F1EB}\u{1F1F7}', esp: '\u{1F1EA}\u{1F1F8}', eng: '\u{1F1EC}\u{1F1E7}',
@@ -692,7 +698,7 @@
 
         // Analyses déjà faites (une par affiche et par jour) : évite de
         // relancer un appel OpenAI à chaque visite.
-        const CACHE_KEY = 'confrontation_analyses_v1';
+        const CACHE_KEY = new URLSearchParams(location.search).get('n8n') === 'test' ? 'confrontation_analyses_test_v1' : 'confrontation_analyses_v1';
         function readCache() { try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { return {}; } }
         function writeCache(c) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch {} }
         function cacheKey(dom, ext) { return `${todayISO()}|${dom}|${ext}`; }
@@ -738,6 +744,7 @@
         }
         function writeParams(dom, ext) {
             const q = new URLSearchParams();
+            if (N8N_TEST) q.set('n8n', 'test');
             if (dom) q.set('dom', dom);
             if (ext) q.set('ext', ext);
             const s = q.toString();
@@ -876,6 +883,8 @@
                 team_id_exterieur: away.team_id,
                 championnat: championnatLabel(home, away),
                 date_match: todayISO(),
+                // Prédiction du modèle (v3) : l'IA la commente au lieu de choisir un favori.
+                modele: Modele.payloadModele(current.probs, home.equipe, away.equipe),
             };
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
@@ -898,6 +907,7 @@
         }
 
         async function main() {
+            if (N8N_TEST) document.getElementById('test-banner').style.display = '';
             pruneCache();
             const selH = document.getElementById('sel-home'), selA = document.getElementById('sel-away');
             try {
