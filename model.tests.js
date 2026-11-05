@@ -133,6 +133,27 @@
     check('Seuils niveau / nul',
       M.niveauFavori(0.60) === 'favori net' && M.niveauFavori(0.599) === 'léger favori' && M.niveauFavori(0.449) === 'match ouvert'
         && M.risqueNul(0.219) === 'faible' && M.risqueNul(0.28) === 'normal' && M.risqueNul(0.281) === 'élevé');
+    // Lignes du verdict (Galatasaray 46/25/29, léger favori, nul normal, Over 53 % -> pas de pari buts)
+    const L = pl && pl.lignes;
+    check('Lignes du verdict : léger favori',
+      L && L.pronostic === 'Galatasaray 46 % · Nul 25 % · Stuttgart 29 % → Léger favori : Galatasaray'
+        && L.nul === '25 %, risque normal' && L.buts === 'Plus de 2,5 buts à 53 % · les deux équipes marquent à 56 %'
+        && L.conseil.CONFIRME === 'Pronostic fragile (Galatasaray léger favori, contexte qui confirme) → Remboursé si nul sur Galatasaray'
+        && L.conseil.CONTREDIT === 'Pronostic trop incertain (Galatasaray léger favori, contexte qui contredit) → Pas de pari sur le résultat',
+      L ? JSON.stringify(L) : 'null');
+    const fake = (h, d, a, lh, la) => ({ pHome: h, pDraw: d, pAway: a, lambdaHome: lh, lambdaAway: la });
+    const Ln = M.lignesVerdict(fake(0.70, 0.18, 0.12, 2.4, 0.9), 'PSG', 'Lens'); // favori net, Over ~64 %
+    check('Lignes : favori net + CONFIRME = solide, + Over',
+      Ln.conseil.CONFIRME === 'Pronostic solide (PSG favori net, contexte qui confirme) → Victoire de PSG + Plus de 2,5 buts'
+        && Ln.conseil.NUANCE.startsWith('Pronostic fragile (PSG favori net, contexte qui nuance) → Remboursé si nul sur PSG'),
+      JSON.stringify(Ln.conseil));
+    const Lo = M.lignesVerdict(fake(0.38, 0.31, 0.31, 1.0, 0.9), 'A', 'B'); // ouvert, nul élevé, Under
+    check('Lignes : match ouvert -> trop incertain, Under',
+      Lo.pronostic.endsWith('→ Match ouvert') && Lo.nul === '31 %, risque élevé'
+        && Lo.conseil.CONFIRME === 'Pronostic trop incertain (match ouvert, contexte qui confirme) → Pas de pari sur le résultat + Moins de 2,5 buts',
+      JSON.stringify(Lo));
+    const Ld = M.lignesVerdict(fake(0.50, 0.30, 0.20, 1.3, 0.7), 'A', 'B'); // léger favori, nul élevé
+    check('Lignes : fragile + nul élevé -> double chance', Ld.conseil.NUANCE.includes('→ Double chance : A ou nul'), Ld.conseil.NUANCE);
     check('payloadModele(null) = null (match non calculable)', M.payloadModele(null, 'A', 'B') === null);
 
     return results;

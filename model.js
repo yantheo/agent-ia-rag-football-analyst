@@ -337,6 +337,46 @@
   function risqueNul(pDraw) {
     return pDraw < SEUIL_NUL_FAIBLE ? 'faible' : pDraw > SEUIL_NUL_ELEVE ? 'élevé' : 'normal';
   }
+  // Lignes du verdict rédigées ICI (règles fixes), recopiées telles quelles par
+  // l'IA : gpt-4o-mini recopie bien les chiffres mais applique mal les règles
+  // en plusieurs étapes (test du 2026-11-05 : risque de nul mal recopié ->
+  // mauvais conseil, pari sur les buts oublié). L'IA ne choisit que sa lecture
+  // (CONFIRME / NUANCE / CONTREDIT), d'où un conseil rédigé pour chacune.
+  // Fiabilité du pronostic : favori net + confirme = solide ; léger favori ou
+  // contexte qui nuance = fragile ; match ouvert ou contexte qui contredit =
+  // trop incertain. Buts : pari seulement si Over 2,5 >= 60 % ou <= 40 %.
+  const pc = x => `${Math.round(x * 100)} %`;
+  function lignesVerdict(p, nomDom, nomExt) {
+    const max = Math.max(p.pHome, p.pDraw, p.pAway);
+    const niveau = niveauFavori(max);
+    const fav = max === p.pHome ? nomDom : max === p.pAway ? nomExt : null;
+    const risque = risqueNul(p.pDraw);
+    const mu = p.lambdaHome + p.lambdaAway;
+    const pOver = 1 - (poissonPmf(mu, 0) + poissonPmf(mu, 1) + poissonPmf(mu, 2));
+    const pBtts = (1 - Math.exp(-p.lambdaHome)) * (1 - Math.exp(-p.lambdaAway));
+    const pariButs = pOver >= 0.60 ? 'Plus de 2,5 buts' : pOver <= 0.40 ? 'Moins de 2,5 buts' : null;
+    const ouvert = niveau === 'match ouvert' || !fav;
+    const titreNiveau = ouvert ? 'Match ouvert' : `${niveau.charAt(0).toUpperCase()}${niveau.slice(1)} : ${fav}`;
+    const CONTEXTE = { CONFIRME: 'contexte qui confirme', NUANCE: 'contexte qui nuance', CONTREDIT: 'contexte qui contredit' };
+    const conseil = lecture => {
+      let fiab;
+      if (ouvert || lecture === 'CONTREDIT') fiab = 'trop incertain';
+      else if (niveau === 'favori net' && lecture === 'CONFIRME') fiab = 'solide';
+      else fiab = 'fragile';
+      const raison = ouvert ? `match ouvert, ${CONTEXTE[lecture]}` : `${fav} ${niveau}, ${CONTEXTE[lecture]}`;
+      const resultat = fiab === 'solide' ? `Victoire de ${fav}`
+        : fiab === 'fragile' ? (risque === 'élevé' ? `Double chance : ${fav} ou nul` : `Remboursé si nul sur ${fav}`)
+        : 'Pas de pari sur le résultat';
+      return `Pronostic ${fiab} (${raison}) → ${resultat}${pariButs ? ' + ' + pariButs : ''}`;
+    };
+    return {
+      pronostic: `${nomDom} ${pc(p.pHome)} · Nul ${pc(p.pDraw)} · ${nomExt} ${pc(p.pAway)} → ${titreNiveau}`,
+      nul: `${pc(p.pDraw)}, risque ${risque}`,
+      buts: `Plus de 2,5 buts à ${pc(pOver)} · les deux équipes marquent à ${pc(pBtts)}`,
+      conseil: { CONFIRME: conseil('CONFIRME'), NUANCE: conseil('NUANCE'), CONTREDIT: conseil('CONTREDIT') },
+    };
+  }
+
   function payloadModele(p, nomDom, nomExt) {
     if (!p) return null;
     const r = x => Math.round(x * 1000) / 1000;
@@ -355,6 +395,7 @@
       elo_domicile: Math.round(p.eloHome), elo_exterieur: Math.round(p.eloAway),
       elo_approximatif: !!p.eloDegrade,
       championnats_differents: !!p.crossLeague,
+      lignes: lignesVerdict(p, nomDom, nomExt),
     };
   }
 
@@ -363,7 +404,7 @@
     v3,
     poissonPmf,
     poissonOutcomes,
-    payloadModele, niveauFavori, risqueNul,
+    payloadModele, niveauFavori, risqueNul, lignesVerdict,
     v1,
     v2,
     marche,
