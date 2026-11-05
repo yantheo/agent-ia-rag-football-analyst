@@ -317,7 +317,6 @@
     function eloCoverage(ctx, teamIds) { return v2.eloCoverage(ctx.v2, teamIds); }
     return { VERSION, prepare, matchProbabilities, eloCoverage };
   })();
-=======
   // Bloc "modele" envoyé à l'agent IA (webhook n8n) avec la demande d'analyse :
   // l'IA part du favori statistique au lieu d'en déduire un elle-même. Ne
   // modifie aucune formule : simple mise en forme d'une prédiction v2.
