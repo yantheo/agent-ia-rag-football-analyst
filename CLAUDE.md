@@ -383,9 +383,9 @@ modele : les matchs logges (joues ou non pariés) le sont.
 
 - En production : modele **v3** (moyenne v1/v2) sur Meilleurs Paris ; prompt n8n **v8** (niveau + forme) ;
   scraper avec les nouveaux libelles « Niveau » et « Forme » ; page `equipe.html` (menu « Équipes »).
-- Scrape complet relance a la main le 2026-11-05 vers 0h36 (le precedent avait ete interrompu par le
-  redemarrage du conteneur) : **a verifier en reprise** (logs `Supabase sync OK` pour les 10
-  championnats, puis nouveaux libelles sur `equipe.html`, puis une analyse IA sur un match du week-end).
+- Scrape complet relance a la main le 2026-11-05 vers 0h36 : **verifie** (termine, nouveaux libelles
+  « Niveau » et « Forme » en base et sur `equipe.html`). Reste a tester : une analyse IA sur un match du
+  week-end (le rapport doit parler de « niveau » et reprendre les chiffres de forme).
 - Suivi des modeles : `comparaison.html` (v1 / v2 / v3, marche, scores, Mon prono), predictions figees
   dans `predictions-figees.json` (a completer avant chaque soiree si la page n'a pas ete ouverte avant
   les matchs).
