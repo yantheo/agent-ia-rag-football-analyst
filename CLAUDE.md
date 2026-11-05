@@ -35,6 +35,15 @@ Pages actuelles :
   equipes. Chaque nom d'equipe est un lien vers cette page (`teamLink()` + CSS `a.team-link`, duplique
   dans championnats, meilleures / pires equipes, buteurs-passeurs et l'en-tete de la comparaison d'index).
 
+- **`confrontation.html?dom=<team_id>&ext=<team_id>`** (menu « Confrontation », apres Équipes, ajout du
+  2026-11-05) — deux equipes au choix (toutes ligues), sans passer par le calendrier : probabilites
+  `Modele.v3` (mention si championnats differents), meme comparaison qu'index (`buildComparisonHTML`
+  copiee), bouton « Analyser » -> meme webhook n8n (`match_id: null`, championnat = « A / B (confrontation
+  hors championnat) » si ligues differentes). Analyses en cache `localStorage` (`confrontation_analyses_v1`,
+  par jour + affiche, bouton « Relancer »). Limite : l'IA ne corrige pas la force des ligues (niveau
+  relatif a chaque championnat) — sur une affiche inter-ligues, le modele est plus fiable que le verdict IA.
+  Charge `model.js?v=` : a mettre a jour avec `comparaison.html` et `meilleurs-paris.html`.
+
 **Header/navigation dupliques dans chaque page** (pas de build, pas d'include) : ajouter une page ou
 modifier le menu implique de modifier le `<nav class="nav-links">` et le CSS `.header-content` de
 toutes les pages. Le menu est centre sous le logo (`flex-direction: column`).
