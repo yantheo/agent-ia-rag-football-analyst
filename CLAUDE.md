@@ -388,6 +388,22 @@ logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; 
 reel contre un bookmaker, plusieurs milliers de paris. Le pari n'est pas l'instrument de validation du
 modele : les matchs logges (joues ou non pariés) le sont.
 
+## Branche `ia-modele` (en test, non fusionnee — 2026-11-05)
+
+Principe : **les chiffres viennent du modele, les mots de l'IA.** Le payload du webhook ajoute un bloc
+`modele` (`Modele.payloadModele`, v3) : probabilites 1/N/2, favori, niveau (favori net >= 60 % / leger
+favori >= 45 % / match ouvert), risque de nul (< 22 % faible, > 28 % eleve), buts attendus, P(Over 2,5),
+P(les deux marquent), et `lignes` = lignes du verdict deja redigees (`lignesVerdict`) dont un conseil par
+lecture possible. Le prompt v9 (local, `prompts-n8n/`) fait choisir a l'IA une lecture CONFIRME / NUANCE /
+CONTREDIT et recopier les lignes. **Pourquoi pre-rediger** : au test du 2026-11-05, gpt-4o-mini recopiait
+bien les pourcentages mais appliquait mal les regles en chaine (risque de nul mal recopie -> mauvais
+conseil, pari sur les buts oublie) — meme lecon que la forme decodee en SQL. Supprimes : Signal (aucune
+regle, rempli au jugé), Draw Index (score 0-100 non mesure, lu comme une proba de nul), Indice de
+confiance et « Solidite » (fusionnee dans le conseil : pronostic solide / fragile / trop incertain + raison).
+Test en local uniquement : `?n8n=test` -> `/webhook/football-analyze-ia-modele` (workflow de test).
+**Piege** : `indice_realisme` (buts / tirs cadres, rang dans le championnat, non lisse) est surtout de la
+reussite passagere ; l'IA le lisait comme une force. Le lire comme un signal de regression.
+
 ## Etat au 2026-11-05
 
 - En production : modele **v3** (moyenne v1/v2) sur Meilleurs Paris ; prompt n8n **v8** (niveau + forme) ;
