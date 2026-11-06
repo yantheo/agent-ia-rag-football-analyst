@@ -224,7 +224,7 @@
         <div class="page-title">
             <h2>Meilleurs Paris du Jour</h2>
             <p>Les matchs les plus déséquilibrés du jour (modèle statistique), analysés par l'IA</p>
-            <p style="font-size:0.78rem;margin-top:6px">Badge principal = favori et sa probabilité (modèle statistique v3 : moyenne de deux modèles, l'un fondé sur les buts de la saison, l'autre sur l'Elo des clubs). Badge "Confiance IA" = avis narratif de l'agent, non calibré contre des résultats réels — à prendre comme complément, pas comme mesure</p>
+            <p style="font-size:0.78rem;margin-top:6px">Badge principal = favori et sa probabilité (modèle statistique v3 : moyenne de deux modèles, l'un fondé sur les buts de la saison, l'autre sur l'Elo des clubs). Badge "Contexte" = forme, bilan sur le lieu du match, défenses, attaques et classement, lus du point de vue du favori (calculé, non calibré contre des résultats réels) ; au survol, le conseil de pari, qui découle des probabilités du modèle (un contexte défavorable le rend plus prudent)</p>
         </div>
 
         <div class="panel">
@@ -254,7 +254,7 @@
             <span class="confidence-badge leger">45–60 %</span><span>léger favori</span>
             <span class="confidence-badge ouvert">&lt; 45 %</span><span>match ouvert</span>
             <span class="sep"></span>
-            <span><b>Confiance IA : Faible / Moyen / Élevé</b> = avis de l'agent IA dans son rapport, indépendant du badge (non calibré). La couleur décrit l'équilibre du match, pas la qualité du pari.</span>
+            <span><b>Contexte : FAVORABLE / MITIGÉ / DÉFAVORABLE</b> = lecture du contexte du point de vue du favori (non calibrée). La couleur décrit l'équilibre du match, pas la qualité du pari.</span>
         </div>
 
         <div id="results"></div>
@@ -281,7 +281,7 @@
   const CACHE_KEY = 'meilleurs_paris_cache_v1';
   const MIN_RESULTS = 3;
   const MAX_RESULTS = 10;
-  const CONFIDENCE_RANK = { 'Élevé': 3, 'Eleve': 3, 'Moyen': 2, 'Faible': 1 };
+  const CONFIDENCE_RANK = { 'Élevé': 3, 'Eleve': 3, 'Moyen': 2, 'Faible': 1, 'FAVORABLE': 3, 'MITIGÉ': 2, 'DÉFAVORABLE': 1 };
 
   const FLAG_MAP = {
     fr: '\u{1F1EB}\u{1F1F7}', esp: '\u{1F1EA}\u{1F1F8}', eng: '\u{1F1EC}\u{1F1E7}',
@@ -317,14 +317,23 @@
   // "<li><strong>Indice de confiance :</strong> Élevé — justification...</li>" -> "Élevé"
   // Ne garde que le mot-clé Faible/Moyen/Élevé, pas la phrase de justification
   // qui suit (séparée par un tiret) — sinon le badge affiche une phrase entière.
+  // Rapport « IA modèle » (prompt v10, 2026-11-06) : plus d'indice de confiance,
+  // mais une lecture du contexte CALCULÉE (FAVORABLE / MITIGÉ / DÉFAVORABLE),
+  // écrite « contexte X pour [équipe] ». L'ancien format reste lu pour les
+  // analyses déjà en cache.
   function extractConfidence(html) {
+    const c = /contexte\s+(FAVORABLE|MITIGÉ|DÉFAVORABLE)\s+pour/.exec(html || '');
+    if (c) return c[1];
     const m = /Indice de confiance\s*:?\s*<\/strong>\s*(Faible|Moyen|Élevé|Eleve)/i.exec(html || '');
     return m ? m[1] : null;
   }
+  const isContexte = c => c === 'FAVORABLE' || c === 'MITIGÉ' || c === 'DÉFAVORABLE';
 
   // Justification complète (après le tiret), affichée en tooltip au survol
   // du badge IA plutôt que dans le badge lui-même (voir extractConfidence).
   function extractConfidenceDetail(html) {
+    const c = /<strong>\s*Conseil\s*:?\s*<\/strong>\s*([^<]+)/i.exec(html || '');
+    if (c && /contexte\s+(FAVORABLE|MITIGÉ|DÉFAVORABLE)\s+pour/.test(html)) return c[1].trim();
     const m = /Indice de confiance\s*:?\s*<\/strong>\s*(?:Faible|Moyen|Élevé|Eleve)\s*[—\-–]\s*([^<]+)/i.exec(html || '');
     return m ? m[1].trim().replace(/[.,:;]+$/, '') : null;
   }
@@ -687,7 +696,7 @@
       const flag = FLAG_MAP[r.match.country] || '';
       const iaTooltip = r.confidenceDetail
         ? escapeAttr(r.confidenceDetail)
-        : (r.confidence ? "Avis narratif de l'IA, non calibré contre des résultats réels" : "Pas d'indice de confiance IA pour ce match (analyse indisponible ou incomplète)");
+        : (r.confidence ? "Avis narratif de l'IA, non calibré contre des résultats réels" : "Pas de lecture du contexte pour ce match (analyse indisponible ou incomplète)");
       const card = document.createElement('div');
       card.className = 'rank-card';
       card.innerHTML = `
@@ -699,7 +708,7 @@
           </div>
           <div class="badges-col">
             <span class="confidence-badge ${probabilityClass(r.preGap)}" title="${favTitle(r)}">${favLabel(r)}${r.preGap != null ? (r.preGap * 100).toFixed(0) + '%' : '—'}${r.preGap != null ? `<span class="badge-level">${PROBABILITY_LABEL[probabilityClass(r.preGap)]}</span>` : ''}</span>
-            <span class="ia-badge" tabindex="0" data-tooltip="${iaTooltip}">Confiance IA : ${r.confidence || '—'}</span>
+            <span class="ia-badge" tabindex="0" data-tooltip="${iaTooltip}">${isContexte(r.confidence) ? 'Contexte' : 'Confiance IA'} : ${r.confidence || '—'}</span>
           </div>
           <span class="rank-arrow">&#8250;</span>
         </div>

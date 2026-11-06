@@ -388,21 +388,38 @@ logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; 
 reel contre un bookmaker, plusieurs milliers de paris. Le pari n'est pas l'instrument de validation du
 modele : les matchs logges (joues ou non pariés) le sont.
 
-## Branche `ia-modele` (en test, non fusionnee — 2026-11-05)
+## Agent IA « IA modele » (prompt v10) — EN PRODUCTION depuis le 2026-11-06
 
-Principe : **les chiffres viennent du modele, les mots de l'IA.** Le payload du webhook ajoute un bloc
-`modele` (`Modele.payloadModele`, v3) : probabilites 1/N/2, favori, niveau (favori net >= 60 % / leger
-favori >= 45 % / match ouvert), risque de nul (< 22 % faible, > 28 % eleve), buts attendus, P(Over 2,5),
-P(les deux marquent), et `lignes` = lignes du verdict deja redigees (`lignesVerdict`) dont un conseil par
-lecture possible. Le prompt v9 (local, `prompts-n8n/`) fait choisir a l'IA une lecture CONFIRME / NUANCE /
-CONTREDIT et recopier les lignes. **Pourquoi pre-rediger** : au test du 2026-11-05, gpt-4o-mini recopiait
-bien les pourcentages mais appliquait mal les regles en chaine (risque de nul mal recopie -> mauvais
-conseil, pari sur les buts oublie) — meme lecon que la forme decodee en SQL. Supprimes : Signal (aucune
-regle, rempli au jugé), Draw Index (score 0-100 non mesure, lu comme une proba de nul), Indice de
-confiance et « Solidite » (fusionnee dans le conseil : pronostic solide / fragile / trop incertain + raison).
-Test en local uniquement : `?n8n=test` -> `/webhook/football-analyze-ia-modele` (workflow de test).
-**Piege** : `indice_realisme` (buts / tirs cadres, rang dans le championnat, non lisse) est surtout de la
-reussite passagere ; l'IA le lisait comme une force. Le lire comme un signal de regression.
+Principe : **les chiffres et les decisions viennent du code, l'IA ne fait que rediger.** Lecon de deux jours de
+tests : chaque reformulation du prompt corrigeait un cas et en deplacait un autre ; ce qui a marche, c'est de
+sortir les decisions du LLM (comme la forme decodee en SQL).
+- **Frontend** (`index.html`, `meilleurs-paris.html`, `confrontation.html`) : envoie un bloc `modele`
+  (`Modele.payloadModele`, v3) dont `lignes` = lignes du verdict deja redigees (`lignesVerdict` : pronostic,
+  nul, buts, conseil par etiquette, `conseil_probas`, equipe jugee).
+- **Conseil** : par les seules probabilites (favori net >= 60 % -> victoire ; leger favori >= 45 % ->
+  rembourse si nul, double chance si nul > 28 % ; match ouvert avec une equipe >= 40 % -> double chance ;
+  sinon pas de pari ; + plus/moins de 2,5 buts si P(Over) >= 60 % / <= 40 %). **Couplage asymetrique** : un
+  contexte DEFAVORABLE degrade d'un cran (solide -> fragile -> pas de pari), FAVORABLE / MITIGE ne changent
+  rien — une etiquette fausse ne peut que faire manquer un pari, jamais en creer un.
+- **Workflow n8n** (local : `prompts-n8n/workflow_football-analyze_2026-11-06_v10-prod.json`, sauvegarde v8
+  sur le serveur `backup_football-analyze_2026-11-06_v8-avant-v10.json`) : Webhook -> Postgres (requete fixe
+  AVANT l'IA, plus d'outil : 1 seul appel LLM) -> Code « Preparer » (`lectureContexte` : listes Pour / Contre et
+  etiquette FAVORABLE / MITIGE / DEFAVORABLE calculees ; message a l'IA sans jsonb brut) -> AI Agent sans outil
+  (gpt-4o-mini, prompt v10b, exemples FICTIFS) -> Code « Lignes du verdict » (impose Pronostic / Conseil /
+  Nul / Buts, retire les ```html) -> Respond.
+- **Mesures (memes matchs)** : prod v8 ~6 630 tokens / 14,1 s ; v10b ~2 070 tokens / 5,2 s, 0 defaut
+  automatique sur 6 matchs dont 4 jamais vus, etiquette stable.
+- **Pieges** : ne pas ecrire les exemples du prompt sur un match de test (l'IA recopie l'exemple) ;
+  CONFIRME / NUANCE / CONTREDIT etaient lus comme « contredire l'equilibre » du match ouvert -> etiquettes
+  orientees vers l'equipe jugee ; l'IA recopiait mal les lignes (prefixes, mots changes) -> nœud Code.
+  `indice_realisme` (buts / tirs cadres, non lisse) = surtout de la reussite : lu comme un signal de
+  regression, jamais un atout.
+- Meilleurs Paris : badge « Contexte : FAVORABLE / MITIGE / DEFAVORABLE » (lu dans le rapport, ancien format
+  « Indice de confiance » encore lu pour le cache). Test d'un nouveau prompt : workflow de test, local
+  `?n8n=test` -> `/webhook/football-analyze-ia-modele`.
+- A faire : journaliser etiquette / score / conseil_probas / conseil final + resultat (table Supabase ecrite
+  par n8n) ; seuils de `lectureContexte` relatifs au championnat (aujourd'hui absolus) ; Elo rafraichi chaque
+  jour.
 
 ## Etat au 2026-11-05
 
