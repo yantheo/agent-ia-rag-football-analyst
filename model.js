@@ -329,13 +329,20 @@
   // Niveau du favori : mêmes seuils que les badges de Meilleurs Paris (60 / 45 %).
   // Risque de nul : repère ~25 % de nuls en Europe -> < 22 % faible, > 28 % élevé.
   // ===========================================================================
-  const SEUIL_FAVORI_NET = 0.60, SEUIL_LEGER_FAVORI = 0.45;
-  const SEUIL_NUL_FAIBLE = 0.22, SEUIL_NUL_ELEVE = 0.28;
+  // Seuils en POINTS DE POURCENTAGE ENTIERS, comparés au pourcentage AFFICHÉ (arrondi) :
+  // le mot doit découler du nombre que l'abonné voit (2026-11-06 : Hambourg « 22 %, risque
+  // faible » et Grenoble – Reims « 22 %, risque normal », valeurs brutes 0,218 / 0,221 ;
+  // Venezia affiché « 40 % » mais pas « devant », valeur brute 0,398). Bornes inchangées.
+  const pctAffiche = x => Math.round(x * 100);
+  const SEUIL_FAVORI_NET = 60, SEUIL_LEGER_FAVORI = 45;   // favori net >= 60 %, léger >= 45 %
+  const SEUIL_NUL_FAIBLE = 22, SEUIL_NUL_ELEVE = 28;      // faible < 22 %, élevé > 28 %
   function niveauFavori(pMax) {
-    return pMax >= SEUIL_FAVORI_NET ? 'favori net' : pMax >= SEUIL_LEGER_FAVORI ? 'léger favori' : 'match ouvert';
+    const v = pctAffiche(pMax);
+    return v >= SEUIL_FAVORI_NET ? 'favori net' : v >= SEUIL_LEGER_FAVORI ? 'léger favori' : 'match ouvert';
   }
   function risqueNul(pDraw) {
-    return pDraw < SEUIL_NUL_FAIBLE ? 'faible' : pDraw > SEUIL_NUL_ELEVE ? 'élevé' : 'normal';
+    const v = pctAffiche(pDraw);
+    return v < SEUIL_NUL_FAIBLE ? 'faible' : v > SEUIL_NUL_ELEVE ? 'élevé' : 'normal';
   }
   // Lignes du verdict rédigées ICI (règles fixes), recopiées telles quelles par
   // l'IA : gpt-4o-mini recopie bien les chiffres mais applique mal les règles
@@ -348,7 +355,8 @@
   // Match ouvert avec une équipe à >= 40 % (2026-11-06, Gaziantep – Kasımpaşa :
   // Kasımpaşa 43 %) : l'équipe est nommée « légèrement devant » et traitée comme
   // un favori fragile (double chance), voir le conseil plus bas.
-  const SEUIL_DEVANT = 0.40;
+  const SEUIL_DEVANT = 40;      // points de %, comparé au pourcentage affiché
+  const SEUIL_OVER = 60, SEUIL_UNDER = 40; // pari sur les buts si Over affiché >= 60 % ou <= 40 %
   const pc = x => `${Math.round(x * 100)} %`;
   function lignesVerdict(p, nomDom, nomExt) {
     const max = Math.max(p.pHome, p.pDraw, p.pAway);
@@ -358,11 +366,11 @@
     const mu = p.lambdaHome + p.lambdaAway;
     const pOver = 1 - (poissonPmf(mu, 0) + poissonPmf(mu, 1) + poissonPmf(mu, 2));
     const pBtts = (1 - Math.exp(-p.lambdaHome)) * (1 - Math.exp(-p.lambdaAway));
-    const pariButs = pOver >= 0.60 ? 'Plus de 2,5 buts' : pOver <= 0.40 ? 'Moins de 2,5 buts' : null;
+    const pariButs = pctAffiche(pOver) >= SEUIL_OVER ? 'Plus de 2,5 buts' : pctAffiche(pOver) <= SEUIL_UNDER ? 'Moins de 2,5 buts' : null;
     const ouvert = niveau === 'match ouvert' || !fav;
     // Équipe devant en match ouvert : la plus probable des deux (hors nul), si >= 40 %.
     const pDevant = Math.max(p.pHome, p.pAway);
-    const devant = ouvert && pDevant >= SEUIL_DEVANT ? (p.pHome >= p.pAway ? nomDom : nomExt) : null;
+    const devant = ouvert && pctAffiche(pDevant) >= SEUIL_DEVANT ? (p.pHome >= p.pAway ? nomDom : nomExt) : null;
     const titreNiveau = !ouvert ? `${niveau.charAt(0).toUpperCase()}${niveau.slice(1)} : ${fav}`
       : devant ? `Match ouvert, ${devant} légèrement devant (${pc(pDevant)})` : 'Match ouvert';
     // Conseil (révision du 2026-11-06, « couplage asymétrique ») : il découle des

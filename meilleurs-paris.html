@@ -266,7 +266,7 @@
         </div>
     </footer>
 
-<script src="model.js?v=2026-11-06e"></script>
+<script src="model.js?v=2026-11-06f"></script>
 <script>
 (function () {
   'use strict';
@@ -400,8 +400,10 @@
 
   function probabilityClass(p) {
     if (p == null) return 'ouvert';
-    if (p >= SEUIL_FAVORI_NET) return 'net';
-    if (p >= SEUIL_LEGER_FAVORI) return 'leger';
+    // Comparé au pourcentage affiché (arrondi), comme model.js : le badge « 60 % » est toujours « favori net ».
+    const v = Math.round(p * 100);
+    if (v >= SEUIL_FAVORI_NET * 100) return 'net';
+    if (v >= SEUIL_LEGER_FAVORI * 100) return 'leger';
     return 'ouvert';
   }
 

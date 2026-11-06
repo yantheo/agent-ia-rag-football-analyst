@@ -131,8 +131,25 @@
         && pl.championnats_differents === false,
       pl ? `BTTS ${pl.p_les_deux_marquent}, ${pl.niveau_favori}, nul ${pl.risque_nul}` : 'null');
     check('Seuils niveau / nul',
-      M.niveauFavori(0.60) === 'favori net' && M.niveauFavori(0.599) === 'léger favori' && M.niveauFavori(0.449) === 'match ouvert'
-        && M.risqueNul(0.219) === 'faible' && M.risqueNul(0.28) === 'normal' && M.risqueNul(0.281) === 'élevé');
+      M.niveauFavori(0.60) === 'favori net' && M.niveauFavori(0.595) === 'favori net' && M.niveauFavori(0.594) === 'léger favori'
+        && M.niveauFavori(0.445) === 'léger favori' && M.niveauFavori(0.444) === 'match ouvert'
+        && M.risqueNul(0.214) === 'faible' && M.risqueNul(0.216) === 'normal' && M.risqueNul(0.284) === 'normal' && M.risqueNul(0.286) === 'élevé');
+    // Le libellé découle du pourcentage affiché : pour chaque entier n, p = n/100 et n/100 ± 0,004
+    // (tous affichés « n % ») donnent le même mot. Toute différence = seuil appliqué à la valeur brute.
+    let incoherences = [];
+    for (let k = 0; k <= 100; k++) {
+      for (const f of [M.niveauFavori, M.risqueNul]) {
+        const ref = f(k / 100);
+        for (const d of [-0.004, 0.004]) { const q = k / 100 + d; if (q >= 0 && q <= 1 && f(q) !== ref) incoherences.push(`${f.name}(${q.toFixed(3)})`); }
+      }
+    }
+    const fakeP = (h, d, a, lh, la) => ({ pHome: h, pDraw: d, pAway: a, lambdaHome: lh, lambdaAway: la });
+    // Lignes du verdict : « 40 % » affiché pour l'équipe devant et « 22 % » de nul → mêmes mots quelle que soit la valeur brute
+    const Lv1 = M.lignesVerdict(fakeP(0.398, 0.30, 0.302, 1.1, 1.0), 'Venezia', 'Udinese'), Lv2 = M.lignesVerdict(fakeP(0.404, 0.30, 0.296, 1.1, 1.0), 'Venezia', 'Udinese');
+    const Lh = M.lignesVerdict(fakeP(0.45, 0.218, 0.332, 2.1, 1.5), 'Hambourg', "M'gladbach"), Lg = M.lignesVerdict(fakeP(0.21, 0.221, 0.569, 0.9, 1.8), 'Grenoble', 'Reims');
+    check('Libellés = pourcentage affiché (test paramétrique 0-100 ± 0,004, Venezia 40 %, nul 22 %)',
+      !incoherences.length && Lv1.equipe_devant === 'Venezia' && Lv2.equipe_devant === 'Venezia' && Lh.nul === Lg.nul.replace(/^\d+/, '22') && Lh.nul === '22 %, risque normal',
+      incoherences.slice(0, 5).join(', ') + ` | ${Lv1.equipe_devant} / ${Lh.nul} / ${Lg.nul}`);
     // Lignes du verdict — conseil par les seules probabilités, un contexte
     // DÉFAVORABLE le dégrade d'un cran (couplage asymétrique, 2026-11-06).
     const L = pl && pl.lignes;
