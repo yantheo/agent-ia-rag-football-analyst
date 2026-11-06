@@ -422,6 +422,18 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
   par n8n) ; seuils de `lectureContexte` relatifs au championnat (aujourd'hui absolus) ; Elo rafraichi chaque
   jour.
 
+## Etat au 2026-11-06 (soir)
+
+- Prod : IA modele v10 (voir section ci-dessus), gpt-4o-mini. Calendrier et Confrontation affichent les
+  probabilites du modele.
+- Workflow n8n de TEST (`?n8n=test` en local) : correctifs des rounds 1 et 2, gpt-4.1-mini — message a l'IA sans
+  donnees brutes, paragraphe « Ce qui peut faire mentir le pronostic » ecrit par le code
+  (`lecture-contexte.js`, `paragrapheRisque`), libelles calcules sur le pourcentage affiche. Pas encore en
+  prod : l'utilisateur teste avant. Banc d'essai (local) : `prompts-n8n/banc-essai/`.
+- `lecture-contexte.js` (racine) = source unique de la fonction du noeud n8n « Preparer » ; tests :
+  `node lecture-contexte.js`. Toute modif doit etre reportee dans le noeud (le build l'integre tel quel).
+- Scrape quotidien decale a 00h30 (le 06/11 a 00h00, footmercato affichait encore les matchs de la veille).
+
 ## Etat au 2026-11-05
 
 - En production : modele **v3** (moyenne v1/v2) sur Meilleurs Paris ; prompt n8n **v8** (niveau + forme) ;
