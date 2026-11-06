@@ -20,8 +20,10 @@
  * réelles de classements_foot.
  */
 const lectureContexte = (() => {
-  // Nombres affichés : 2 décimales au plus (« 1,82 », « 2,25 »), virgule française.
-  const n = v => String(Math.round(Number(v) * 100) / 100).replace('.', ',');
+  // Arrondi à une décimale, sans « 2,0 » : la précision affichée est celle du code, ni
+  // celle du SQL ni celle du modèle (« 1,8181… » envoyé à l'IA l'autorisait à « nettoyer »
+  // les autres nombres, Grenoble – Reims, 2026-11-06).
+  const n = v => (Math.round(Number(v) * 10) / 10).toFixed(1).replace(/\.0$/, '').replace('.', ',');
   const P = v => Math.round(v * 100);
   // Accord français : « 1,7 but », « 2 buts ».
   const pl = (v, mot) => `${n(v)} ${mot}${Math.abs(v) >= 2 ? 's' : ''}`;
@@ -112,7 +114,11 @@ function testsLectureContexte() {
   const c = lectureContexte(kasimpasa, gaziantep, false);
   check(!c.pour.concat(c.contre).some(s => /\de,/.test(s)), 'aucun classement comparé entre deux championnats différents');
 
-  check(lectureContexte.formatNombre(1.5) === '1,5', 'virgule décimale');
+  const fmt = lectureContexte.formatNombre;
+  check(fmt(1.5) === '1,5', 'virgule décimale');
+  check(fmt(20 / 11) === '1,8', 'arrondi à une décimale, obtenu ' + fmt(20 / 11));
+  check(fmt(2.0) === '2', 'pas de « 2,0 », obtenu ' + fmt(2.0));
+  check(fmt(2.25) === '2,3' || fmt(2.25) === '2,2', 'une seule décimale, obtenu ' + fmt(2.25));
   check(a.pour.some(s => s === 'Gaziantep FK encaisse 1,7 but par match'), 'accord « 1,7 but » : ' + a.pour.join(' · '));
 
   console.log(echecs ? `lectureContexte : ${echecs} échec(s)` : 'lectureContexte : tests OK');
