@@ -348,7 +348,8 @@
   // Match ouvert avec une équipe à >= 40 % (2026-11-06, Gaziantep – Kasımpaşa :
   // Kasımpaşa 43 %, « pas de pari » automatique alors que le contexte allait
   // dans son sens) : l'équipe est nommée (« légèrement devant ») et lue comme un
-  // favori ; si le contexte CONFIRME -> fragile, double chance. Sinon pas de pari.
+  // favori ; CONFIRME, ou NUANCE avec un risque de nul normal / élevé -> fragile,
+  // double chance (le nul est couvert). Sinon pas de pari.
   const SEUIL_DEVANT = 0.40;
   const pc = x => `${Math.round(x * 100)} %`;
   function lignesVerdict(p, nomDom, nomExt) {
@@ -370,7 +371,9 @@
     const conseil = lecture => {
       let fiab;
       if (devant) {
-        if (lecture === 'CONFIRME') {
+        // NUANCE aussi -> double chance, sauf risque de nul faible : la nuance
+        // typique (« fait souvent match nul ») est couverte par la double chance.
+        if (lecture === 'CONFIRME' || (lecture === 'NUANCE' && risque !== 'faible')) {
           return `Pronostic fragile (match ouvert, ${devant} légèrement devant, ${CONTEXTE[lecture]}) → Double chance : ${devant} ou nul${pariButs ? ' + ' + pariButs : ''}`;
         }
         return `Pronostic trop incertain (match ouvert, ${devant} légèrement devant, ${CONTEXTE[lecture]}) → Pas de pari sur le résultat${pariButs ? ' + ' + pariButs : ''}`;
