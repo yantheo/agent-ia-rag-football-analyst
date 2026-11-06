@@ -138,34 +138,37 @@
     check('Lignes du verdict : léger favori',
       L && L.pronostic === 'Galatasaray 46 % · Nul 25 % · Stuttgart 29 % → Léger favori : Galatasaray'
         && L.nul === '25 %, risque normal' && L.buts === 'Plus de 2,5 buts à 53 % · les deux équipes marquent à 56 %'
-        && L.conseil.CONFIRME === 'Pronostic fragile (Galatasaray léger favori, contexte qui confirme) → Remboursé si nul sur Galatasaray'
-        && L.conseil.CONTREDIT === 'Pronostic trop incertain (Galatasaray léger favori, contexte qui contredit) → Pas de pari sur le résultat',
+        && L.conseil.FAVORABLE === 'Pronostic fragile (Galatasaray léger favori, contexte favorable) → Remboursé si nul sur Galatasaray'
+        && L.conseil.DÉFAVORABLE === 'Pronostic trop incertain (Galatasaray léger favori, contexte défavorable) → Pas de pari sur le résultat',
       L ? JSON.stringify(L) : 'null');
     const fake = (h, d, a, lh, la) => ({ pHome: h, pDraw: d, pAway: a, lambdaHome: lh, lambdaAway: la });
     const Ln = M.lignesVerdict(fake(0.70, 0.18, 0.12, 2.4, 0.9), 'PSG', 'Lens'); // favori net, Over ~64 %
-    check('Lignes : favori net + CONFIRME = solide, + Over',
-      Ln.conseil.CONFIRME === 'Pronostic solide (PSG favori net, contexte qui confirme) → Victoire de PSG + Plus de 2,5 buts'
-        && Ln.conseil.NUANCE.startsWith('Pronostic fragile (PSG favori net, contexte qui nuance) → Remboursé si nul sur PSG'),
+    check('Lignes : favori net + FAVORABLE = solide, + Over',
+      Ln.conseil.FAVORABLE === 'Pronostic solide (PSG favori net, contexte favorable) → Victoire de PSG + Plus de 2,5 buts'
+        && Ln.conseil.MITIGÉ.startsWith('Pronostic fragile (PSG favori net, contexte mitigé) → Remboursé si nul sur PSG'),
       JSON.stringify(Ln.conseil));
     const Lo = M.lignesVerdict(fake(0.38, 0.31, 0.31, 1.0, 0.9), 'A', 'B'); // ouvert, nul élevé, Under
     check('Lignes : match ouvert -> trop incertain, Under',
       Lo.pronostic.endsWith('→ Match ouvert') && Lo.nul === '31 %, risque élevé'
-        && Lo.conseil.CONFIRME === 'Pronostic trop incertain (match ouvert, contexte qui confirme) → Pas de pari sur le résultat + Moins de 2,5 buts',
+        && Lo.conseil.FAVORABLE === 'Pronostic trop incertain (match ouvert, contexte favorable) → Pas de pari sur le résultat + Moins de 2,5 buts',
       JSON.stringify(Lo));
     const Lk = M.lignesVerdict(fake(0.31, 0.26, 0.43, 1.1, 1.4), 'Gaziantep FK', 'Kasımpaşa'); // ouvert, Kasımpaşa devant
     check('Lignes : match ouvert avec équipe devant (>= 40 %)',
       Lk.equipe_devant === 'Kasımpaşa' && Lk.pronostic.endsWith('→ Match ouvert, Kasımpaşa légèrement devant (43 %)')
-        && Lk.conseil.CONFIRME === 'Pronostic fragile (match ouvert, Kasımpaşa légèrement devant, contexte qui confirme) → Double chance : Kasımpaşa ou nul'
-        && Lk.conseil.NUANCE === 'Pronostic fragile (match ouvert, Kasımpaşa légèrement devant, contexte qui nuance) → Double chance : Kasımpaşa ou nul'
-        && Lk.conseil.CONTREDIT.startsWith('Pronostic trop incertain (match ouvert, Kasımpaşa légèrement devant, contexte qui contredit) → Pas de pari'),
+        && Lk.conseil.FAVORABLE === 'Pronostic fragile (match ouvert, Kasımpaşa légèrement devant, contexte favorable) → Double chance : Kasımpaşa ou nul'
+        && Lk.conseil.MITIGÉ === 'Pronostic fragile (match ouvert, Kasımpaşa légèrement devant, contexte mitigé) → Double chance : Kasımpaşa ou nul'
+        && Lk.conseil.DÉFAVORABLE.startsWith('Pronostic trop incertain (match ouvert, Kasımpaşa légèrement devant, contexte défavorable) → Pas de pari'),
       JSON.stringify(Lk));
     const Lf = M.lignesVerdict(fake(0.41, 0.20, 0.39, 1.6, 1.5), 'A', 'B'); // ouvert, A devant, nul faible
-    check('Lignes : équipe devant + NUANCE + nul faible -> pas de pari',
-      Lf.equipe_devant === 'A' && Lf.conseil.NUANCE.includes('→ Pas de pari sur le résultat') && Lf.conseil.CONFIRME.includes('→ Double chance : A ou nul'),
+    check('Lignes : équipe devant + MITIGÉ + nul faible -> pas de pari',
+      Lf.equipe_devant === 'A' && Lf.conseil.MITIGÉ.includes('→ Pas de pari sur le résultat') && Lf.conseil.FAVORABLE.includes('→ Double chance : A ou nul'),
       JSON.stringify(Lf.conseil));
+    check('Lignes : adversaire de l\'équipe jugée', Lk.adversaire_jugee === 'Gaziantep FK' && L.adversaire_jugee === 'Stuttgart' && Lo.adversaire_jugee === null);
+    check('Lignes : équipe jugée = favori, équipe devant, ou null',
+      L.equipe_jugee === 'Galatasaray' && Lk.equipe_jugee === 'Kasımpaşa' && Lo.equipe_jugee === null && Ln.equipe_jugee === 'PSG');
     check('Lignes : match ouvert sans équipe à 40 % -> pas d\'équipe nommée', Lo.equipe_devant === null && !Lo.pronostic.includes('devant'));
     const Ld = M.lignesVerdict(fake(0.50, 0.30, 0.20, 1.3, 0.7), 'A', 'B'); // léger favori, nul élevé
-    check('Lignes : fragile + nul élevé -> double chance', Ld.conseil.NUANCE.includes('→ Double chance : A ou nul'), Ld.conseil.NUANCE);
+    check('Lignes : fragile + nul élevé -> double chance', Ld.conseil.MITIGÉ.includes('→ Double chance : A ou nul'), Ld.conseil.MITIGÉ);
     check('payloadModele(null) = null (match non calculable)', M.payloadModele(null, 'A', 'B') === null);
 
     return results;

@@ -341,14 +341,14 @@
   // l'IA : gpt-4o-mini recopie bien les chiffres mais applique mal les règles
   // en plusieurs étapes (test du 2026-11-05 : risque de nul mal recopié ->
   // mauvais conseil, pari sur les buts oublié). L'IA ne choisit que sa lecture
-  // (CONFIRME / NUANCE / CONTREDIT), d'où un conseil rédigé pour chacune.
+  // (FAVORABLE / MITIGÉ / DÉFAVORABLE (contexte vu de l'équipe jugée)), d'où un conseil rédigé pour chacune.
   // Fiabilité du pronostic : favori net + confirme = solide ; léger favori ou
   // contexte qui nuance = fragile ; match ouvert ou contexte qui contredit =
   // trop incertain. Buts : pari seulement si Over 2,5 >= 60 % ou <= 40 %.
   // Match ouvert avec une équipe à >= 40 % (2026-11-06, Gaziantep – Kasımpaşa :
   // Kasımpaşa 43 %, « pas de pari » automatique alors que le contexte allait
   // dans son sens) : l'équipe est nommée (« légèrement devant ») et lue comme un
-  // favori ; CONFIRME, ou NUANCE avec un risque de nul normal / élevé -> fragile,
+  // favori ; FAVORABLE, ou MITIGÉ avec un risque de nul normal / élevé -> fragile,
   // double chance (le nul est couvert). Sinon pas de pari.
   const SEUIL_DEVANT = 0.40;
   const pc = x => `${Math.round(x * 100)} %`;
@@ -367,19 +367,19 @@
     const devant = ouvert && pDevant >= SEUIL_DEVANT ? (p.pHome >= p.pAway ? nomDom : nomExt) : null;
     const titreNiveau = !ouvert ? `${niveau.charAt(0).toUpperCase()}${niveau.slice(1)} : ${fav}`
       : devant ? `Match ouvert, ${devant} légèrement devant (${pc(pDevant)})` : 'Match ouvert';
-    const CONTEXTE = { CONFIRME: 'contexte qui confirme', NUANCE: 'contexte qui nuance', CONTREDIT: 'contexte qui contredit' };
+    const CONTEXTE = { FAVORABLE: 'contexte favorable', MITIGÉ: 'contexte mitigé', DÉFAVORABLE: 'contexte défavorable' };
     const conseil = lecture => {
       let fiab;
       if (devant) {
-        // NUANCE aussi -> double chance, sauf risque de nul faible : la nuance
+        // MITIGÉ aussi -> double chance, sauf risque de nul faible : la nuance
         // typique (« fait souvent match nul ») est couverte par la double chance.
-        if (lecture === 'CONFIRME' || (lecture === 'NUANCE' && risque !== 'faible')) {
+        if (lecture === 'FAVORABLE' || (lecture === 'MITIGÉ' && risque !== 'faible')) {
           return `Pronostic fragile (match ouvert, ${devant} légèrement devant, ${CONTEXTE[lecture]}) → Double chance : ${devant} ou nul${pariButs ? ' + ' + pariButs : ''}`;
         }
         return `Pronostic trop incertain (match ouvert, ${devant} légèrement devant, ${CONTEXTE[lecture]}) → Pas de pari sur le résultat${pariButs ? ' + ' + pariButs : ''}`;
       }
-      if (ouvert || lecture === 'CONTREDIT') fiab = 'trop incertain';
-      else if (niveau === 'favori net' && lecture === 'CONFIRME') fiab = 'solide';
+      if (ouvert || lecture === 'DÉFAVORABLE') fiab = 'trop incertain';
+      else if (niveau === 'favori net' && lecture === 'FAVORABLE') fiab = 'solide';
       else fiab = 'fragile';
       const raison = ouvert ? `match ouvert, ${CONTEXTE[lecture]}` : `${fav} ${niveau}, ${CONTEXTE[lecture]}`;
       const resultat = fiab === 'solide' ? `Victoire de ${fav}`
@@ -389,10 +389,18 @@
     };
     return {
       equipe_devant: devant,
+      // Équipe par rapport à laquelle l'IA fait sa lecture (FAVORABLE = le contexte
+      // lui est favorable). null = match ouvert sans équipe devant (lecture de
+      // l'équilibre). Explicite depuis le test v9b du 2026-11-06 : sans elle,
+      // l'IA a lu « CONTREDIT » contre l'équilibre (étiquettes renommées FAVORABLE /
+      // MITIGÉ / DÉFAVORABLE pour porter la direction) avec des arguments pour Kasımpaşa.
+      equipe_jugee: ouvert ? devant : fav,
+      adversaire_jugee: (ouvert ? devant : fav) === nomDom ? nomExt : (ouvert ? devant : fav) === nomExt ? nomDom : null,
+      equipe_domicile: nomDom, equipe_exterieur: nomExt,
       pronostic: `${nomDom} ${pc(p.pHome)} · Nul ${pc(p.pDraw)} · ${nomExt} ${pc(p.pAway)} → ${titreNiveau}`,
       nul: `${pc(p.pDraw)}, risque ${risque}`,
       buts: `Plus de 2,5 buts à ${pc(pOver)} · les deux équipes marquent à ${pc(pBtts)}`,
-      conseil: { CONFIRME: conseil('CONFIRME'), NUANCE: conseil('NUANCE'), CONTREDIT: conseil('CONTREDIT') },
+      conseil: { FAVORABLE: conseil('FAVORABLE'), MITIGÉ: conseil('MITIGÉ'), DÉFAVORABLE: conseil('DÉFAVORABLE') },
     };
   }
 
