@@ -63,9 +63,14 @@ const lectureContexte = (() => {
     if (Y.butsEncaisses >= SEUIL_DEFENSE) pour.push(`${Y.nom} encaisse ${pl(Y.butsEncaisses, 'but')} par match`);
     if (X.butsEncaisses >= SEUIL_DEFENSE) contre.push(`${X.nom} encaisse ${pl(X.butsEncaisses, 'but')} par match`);
 
-    // 4. Attaques
-    if (X.butsMarques >= SEUIL_ATTAQUE) pour.push(`${X.nom} marque ${pl(X.butsMarques, 'but')} par match`);
-    if (Y.butsMarques >= SEUIL_ATTAQUE) contre.push(`${Y.nom} marque ${pl(Y.butsMarques, 'but')} par match`);
+    // 4. Attaques — exclusif avec le risque de conversion (tâche 3, 2026-11-06) : un taux
+    // de conversion élevé rend le ratio de buts non représentatif. On ne présente pas les
+    // buts en atout ET leur régression en risque dans le même rapport (Grenoble – Reims :
+    // « Reims marque 2 buts par match » en atout, « Reims transforme 43 % » en risque).
+    const convChaudeX = X.conversion >= SEUIL_CONVERSION;
+    const convChaudeY = Y.conversion >= SEUIL_CONVERSION;
+    if (X.butsMarques >= SEUIL_ATTAQUE && !convChaudeX) pour.push(`${X.nom} marque ${pl(X.butsMarques, 'but')} par match`);
+    if (Y.butsMarques >= SEUIL_ATTAQUE && !convChaudeY) contre.push(`${Y.nom} marque ${pl(Y.butsMarques, 'but')} par match`);
 
     // 5. Conversion : un taux élevé est un RISQUE pour celui qui l'affiche
     if (X.conversion >= SEUIL_CONVERSION) contre.push(`${X.nom} transforme ${P(X.conversion)} % de ses tirs cadrés, au-dessus de la normale : ce rythme devrait baisser`);
@@ -120,6 +125,20 @@ function testsLectureContexte() {
   check(fmt(2.0) === '2', 'pas de « 2,0 », obtenu ' + fmt(2.0));
   check(fmt(2.25) === '2,3' || fmt(2.25) === '2,2', 'une seule décimale, obtenu ' + fmt(2.25));
   check(a.pour.some(s => s === 'Gaziantep FK encaisse 1,7 but par match'), 'accord « 1,7 but » : ' + a.pour.join(' · '));
+
+  // Conversion chaude : le ratio de buts ne figure pas en atout, le risque reste (Grenoble – Reims réel)
+  const reims = { nom: 'Reims', ptsSur15: 9, ptsParMatchLieu: 1.8, butsEncaisses: 1.1,
+                  butsMarques: 2.0, conversion: 0.43, position: 4, lieu: "à l'extérieur" };
+  const grenoble = { nom: 'Grenoble', ptsSur15: 1, ptsParMatchLieu: 0.4, butsEncaisses: 1.82,
+                     butsMarques: 0.9, conversion: 0.24, position: 18, lieu: 'à domicile' };
+  const r = lectureContexte(reims, grenoble, true);
+  check(!r.pour.some(s => s.includes('Reims marque')), 'conversion chaude : le ratio de buts ne doit pas figurer en atout');
+  check(r.contre.some(s => s.includes('transforme')), 'le risque de conversion doit rester présent');
+  check(r.etiquette === 'FAVORABLE' && r.score === 3, `Grenoble – Reims : FAVORABLE, score 3 (obtenu ${r.etiquette}, ${r.score})`);
+  check(r.pour.includes('Grenoble encaisse 1,8 but par match'), 'arrondi dans les phrases : ' + r.pour.join(' · '));
+  // Symétrie : la conversion chaude de l'adversaire retire aussi son attaque de « Contre X »
+  const r2 = lectureContexte(grenoble, reims, true);
+  check(!r2.contre.some(s => s.includes('Reims marque')), 'conversion chaude de Y : son attaque ne figure pas en Contre X');
 
   console.log(echecs ? `lectureContexte : ${echecs} échec(s)` : 'lectureContexte : tests OK');
   return echecs;
