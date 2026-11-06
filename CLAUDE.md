@@ -424,12 +424,16 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
 
 ## Etat au 2026-11-06 (soir)
 
-- Prod : IA modele v10 (voir section ci-dessus), gpt-4o-mini. Calendrier et Confrontation affichent les
-  probabilites du modele.
-- Workflow n8n de TEST (`?n8n=test` en local) : correctifs des rounds 1 et 2, gpt-4.1-mini — message a l'IA sans
-  donnees brutes, paragraphe « Ce qui peut faire mentir le pronostic » ecrit par le code
-  (`lecture-contexte.js`, `paragrapheRisque`), libelles calcules sur le pourcentage affiche. Pas encore en
-  prod : l'utilisateur teste avant. Banc d'essai (local) : `prompts-n8n/banc-essai/`.
+- **Prod (deployee le 2026-11-06 au soir)** : IA modele v10 + correctifs des rounds 1 et 2, **gpt-4.1-mini**
+  (mesure : 0 defaut sur 25 analyses, ~3,3 s, ~1 720 tokens en entree contre gpt-4o-mini 5,7 s et des
+  confusions Pour / Contre). Message a l'IA sans donnees brutes (listes Pour / Contre titrees, palier de forme,
+  un buteur par equipe) ; paragraphe « Ce qui peut faire mentir le pronostic » ecrit par le CODE
+  (`lecture-contexte.js`, `paragrapheRisque`, chaque fait porte `{ texte, risque }`) et insere par le noeud
+  « Lignes du verdict » ; libelles (niveau, equipe devant, nul, buts) calcules sur le pourcentage AFFICHE.
+  Sauvegarde serveur avant deploiement : `backup_football-analyze_2026-11-06_v10-avant-round2.json`.
+  Calendrier et Confrontation affichent les probabilites du modele.
+- Workflow n8n de TEST (`?n8n=test` en local) : meme version que la prod, garde pour les prochains essais.
+  Banc d'essai (local) : `prompts-n8n/banc-essai/` (build_wf.py, iter.sh, grilles reg.py / bench.py).
 - `lecture-contexte.js` (racine) = source unique de la fonction du noeud n8n « Preparer » ; tests :
   `node lecture-contexte.js`. Toute modif doit etre reportee dans le noeud (le build l'integre tel quel).
 - Scrape quotidien decale a 00h30 (le 06/11 a 00h00, footmercato affichait encore les matchs de la veille).
