@@ -345,6 +345,11 @@
   // Fiabilité du pronostic : favori net + confirme = solide ; léger favori ou
   // contexte qui nuance = fragile ; match ouvert ou contexte qui contredit =
   // trop incertain. Buts : pari seulement si Over 2,5 >= 60 % ou <= 40 %.
+  // Match ouvert avec une équipe à >= 40 % (2026-11-06, Gaziantep – Kasımpaşa :
+  // Kasımpaşa 43 %, « pas de pari » automatique alors que le contexte allait
+  // dans son sens) : l'équipe est nommée (« légèrement devant ») et lue comme un
+  // favori ; si le contexte CONFIRME -> fragile, double chance. Sinon pas de pari.
+  const SEUIL_DEVANT = 0.40;
   const pc = x => `${Math.round(x * 100)} %`;
   function lignesVerdict(p, nomDom, nomExt) {
     const max = Math.max(p.pHome, p.pDraw, p.pAway);
@@ -356,10 +361,20 @@
     const pBtts = (1 - Math.exp(-p.lambdaHome)) * (1 - Math.exp(-p.lambdaAway));
     const pariButs = pOver >= 0.60 ? 'Plus de 2,5 buts' : pOver <= 0.40 ? 'Moins de 2,5 buts' : null;
     const ouvert = niveau === 'match ouvert' || !fav;
-    const titreNiveau = ouvert ? 'Match ouvert' : `${niveau.charAt(0).toUpperCase()}${niveau.slice(1)} : ${fav}`;
+    // Équipe devant en match ouvert : la plus probable des deux (hors nul), si >= 40 %.
+    const pDevant = Math.max(p.pHome, p.pAway);
+    const devant = ouvert && pDevant >= SEUIL_DEVANT ? (p.pHome >= p.pAway ? nomDom : nomExt) : null;
+    const titreNiveau = !ouvert ? `${niveau.charAt(0).toUpperCase()}${niveau.slice(1)} : ${fav}`
+      : devant ? `Match ouvert, ${devant} légèrement devant (${pc(pDevant)})` : 'Match ouvert';
     const CONTEXTE = { CONFIRME: 'contexte qui confirme', NUANCE: 'contexte qui nuance', CONTREDIT: 'contexte qui contredit' };
     const conseil = lecture => {
       let fiab;
+      if (devant) {
+        if (lecture === 'CONFIRME') {
+          return `Pronostic fragile (match ouvert, ${devant} légèrement devant, ${CONTEXTE[lecture]}) → Double chance : ${devant} ou nul${pariButs ? ' + ' + pariButs : ''}`;
+        }
+        return `Pronostic trop incertain (match ouvert, ${devant} légèrement devant, ${CONTEXTE[lecture]}) → Pas de pari sur le résultat${pariButs ? ' + ' + pariButs : ''}`;
+      }
       if (ouvert || lecture === 'CONTREDIT') fiab = 'trop incertain';
       else if (niveau === 'favori net' && lecture === 'CONFIRME') fiab = 'solide';
       else fiab = 'fragile';
@@ -370,6 +385,7 @@
       return `Pronostic ${fiab} (${raison}) → ${resultat}${pariButs ? ' + ' + pariButs : ''}`;
     };
     return {
+      equipe_devant: devant,
       pronostic: `${nomDom} ${pc(p.pHome)} · Nul ${pc(p.pDraw)} · ${nomExt} ${pc(p.pAway)} → ${titreNiveau}`,
       nul: `${pc(p.pDraw)}, risque ${risque}`,
       buts: `Plus de 2,5 buts à ${pc(pOver)} · les deux équipes marquent à ${pc(pBtts)}`,
