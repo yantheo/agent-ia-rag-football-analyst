@@ -11,7 +11,8 @@ secrets ni de details d'infra privee (hostnames serveur, noms de conteneurs, ide
 donnees personnelles (ex: historique de paris reel — voir `.gitignore`).
 
 Pages actuelles :
-- **`index.html`** — Calendrier du jour, comparaison stats, bouton "Analyser" un match.
+- **`index.html`** — Calendrier du jour, comparaison stats, bouton "Analyser" un match. Vue match : bloc
+  « Probabilités du modèle » (`Modele.v3`, meme rendu que `confrontation.html`, `renderModelBox`).
 - **`bankroll.html`** — Suivi de paris personnel (import bwin, saisie manuelle), 100% `localStorage`,
   aucune communication avec un backend.
 - **`meilleurs-paris.html`** — Pre-filtre statistique local (gratuit) des matchs du jour, puis analyse

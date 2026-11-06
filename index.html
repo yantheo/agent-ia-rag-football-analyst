@@ -296,6 +296,20 @@
             .team-big .name { font-size: 1.2rem; }
         }
             a.team-link { color: inherit; text-decoration: none; } a.team-link:hover { color: var(--green-primary); text-decoration: underline; }
+
+        /* ---------- Probabilités du modèle ---------- */
+        .model-box {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 16px 18px; margin-bottom: 24px;
+        }
+        .model-box .title { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--green-primary); margin-bottom: 12px; }
+        .prob-bar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: 600; }
+        .prob-bar div { display: flex; align-items: center; justify-content: center; min-width: 0; white-space: nowrap; overflow: hidden; }
+        .prob-bar .h { background: #166534; } .prob-bar .n { background: #854d0e; } .prob-bar .a { background: #991b1b; }
+        .prob-legend { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 0.82rem; color: var(--text-secondary); flex-wrap: wrap; }
+        .model-note { margin-top: 10px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+        .model-note .warn { color: var(--gold); }
+
 </style>
 </head>
 <body>
@@ -350,6 +364,8 @@
                 <button class="back-btn" onclick="showCalendar()">&#8592; Retour au calendrier</button>
 
                 <div id="match-detail-header" class="match-header-detail"></div>
+
+                <div id="model-container"></div>
 
                 <div id="comparison-container"></div>
 
@@ -614,6 +630,9 @@
                     <span>&#128250; ${chaines}</span>
                 </div>`;
 
+            // Probabilités du modèle v3 (même bloc que confrontation.html), sans bloquer la comparaison
+            renderModelBox(match);
+
             // Load team stats for comparison
             await loadComparison(match.team_id_domicile, match.team_id_exterieur);
         }
@@ -816,6 +835,38 @@
                 modelCtxPromise.catch(() => { modelCtxPromise = null; });
             }
             return modelCtxPromise;
+        }
+
+        // --- PROBABILITÉS DU MODÈLE (même bloc que confrontation.html) ---
+        function renderModelBox(match) {
+            const el = document.getElementById('model-container');
+            el.innerHTML = '';
+            const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            const pct = v => v == null ? '—' : `${Math.round(v * 100)} %`;
+            const w = v => `${(v * 100).toFixed(1)}%`;
+            loadModelContext().then(ctx => {
+                if (currentMatch !== match) return; // un autre match a été ouvert entre-temps
+                const p = Modele.v3.matchProbabilities(ctx, match.team_id_domicile, match.team_id_exterieur);
+                if (!p) { el.innerHTML = '<div class="model-box"><div class="title">Probabilités du modèle</div><div class="model-note">Probabilités indisponibles pour ce match.</div></div>'; return; }
+                const notes = [];
+                notes.push(p.v3Repli ? 'Modèle v2 seule (Elo + Poisson) : la v1 est incalculable pour une des deux équipes.'
+                                     : 'Modèle v3 : moyenne de la v1 (buts de la saison) et de la v2 (Elo des clubs).');
+                if (p.crossLeague) notes.push('<span class="warn">Équipes de championnats différents</span> : moins fiable qu\'un match de championnat (écart de niveau entre ligues estimé par l\'Elo des clubs).');
+                if (p.eloDegrade) notes.push(`<span class="warn">Elo approximatif</span> (Elo moyen du championnat) : ${esc((p.eloDegradeDetail || []).join(' ; '))}.`);
+                notes.push(`Buts attendus : ${p.lambdaHome.toFixed(2)} – ${p.lambdaAway.toFixed(2)} · avantage du terrain donné à ${esc(match.equipe_domicile)}.`);
+                el.innerHTML = `<div class="model-box">
+                    <div class="title">Probabilités du modèle</div>
+                    <div class="prob-bar">
+                        <div class="h" style="width:${w(p.pHome)}">${p.pHome >= 0.12 ? pct(p.pHome) : ''}</div>
+                        <div class="n" style="width:${w(p.pDraw)}">${p.pDraw >= 0.12 ? pct(p.pDraw) : ''}</div>
+                        <div class="a" style="width:${w(p.pAway)}">${p.pAway >= 0.12 ? pct(p.pAway) : ''}</div>
+                    </div>
+                    <div class="prob-legend">
+                        <span>${esc(match.equipe_domicile)} ${pct(p.pHome)}</span><span>Nul ${pct(p.pDraw)}</span><span>${esc(match.equipe_exterieur)} ${pct(p.pAway)}</span>
+                    </div>
+                    <div class="model-note">${notes.join('<br>')}</div>
+                </div>`;
+            }).catch(err => { console.warn('Modèle indisponible', err); });
         }
 
         async function modelBlock(match) {
