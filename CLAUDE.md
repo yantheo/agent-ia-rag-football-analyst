@@ -406,7 +406,7 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
   sur le serveur `backup_football-analyze_2026-11-06_v8-avant-v10.json`) : Webhook -> Postgres (requete fixe
   AVANT l'IA, plus d'outil : 1 seul appel LLM) -> Code « Preparer » (`lectureContexte` : listes Pour / Contre et
   etiquette FAVORABLE / MITIGE / DEFAVORABLE calculees ; message a l'IA sans jsonb brut) -> AI Agent sans outil
-  (gpt-4o-mini, prompt v10b, exemples FICTIFS) -> Code « Lignes du verdict » (impose Pronostic / Conseil /
+  (gpt-4.1-mini depuis le 2026-11-06 soir, prompt v10b, exemples FICTIFS) -> Code « Lignes du verdict » (impose Pronostic / Conseil /
   Nul / Buts, retire les ```html) -> Respond.
 - **Mesures (memes matchs)** : prod v8 ~6 630 tokens / 14,1 s ; v10b ~2 070 tokens / 5,2 s, 0 defaut
   automatique sur 6 matchs dont 4 jamais vus, etiquette stable.
