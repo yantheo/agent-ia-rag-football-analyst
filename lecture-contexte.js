@@ -6,7 +6,8 @@
  *   node lecture-contexte.js
  *
  * Produit, du point de vue de l'équipe jugée X face à son adversaire Y :
- *   - une liste « Pour X » et une liste « Contre X » de faits déjà rédigés et chiffrés ;
+ *   - une liste « Pour X » et une liste « Contre X » de faits { texte, risque } déjà rédigés et chiffrés
+ *     (`contreVide` / `pourVide` : booléens explicites, plus de sentinelle « rien de net ») ;
  *   - une étiquette FAVORABLE / MITIGÉ / DÉFAVORABLE (score = nb Pour − nb Contre).
  * Le tri du signe est correct PAR CONSTRUCTION : un fait tiré des données de Y alimente
  * « Pour X », il ne peut pas atterrir dans « Contre X » (bug du prompt v9b, où gpt-4o-mini
@@ -27,6 +28,8 @@ const lectureContexte = (() => {
   const P = v => Math.round(v * 100);
   // Accord français : « 1,7 but », « 2 buts ».
   const pl = (v, mot) => `${n(v)} ${mot}${Math.abs(v) >= 2 ? 's' : ''}`;
+  // Élision : « d'Annecy », « de Reims » (h laissé tel quel : « de Hambourg »).
+  const de = nom => (/^[aeiouyàâäéèêëîïôöùûü]/i.test(nom) ? `d'${nom}` : `de ${nom}`);
 
   // --- Seuils. Réglables, mais documenter tout changement : ils déplacent les étiquettes.
   // Absolus pour l'instant (identiques pour tous les championnats) — à rendre relatifs
@@ -45,23 +48,32 @@ const lectureContexte = (() => {
    * @param memeChampionnat false pour une coupe d'Europe ou une affiche inter-ligues
    */
   function lc(X, Y, memeChampionnat) {
+    // Chaque fait : { texte, risque }. `texte` (neutre) est envoyé à l'IA pour le paragraphe
+    // de contexte ; `risque` (faits Contre seulement) sert au paragraphe « Ce qui peut faire
+    // mentir le pronostic », assemblé par le CODE (tâche 1 du round 2, 2026-11-06) : l'IA y
+    // recopiait ou inventait (« la forme d'Alavés, en crise »). `risque` contient toujours le
+    // chiffre du fait, jamais de conséquence ni d'adjectif d'état. Il n'est PAS envoyé à l'IA.
     const pour = [], contre = [];
+    const fait = (texte, risque = null) => ({ texte, risque });
 
     // 1. Forme récente
     const dF = X.ptsSur15 - Y.ptsSur15;
-    if (dF >= SEUIL_FORME) pour.push(`${X.nom} est mieux lancé (${X.ptsSur15} points sur 15 contre ${Y.ptsSur15})`);
-    else if (dF <= -SEUIL_FORME) contre.push(`${Y.nom} est mieux lancé (${Y.ptsSur15} points sur 15 contre ${X.ptsSur15})`);
+    if (dF >= SEUIL_FORME) pour.push(fait(`${X.nom} est mieux lancé (${X.ptsSur15} points sur 15 contre ${Y.ptsSur15})`));
+    else if (dF <= -SEUIL_FORME) contre.push(fait(`${Y.nom} est mieux lancé (${Y.ptsSur15} points sur 15 contre ${X.ptsSur15})`,
+      `la dynamique ${de(Y.nom)}, à ${Y.ptsSur15} points sur ses 15 derniers possibles contre ${X.ptsSur15} pour ${X.nom}`));
 
     // 2. Bilan sur le lieu du match
     if (X.ptsParMatchLieu != null && Y.ptsParMatchLieu != null) {
       const dL = X.ptsParMatchLieu - Y.ptsParMatchLieu;
-      if (dL >= SEUIL_LIEU) pour.push(`${X.nom} ${X.lieu} : ${pl(X.ptsParMatchLieu, 'point')} par match, contre ${n(Y.ptsParMatchLieu)} pour ${Y.nom} ${Y.lieu}`);
-      else if (dL <= -SEUIL_LIEU) contre.push(`${Y.nom} ${Y.lieu} : ${pl(Y.ptsParMatchLieu, 'point')} par match, contre ${n(X.ptsParMatchLieu)} pour ${X.nom} ${X.lieu}`);
+      if (dL >= SEUIL_LIEU) pour.push(fait(`${X.nom} ${X.lieu} : ${pl(X.ptsParMatchLieu, 'point')} par match, contre ${n(Y.ptsParMatchLieu)} pour ${Y.nom} ${Y.lieu}`));
+      else if (dL <= -SEUIL_LIEU) contre.push(fait(`${Y.nom} ${Y.lieu} : ${pl(Y.ptsParMatchLieu, 'point')} par match, contre ${n(X.ptsParMatchLieu)} pour ${X.nom} ${X.lieu}`,
+        `le bilan ${de(Y.nom)} ${Y.lieu}, ${pl(Y.ptsParMatchLieu, 'point')} par match contre ${n(X.ptsParMatchLieu)} pour ${X.nom} ${X.lieu}`));
     }
 
     // 3. Défenses — la fragilité de l'adversaire est un atout pour X
-    if (Y.butsEncaisses >= SEUIL_DEFENSE) pour.push(`${Y.nom} encaisse ${pl(Y.butsEncaisses, 'but')} par match`);
-    if (X.butsEncaisses >= SEUIL_DEFENSE) contre.push(`${X.nom} encaisse ${pl(X.butsEncaisses, 'but')} par match`);
+    if (Y.butsEncaisses >= SEUIL_DEFENSE) pour.push(fait(`${Y.nom} encaisse ${pl(Y.butsEncaisses, 'but')} par match`));
+    if (X.butsEncaisses >= SEUIL_DEFENSE) contre.push(fait(`${X.nom} encaisse ${pl(X.butsEncaisses, 'but')} par match`,
+      `la défense ${de(X.nom)}, qui encaisse ${pl(X.butsEncaisses, 'but')} par match`));
 
     // 4. Attaques — exclusif avec le risque de conversion (tâche 3, 2026-11-06) : un taux
     // de conversion élevé rend le ratio de buts non représentatif. On ne présente pas les
@@ -69,26 +81,43 @@ const lectureContexte = (() => {
     // « Reims marque 2 buts par match » en atout, « Reims transforme 43 % » en risque).
     const convChaudeX = X.conversion >= SEUIL_CONVERSION;
     const convChaudeY = Y.conversion >= SEUIL_CONVERSION;
-    if (X.butsMarques >= SEUIL_ATTAQUE && !convChaudeX) pour.push(`${X.nom} marque ${pl(X.butsMarques, 'but')} par match`);
-    if (Y.butsMarques >= SEUIL_ATTAQUE && !convChaudeY) contre.push(`${Y.nom} marque ${pl(Y.butsMarques, 'but')} par match`);
+    if (X.butsMarques >= SEUIL_ATTAQUE && !convChaudeX) pour.push(fait(`${X.nom} marque ${pl(X.butsMarques, 'but')} par match`));
+    if (Y.butsMarques >= SEUIL_ATTAQUE && !convChaudeY) contre.push(fait(`${Y.nom} marque ${pl(Y.butsMarques, 'but')} par match`,
+      `l'attaque ${de(Y.nom)}, qui marque ${pl(Y.butsMarques, 'but')} par match`));
 
     // 5. Conversion : un taux élevé est un RISQUE pour celui qui l'affiche
-    if (X.conversion >= SEUIL_CONVERSION) contre.push(`${X.nom} transforme ${P(X.conversion)} % de ses tirs cadrés, au-dessus de la normale : ce rythme devrait baisser`);
-    if (Y.conversion >= SEUIL_CONVERSION) pour.push(`${Y.nom} transforme ${P(Y.conversion)} % de ses tirs cadrés, au-dessus de la normale : ce rythme devrait baisser`);
+    if (convChaudeX) contre.push(fait(`${X.nom} transforme ${P(X.conversion)} % de ses tirs cadrés, au-dessus de la normale : ce rythme devrait baisser`,
+      `la réussite ${de(X.nom)} devant le but, à ${P(X.conversion)} % des tirs cadrés convertis, un rythme qui devrait baisser`));
+    if (convChaudeY) pour.push(fait(`${Y.nom} transforme ${P(Y.conversion)} % de ses tirs cadrés, au-dessus de la normale : ce rythme devrait baisser`));
 
     // 6. Classement — jamais entre deux championnats différents
     if (memeChampionnat && X.position && Y.position) {
       const dP = Y.position - X.position;
-      if (dP >= SEUIL_CLASSEMENT) pour.push(`${X.nom} est ${X.position}e, ${Y.nom} ${Y.position}e`);
-      else if (dP <= -SEUIL_CLASSEMENT) contre.push(`${Y.nom} est ${Y.position}e, ${X.nom} ${X.position}e`);
+      if (dP >= SEUIL_CLASSEMENT) pour.push(fait(`${X.nom} est ${X.position}e, ${Y.nom} ${Y.position}e`));
+      else if (dP <= -SEUIL_CLASSEMENT) contre.push(fait(`${Y.nom} est ${Y.position}e, ${X.nom} ${X.position}e`,
+        `le classement, ${Y.nom} ${Y.position}e et ${X.nom} ${X.position}e`));
     }
 
-    const nPour = pour.length, nContre = contre.length;
-    if (!nPour) pour.push('rien de net');
-    if (!nContre) contre.push('rien de net');
-    const score = nPour - nContre;
-    return { pour, contre, score, etiquette: score >= 2 ? 'FAVORABLE' : score <= -2 ? 'DÉFAVORABLE' : 'MITIGÉ' };
+    const score = pour.length - contre.length;
+    return { pour, contre, pourVide: !pour.length, contreVide: !contre.length, score,
+             etiquette: score >= 2 ? 'FAVORABLE' : score <= -2 ? 'DÉFAVORABLE' : 'MITIGÉ' };
   }
+
+  /**
+   * Paragraphe « Ce qui peut faire mentir le pronostic », assemblé par le code.
+   * @param ctx résultat de lectureContexte ; nom = équipe jugée ; proba = sa probabilité de
+   *   victoire selon le modèle (0-1, peut être null).
+   */
+  function paragrapheRisque(ctx, nom, proba) {
+    if (ctx.contreVide) {
+      return `Les données ne signalent pas de point faible net chez ${nom}.`
+        + (proba != null ? ` Le risque tient au match lui-même : ${nom} n'est donné qu'à ${Math.round(proba * 100)} % par le modèle.` : '');
+    }
+    const r = ctx.contre.slice(0, 2).map(f => f.risque);
+    const corps = r.length === 2 ? `${r[0]}, et ${r[1]}` : r[0];
+    return corps.charAt(0).toUpperCase() + corps.slice(1) + '.';
+  }
+  lc.paragrapheRisque = paragrapheRisque;
   lc.formatNombre = n; // exposé pour les tests uniquement
   return lc;
 })();
@@ -108,23 +137,23 @@ function testsLectureContexte() {
 
   const a = lectureContexte(kasimpasa, gaziantep, true);
   check(a.etiquette === 'FAVORABLE', 'Kasımpaşa doit être FAVORABLE (v9b produisait DÉFAVORABLE), obtenu ' + a.etiquette);
-  check(a.contre.length === 1 && a.contre[0] === 'rien de net', 'aucun fait ne dessert Kasımpaşa, obtenu : ' + a.contre.join(' · '));
+  check(a.contreVide === true && a.contre.length === 0, 'aucun fait ne dessert Kasımpaşa, obtenu : ' + a.contre.map(f => f.texte).join(' · '));
 
   const b = lectureContexte(gaziantep, kasimpasa, true);
   check(b.etiquette === 'DÉFAVORABLE', 'symétrie : Gaziantep doit être DÉFAVORABLE, obtenu ' + b.etiquette);
   check(a.score === -b.score, `les scores doivent être opposés (${a.score} / ${b.score})`);
 
-  check(!a.pour.some(s => s.includes('Kasımpaşa transforme')), 'la conversion de X ne peut pas être un atout pour X');
+  check(!a.pour.some(f => f.texte.includes('Kasımpaşa transforme')), 'la conversion de X ne peut pas être un atout pour X');
 
   const c = lectureContexte(kasimpasa, gaziantep, false);
-  check(!c.pour.concat(c.contre).some(s => /\de,/.test(s)), 'aucun classement comparé entre deux championnats différents');
+  check(!c.pour.concat(c.contre).some(f => /\de,/.test(f.texte)), 'aucun classement comparé entre deux championnats différents');
 
   const fmt = lectureContexte.formatNombre;
   check(fmt(1.5) === '1,5', 'virgule décimale');
   check(fmt(20 / 11) === '1,8', 'arrondi à une décimale, obtenu ' + fmt(20 / 11));
   check(fmt(2.0) === '2', 'pas de « 2,0 », obtenu ' + fmt(2.0));
   check(fmt(2.25) === '2,3' || fmt(2.25) === '2,2', 'une seule décimale, obtenu ' + fmt(2.25));
-  check(a.pour.some(s => s === 'Gaziantep FK encaisse 1,7 but par match'), 'accord « 1,7 but » : ' + a.pour.join(' · '));
+  check(a.pour.some(f => f.texte === 'Gaziantep FK encaisse 1,7 but par match'), 'accord « 1,7 but » : ' + a.pour.map(f => f.texte).join(' · '));
 
   // Conversion chaude : le ratio de buts ne figure pas en atout, le risque reste (Grenoble – Reims réel)
   const reims = { nom: 'Reims', ptsSur15: 9, ptsParMatchLieu: 1.8, butsEncaisses: 1.1,
@@ -132,13 +161,32 @@ function testsLectureContexte() {
   const grenoble = { nom: 'Grenoble', ptsSur15: 1, ptsParMatchLieu: 0.4, butsEncaisses: 1.82,
                      butsMarques: 0.9, conversion: 0.24, position: 18, lieu: 'à domicile' };
   const r = lectureContexte(reims, grenoble, true);
-  check(!r.pour.some(s => s.includes('Reims marque')), 'conversion chaude : le ratio de buts ne doit pas figurer en atout');
-  check(r.contre.some(s => s.includes('transforme')), 'le risque de conversion doit rester présent');
+  check(!r.pour.some(f => f.texte.includes('Reims marque')), 'conversion chaude : le ratio de buts ne doit pas figurer en atout');
+  check(r.contre.some(f => f.texte.includes('transforme')), 'le risque de conversion doit rester présent');
   check(r.etiquette === 'FAVORABLE' && r.score === 3, `Grenoble – Reims : FAVORABLE, score 3 (obtenu ${r.etiquette}, ${r.score})`);
-  check(r.pour.includes('Grenoble encaisse 1,8 but par match'), 'arrondi dans les phrases : ' + r.pour.join(' · '));
+  check(r.pour.some(f => f.texte === 'Grenoble encaisse 1,8 but par match'), 'arrondi dans les phrases : ' + r.pour.map(f => f.texte).join(' · '));
   // Symétrie : la conversion chaude de l'adversaire retire aussi son attaque de « Contre X »
   const r2 = lectureContexte(grenoble, reims, true);
-  check(!r2.contre.some(s => s.includes('Reims marque')), 'conversion chaude de Y : son attaque ne figure pas en Contre X');
+  check(!r2.contre.some(f => f.texte.includes('Reims marque')), 'conversion chaude de Y : son attaque ne figure pas en Contre X');
+
+  // Paragraphe de risque (code) : chaque fait Contre a un risque chiffré, sans conséquence ni état
+  const pr = lectureContexte.paragrapheRisque;
+  check(pr(a, 'Kasımpaşa', 0.43) === "Les données ne signalent pas de point faible net chez Kasımpaşa. Le risque tient au match lui-même : Kasımpaşa n'est donné qu'à 43 % par le modèle.",
+    'liste Contre vide : texte fixe avec le risque de format, obtenu ' + pr(a, 'Kasımpaşa', 0.43));
+  check(pr(r, 'Reims', 0.57) === 'La réussite de Reims devant le but, à 43 % des tirs cadrés convertis, un rythme qui devrait baisser.',
+    'un fait Contre : ' + pr(r, 'Reims', 0.57));
+  check(pr(b, 'Gaziantep FK', 0.31).split(', et ').length === 2, 'deux faits Contre au plus, joints par « , et » : ' + pr(b, 'Gaziantep FK', 0.31));
+  const tous = [a, b, c, r, r2].flatMap(x => x.contre);
+  check(tous.every(f => f.risque && /\d/.test(f.risque)), 'chaque risque contient un chiffre');
+  check(tous.every(f => !/ce qui|crise|inquiét|problème/i.test(f.risque)), 'aucun risque avec conséquence ou adjectif d\'état');
+  check([a, b, c, r, r2].flatMap(x => x.pour).every(f => f.risque === null), 'les faits Pour n\'ont pas de formulation en risque');
+  const annecy = { nom: 'Annecy', ptsSur15: 6, ptsParMatchLieu: 2.0, butsEncaisses: 1.4, butsMarques: 1.5, conversion: 0.3, position: 7, lieu: "à l'extérieur" };
+  const boulogne = { nom: 'Boulogne', ptsSur15: 5, ptsParMatchLieu: 0.8, butsEncaisses: 1.0, butsMarques: 0.8, conversion: 0.25, position: 14, lieu: 'à domicile' };
+  const bo = lectureContexte(boulogne, annecy, true);
+  check(pr(bo, 'Boulogne', 0.36) === "Le bilan d'Annecy à l'extérieur, 2 points par match contre 0,8 pour Boulogne à domicile, et le classement, Annecy 7e et Boulogne 14e.",
+    "élision « d'Annecy » et écart de forme 6 contre 5 ignoré (sous le seuil) : " + pr(bo, 'Boulogne', 0.36));
+  check(!bo.contre.concat(bo.pour).some(f => /points sur 15/.test(f.texte)), 'Boulogne – Annecy : écart de forme sous le seuil, absent');
+  check(b.pourVide === true && b.contreVide === false && a.pourVide === false && a.contreVide === true, 'pourVide / contreVide booléens (Gaziantep jugé : rien pour, tout contre)');
 
   console.log(echecs ? `lectureContexte : ${echecs} échec(s)` : 'lectureContexte : tests OK');
   return echecs;
