@@ -15,8 +15,9 @@ Pages actuelles :
   « Probabilités du modèle » (`Modele.v3`, meme rendu que `confrontation.html`, `renderModelBox`).
 - **`bankroll.html`** — Suivi de paris personnel (import bwin, saisie manuelle), 100% `localStorage`,
   aucune communication avec un backend.
-- **`meilleurs-paris.html`** — Pre-filtre statistique local (gratuit) des matchs du jour, puis analyse
-  IA des candidats les plus desequilibres, classes par indice de confiance.
+- **`meilleurs-paris.html`** — Pre-filtre statistique local (gratuit, `Modele.v3`) des matchs du jour, puis
+  analyse IA des candidats les plus desequilibres ; badge « Contexte : FAVORABLE / MITIGÉ / DÉFAVORABLE » lu
+  dans le rapport (l'ancien « Indice de confiance » est encore lu pour le cache).
 - **`championnats.html`** — Menu lateral des championnats scrapes, classement du championnat choisi +
   top/flop 5 par championnat (forme, attaque, defense, efficacite, possession, points vs attendus).
 - **`meilleures-equipes.html`** / **`pires-equipes.html`** — Classements toutes ligues confondues sur les
@@ -32,7 +33,9 @@ Pages actuelles :
 
 - **`equipe.html?team=<team_id>`** — Fiche d'une equipe (menu « Équipes », apres Championnats ; sans `?team=`, liste de toutes les equipes par championnat) : niveau et
   forme decoupes en palier + nuances, classement (dont domicile / exterieur), forme, attaque, defense, jeu,
-  joueurs cles, avec le **rang dans le championnat** sur chaque stat chiffree ; menu deroulant de toutes les
+  joueurs cles, avec le **rang dans le championnat** sur chaque stat chiffree ; bloc « Style de jeu »
+  (controle = possession + passes, percussion = dribbles, volume de tirs cadres, chacun rapporte au
+  championnat ET a l'attendu pour le niveau ; descriptif, pas utilise par le modele) ; menu deroulant de toutes les
   equipes. Chaque nom d'equipe est un lien vers cette page (`teamLink()` + CSS `a.team-link`, duplique
   dans championnats, meilleures / pires equipes, buteurs-passeurs et l'en-tete de la comparaison d'index).
 
@@ -43,7 +46,13 @@ Pages actuelles :
   hors championnat) » si ligues differentes). Analyses en cache `localStorage` (`confrontation_analyses_v1`,
   par jour + affiche, bouton « Relancer »). Limite : l'IA ne corrige pas la force des ligues (niveau
   relatif a chaque championnat) — sur une affiche inter-ligues, le modele est plus fiable que le verdict IA.
-  Charge `model.js?v=` : a mettre a jour avec `comparaison.html` et `meilleurs-paris.html`.
+
+- **`comparaison.html`** (hors menu, non liee) — outil de suivi des modeles : v1 / v2 / v3 / v2-tirs, cotes
+  et marche demarge, scores, bilan Brier / log-loss sur les predictions figees, « Mon prono » (voir la
+  section des modeles).
+
+**`model.js?v=<date>`** est charge par `index.html`, `confrontation.html`, `meilleurs-paris.html` et
+`comparaison.html` : a chaque modification de `model.js`, changer ce `?v=` dans les 4 pages.
 
 **Header/navigation dupliques dans chaque page** (pas de build, pas d'include) : ajouter une page ou
 modifier le menu implique de modifier le `<nav class="nav-links">` et le CSS `.header-content` de
@@ -65,8 +74,16 @@ backend n'a ete introduit.
 ```
 index.html (GitHub Pages)
     |-- GET direct --> Supabase REST (calendrier, classements_foot) [cle anon publique]
-    |-- POST --------> Webhook n8n --> AI Agent (OpenAI) --> PostgreSQL Tool --> Supabase
+    |-- POST --------> Webhook n8n --> Postgres (requete fixe, Supabase) --> Code « Preparer »
+                       (lecture-contexte.js) --> AI Agent sans outil (OpenAI gpt-4.1-mini, redaction seule)
+                       --> Code « Lignes du verdict » --> reponse { output: "<html>" }
 ```
+
+Fichiers versionnes hors pages : `model.js` (+ `model.tests.js`), `lecture-contexte.js` (source du noeud n8n
+« Preparer », tests : `node lecture-contexte.js`), `elo-clubs.json` / `elo-mapping.json` (+
+`tools/build_elo_snapshot.py`), `predictions-figees.json`. Locaux, jamais versionnes : `TODO.md` (liste de
+travail a jour), `suivi-pronos/` (bilans des soirees, `bilan-figees.js`), `prompts-n8n/` (prompts, workflows,
+banc d'essai, archive — voir la section en fin de fichier), `.env`.
 
 Le **vrai backend** (n8n + scrapers Python qui remplissent Supabase) vit dans un **repo separe et
 prive au niveau infra** : `yantheo/Setup-Claude-n8n-automation`. Son `CLAUDE.md` documente le schema
@@ -83,8 +100,10 @@ const N8N_WEBHOOK_URL = 'https://n8n.scribify.net/webhook/football-analyze';
 const payload = {
   match_id, equipe_domicile, equipe_exterieur,
   team_id_domicile, team_id_exterieur, championnat, date_match,
+  modele, // Modele.payloadModele(p, dom, ext) : probabilites v3 + lignes du verdict deja redigees
 };
 // POST JSON, reponse attendue : { "output": "<html>...</html>" }
+// Test : en local avec ?n8n=test -> /webhook/football-analyze-ia-modele (workflow de TEST)
 ```
 
 Le `team_id` vient directement de la table `calendrier` Supabase (deja resolu, pas d'ambiguite de nom
@@ -153,6 +172,8 @@ qui choisit quels matchs du jour envoyer a l'agent, plutot que les N premiers pa
   depuis le frontend) ne permet de verifier que "Élevé" correspond a un vrai taux de reussite superieur.
   Mention explicite de cette limite dans l'UI. Pour vraiment calibrer, il faudrait un scraper de
   resultats + une table dediee + un acces en ecriture — evolution backend, pas frontend.
+  **Depuis le 2026-11-06** : remplace par le badge « Contexte » de l'IA modele (etiquette calculee par
+  `lecture-contexte.js`, voir la section de l'agent IA) — toujours non calibre, meme limite.
 - **REMPLACE le soir meme par le modele v2 (voir section "Modele de prediction v2")** : la page utilise
   desormais `Modele.v2` (Elo des clubs) ; l'etiquette "inter-ligues" est devenue "Champions League"
   (ou "Coupe d'Europe"), et "Elo approximatif" signale une equipe sans Elo ClubElo. Le paragraphe
@@ -296,8 +317,8 @@ avant `date_match` (sinon « apres coup », exclu) ; verrouille en lecture seule
 But : mesurer si l'intuition « dynamique / forme » de l'utilisateur apporte quelque chose aux modeles.
 `node model.tests.js` = tests chiffres (valeurs attendues calculees independamment, tolerance 0,005).
 **Cache** : GitHub Pages sert `model.js` avec `max-age=600`. Les pages le chargent en
-`model.js?v=<date>` : **a chaque modification de `model.js`, changer ce `?v=` dans `comparaison.html` et
-`meilleurs-paris.html`**, sinon un navigateur garde l'ancien `model.js` avec la nouvelle page (vu le
+`model.js?v=<date>` : **a chaque modification de `model.js`, changer ce `?v=` dans les 4 pages qui le
+chargent** (`index.html`, `confrontation.html`, `meilleurs-paris.html`, `comparaison.html`), sinon un navigateur garde l'ancien `model.js` avec la nouvelle page (vu le
 2026-11-04 : `Cannot read properties of undefined (reading 'combiner')`, tableau vide).
 
 **Formules v2 (figees).** `dE = eloDom + advDomLigue - eloExt` (avantage du terrain +65 Elo, par
@@ -400,108 +421,96 @@ logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; 
 reel contre un bookmaker, plusieurs milliers de paris. Le pari n'est pas l'instrument de validation du
 modele : les matchs logges (joues ou non pariés) le sont.
 
-## Agent IA « IA modele » (prompt v10) — EN PRODUCTION depuis le 2026-11-06
+## Agent IA « IA modele » (v10c) — EN PRODUCTION (v10 le 2026-11-06, v10c le 2026-11-07)
 
 Principe : **les chiffres et les decisions viennent du code, l'IA ne fait que rediger.** Lecon de deux jours de
 tests : chaque reformulation du prompt corrigeait un cas et en deplacait un autre ; ce qui a marche, c'est de
 sortir les decisions du LLM (comme la forme decodee en SQL).
 - **Frontend** (`index.html`, `meilleurs-paris.html`, `confrontation.html`) : envoie un bloc `modele`
   (`Modele.payloadModele`, v3) dont `lignes` = lignes du verdict deja redigees (`lignesVerdict` : pronostic,
-  nul, buts, conseil par etiquette, `conseil_probas`, equipe jugee).
+  nul, buts, conseil par etiquette, `conseil_probas`, equipe jugee). Libelles (niveau, equipe devant, nul,
+  buts) calcules sur le pourcentage AFFICHE.
 - **Conseil** : par les seules probabilites (favori net >= 60 % -> victoire ; leger favori >= 45 % ->
   rembourse si nul, double chance si nul > 28 % ; match ouvert avec une equipe >= 40 % -> double chance ;
   sinon pas de pari ; + plus/moins de 2,5 buts si P(Over) >= 60 % / <= 40 %). **Couplage asymetrique** : un
   contexte DEFAVORABLE degrade d'un cran (solide -> fragile -> pas de pari), FAVORABLE / MITIGE ne changent
   rien — une etiquette fausse ne peut que faire manquer un pari, jamais en creer un.
-- **Workflow n8n** (local : prod actuelle `prompts-n8n/workflow_football-analyze_2026-11-07_v10c-prod.json`, versions
-  precedentes dans `prompts-n8n/archive/` ; sauvegarde v8
-  sur le serveur `backup_football-analyze_2026-11-06_v8-avant-v10.json`) : Webhook -> Postgres (requete fixe
-  AVANT l'IA, plus d'outil : 1 seul appel LLM) -> Code « Preparer » (`lectureContexte` : listes Pour / Contre et
-  etiquette FAVORABLE / MITIGE / DEFAVORABLE calculees ; message a l'IA sans jsonb brut) -> AI Agent sans outil
-  (gpt-4.1-mini depuis le 2026-11-06 soir, prompt v10b, exemples FICTIFS) -> Code « Lignes du verdict » (impose Pronostic / Conseil /
-  Nul / Buts, retire les ```html) -> Respond.
-- **Mesures (memes matchs)** : prod v8 ~6 630 tokens / 14,1 s ; v10b ~2 070 tokens / 5,2 s, 0 defaut
-  automatique sur 6 matchs dont 4 jamais vus, etiquette stable.
+- **Workflow n8n** : Webhook -> Postgres (requete fixe AVANT l'IA, plus d'outil : 1 seul appel LLM) -> Code
+  « Preparer » (`lecture-contexte.js` : listes Pour / Contre et etiquette FAVORABLE / MITIGE / DEFAVORABLE
+  calculees ; message a l'IA sans donnees brutes : listes titrees, palier de forme, un buteur par equipe) ->
+  AI Agent sans outil (**gpt-4.1-mini**, prompt v10c, exemples FICTIFS) -> Code « Lignes du verdict » (impose
+  Pronostic / Conseil / Nul / Buts, insere le paragraphe « Ce qui peut faire mentir le pronostic » ecrit par le
+  CODE — `paragrapheRisque`, chaque fait porte `{ texte, risque }` — retire les ```html) -> Respond.
+- **`lecture-contexte.js`** (racine, versionne) = source unique de la fonction du noeud « Preparer » ; tests :
+  `node lecture-contexte.js`. Toute modif doit etre reportee dans le noeud (`prompts-n8n/banc-essai/build_wf.py`
+  l'integre tel quel dans un workflow de test).
+- **v10c (2026-11-07)** : retrait du fait « transforme N % de ses tirs cadres… ce rythme devrait baisser »
+  (bruit : declenche sur 18 matchs sur 43 le 07/11) et de l'exclusion attaque / conversion ; « n'est donne qu'a
+  N % » seulement sous 50 % affiche, au-dessus « le modele donne N % de victoire a X, il reste M % pour le nul ou
+  une defaite » ; prompt : « devrait » interdit sans exception. Effet sur les 43 matchs du 07/11 : 6 etiquettes
+  FAVORABLE <-> MITIGE, 0 conseil change.
+- **Mesures (memes matchs)** : prod v8 ~6 630 tokens / 14,1 s ; v10b ~2 070 tokens / 5,2 s ; gpt-4.1-mini :
+  0 defaut sur 25 analyses, ~3,3 s, ~1 720 tokens en entree (gpt-4o-mini : 5,7 s et des confusions Pour / Contre).
 - **Pieges** : ne pas ecrire les exemples du prompt sur un match de test (l'IA recopie l'exemple) ;
   CONFIRME / NUANCE / CONTREDIT etaient lus comme « contredire l'equilibre » du match ouvert -> etiquettes
-  orientees vers l'equipe jugee ; l'IA recopiait mal les lignes (prefixes, mots changes) -> nœud Code.
-  `indice_realisme` (buts / tirs cadres, non lisse) = surtout de la reussite : lu comme un signal de
-  regression, jamais un atout.
+  orientees vers l'equipe jugee ; l'IA recopiait mal les lignes (prefixes, mots changes) -> nœud Code ; l'IA
+  citait la mauvaise forme de l'outsider comme risque pour le favori -> paragraphe de risque ecrit par le code.
+  `indice_realisme` (buts / tirs cadres, non lisse) = surtout de la reussite : jamais un atout.
+- **Tester une modif** : workflow n8n de TEST (meme version que la prod, garde actif), en local `?n8n=test` ->
+  `/webhook/football-analyze-ia-modele` ; comparer avec la prod sur le meme match (`confrontation.html`). Banc
+  d'essai : `prompts-n8n/banc-essai/` (local, README). Mise en prod seulement apres validation de l'utilisateur,
+  avec une sauvegarde serveur du workflow prod avant import.
 - Meilleurs Paris : badge « Contexte : FAVORABLE / MITIGE / DEFAVORABLE » (lu dans le rapport, ancien format
-  « Indice de confiance » encore lu pour le cache). Test d'un nouveau prompt : workflow de test, local
-  `?n8n=test` -> `/webhook/football-analyze-ia-modele`.
-- A faire : journaliser etiquette / score / conseil_probas / conseil final + resultat (table Supabase ecrite
-  par n8n) ; seuils de `lectureContexte` relatifs au championnat (aujourd'hui absolus) ; Elo rafraichi chaque
-  jour.
+  « Indice de confiance » encore lu pour le cache).
 
-## Etat au 2026-11-07
+## Etat actuel (2026-11-07)
 
-- **Prod n8n = v10c** (deployee le 2026-11-07 au matin, test puis prod) : `lecture-contexte.js` sans le fait
-  « transforme N % de ses tirs cadres… ce rythme devrait baisser » (bruit, declenche sur 18 matchs sur 43 le 07/11)
-  ni l'exclusion attaque / conversion ; paragraphe de risque « n'est donne qu'a N % » seulement sous 50 % affiche,
-  au-dessus « le modele donne N % de victoire a X, il reste M % pour le nul ou une defaite ». Prompt v10c : exemple 1
-  sans conversion, « devrait » interdit sans exception. Effet mesure sur les 43 matchs du 07/11 : 6 etiquettes
-  FAVORABLE <-> MITIGE, 0 conseil change. Sauvegarde serveur : `backup_football-analyze_2026-11-07_v10-avant-v10c.json`.
-- `comparaison.html` suit la v2-tirs et le marche des buts ; 43 matchs du 07/11 figes dans `predictions-figees.json`.
-- **Bug corrige le 2026-11-07 : 5 Elo impossibles dans `elo-clubs.json`** depuis le snapshot du 2026-11-03 (Deportivo
-  112, Lorient 157, Atalanta 210, Gil Vicente 423, Benfica 554 : erreur de lecture de la page ClubElo, aucune erreur
-  levee). Effet en prod v3 : Espanyol – Deportivo 63/19/19 au lieu de 37/27/36. Retires (Elo moyen du championnat,
-  prediction « Elo approximatif ») ; valeurs gardees dans `elo_invalides_retires`. `build_elo_snapshot.py` refuse
-  desormais un Elo hors 1000-2500. **A refaire** : snapshot complet quand ClubElo repond (403 Cloudflare / API 502
-  le 07/11). Les predictions figees de ces equipes (03/11 -> 07/11) restent biaisees : a signaler dans les bilans.
-- `equipe.html` : bloc « Style de jeu » (controle / percussion / volume de tirs, rapportes au niveau), descriptif.
+- **En production** : modele **v3** (Calendrier, Confrontation, Meilleurs Paris) ; agent IA **v10c**
+  (gpt-4.1-mini) ; scraper avec libelles « Niveau » / « Forme » ; scrape quotidien a **00h30** (a 00h00,
+  footmercato affichait encore les matchs de la veille ; verifie le 07/11 : 43 matchs du jour en base).
+- **Suivi des modeles** : `comparaison.html` (v1 / v2 / v3 / v2-tirs, marche 1X2 et buts, scores, Mon prono) ;
+  predictions figees dans `predictions-figees.json` (04/11 et 07/11 ; a completer AVANT chaque soiree si la page
+  n'a pas ete ouverte avant les matchs). Bilans des soirees : `suivi-pronos/` (local).
+- **Bug corrige le 2026-11-07 : 5 Elo impossibles dans `elo-clubs.json`** depuis le snapshot du 2026-11-03
+  (Deportivo 112, Lorient 157, Atalanta 210, Gil Vicente 423, Benfica 554 : erreur de lecture de la page ClubElo,
+  aucune erreur levee). Effet en prod v3 : Espanyol – Deportivo 63/19/19 au lieu de 37/27/36. Retires (Elo moyen
+  du championnat, prediction « Elo approximatif ») ; valeurs gardees dans `elo_invalides_retires`.
+  `build_elo_snapshot.py` refuse desormais un Elo hors 1000-2500. **A refaire** : snapshot complet quand ClubElo
+  repond (403 Cloudflare / API 502 le 07/11). Les predictions figees de ces equipes (03/11 -> 07/11) restent
+  biaisees : a signaler dans les bilans.
+- **Prochaines etapes** (detail et priorites dans `TODO.md`, local) : bilan de la soiree du 07/11, snapshot
+  ClubElo, journalisation des analyses (table Supabase ecrite par n8n), seuils de conseil 60 / 45 %, seuils de
+  `lectureContexte` relatifs au championnat, decision sur la v2-tirs, Elo quotidien.
+- **Reprendre une session** : lire `TODO.md`, tester localement (`python3 -m http.server 8000` a la racine,
+  `?n8n=test` pour l'agent de test), `node model.tests.js` et `node lecture-contexte.js` apres toute modif.
 
-## Etat au 2026-11-06 (soir)
+## Chronologie
 
-- **Prod (deployee le 2026-11-06 au soir)** : IA modele v10 + correctifs des rounds 1 et 2, **gpt-4.1-mini**
-  (mesure : 0 defaut sur 25 analyses, ~3,3 s, ~1 720 tokens en entree contre gpt-4o-mini 5,7 s et des
-  confusions Pour / Contre). Message a l'IA sans donnees brutes (listes Pour / Contre titrees, palier de forme,
-  un buteur par equipe) ; paragraphe « Ce qui peut faire mentir le pronostic » ecrit par le CODE
-  (`lecture-contexte.js`, `paragrapheRisque`, chaque fait porte `{ texte, risque }`) et insere par le noeud
-  « Lignes du verdict » ; libelles (niveau, equipe devant, nul, buts) calcules sur le pourcentage AFFICHE.
-  Sauvegarde serveur avant deploiement : `backup_football-analyze_2026-11-06_v10-avant-round2.json`.
-  Calendrier et Confrontation affichent les probabilites du modele.
-- Workflow n8n de TEST (`?n8n=test` en local) : meme version que la prod, garde pour les prochains essais.
-  Banc d'essai (local) : `prompts-n8n/banc-essai/` (build_wf.py, iter.sh, grilles reg.py / bench.py).
-- `lecture-contexte.js` (racine) = source unique de la fonction du noeud n8n « Preparer » ; tests :
-  `node lecture-contexte.js`. Toute modif doit etre reportee dans le noeud (le build l'integre tel quel).
-- Scrape quotidien decale a 00h30 (le 06/11 a 00h00, footmercato affichait encore les matchs de la veille).
-
-## Etat au 2026-11-05
-
-- En production : modele **v3** (moyenne v1/v2) sur Meilleurs Paris ; prompt n8n **v8** (niveau + forme) ;
-  scraper avec les nouveaux libelles « Niveau » et « Forme » ; page `equipe.html` (menu « Équipes »).
-- Scrape complet relance a la main le 2026-11-05 vers 0h36 : **verifie** (termine, nouveaux libelles
-  « Niveau » et « Forme » en base et sur `equipe.html`). Reste a tester : une analyse IA sur un match du
-  week-end (le rapport doit parler de « niveau » et reprendre les chiffres de forme).
-- Suivi des modeles : `comparaison.html` (v1 / v2 / v3, marche, scores, Mon prono), predictions figees
-  dans `predictions-figees.json` (a completer avant chaque soiree si la page n'a pas ete ouverte avant
-  les matchs).
-
-## Etat au 2026-11-02
-
-- Le modele Poisson (`dd9b9df`) est pousse et en ligne, ainsi que la page Championnats (`9da9c28`) et
-  le passage a 20 joueurs sur Buteurs & Passeurs (`bfe9792`).
-- Changement lie cote backend : les algorithmes du scraper (`scraper_league_team.py`,
-  `scraper_detail_team.py`, voir le repo backend mentionne plus haut) ont ete revus le meme jour pour
-  utiliser le meme principe (seuils relatifs au championnat + shrinkage, au lieu de seuils absolus fixes)
-  — voir le CLAUDE.md de ce repo pour le detail et un piege important rencontre (le conteneur
-  scraper-python doit etre redemarre apres toute modif de fichier `.py`, sinon l'ancien code reste actif
-  en memoire). A valider et pousser en meme temps que ce repo, les deux changements partagent la meme
-  philosophie (eviter de compter un signal deux fois entre labels qualitatifs et stats brutes).
-- Si vous reprenez cette session : verifier d'abord l'etat du scrape de validation lance sur le VPS,
-  puis tester les pages localement (`python3 -m http.server` a la racine du repo) avant de pousser quoi
-  que ce soit.
+- **2026-11-01** : incident webhook (credits OpenAI) ; bugs du parseur bwin (voir Bankroll).
+- **2026-11-02** : modele Poisson (v1), page Championnats, 20 joueurs sur Buteurs & Passeurs ; scraper backend
+  passe aux seuils relatifs au championnat + shrinkage (piege : redemarrer le conteneur scraper apres toute
+  modif de `.py`, voir le CLAUDE.md backend).
+- **2026-11-03** : classements domicile / exterieur ; modele v2 (Elo des clubs) en prod ; prompts v3 -> v5
+  (forme decodee en SQL, requete fixe).
+- **2026-11-04 / 05** : v3 (moyenne v1/v2) en prod ; `comparaison.html` (marche, scores, Mon prono) ; niveau et
+  forme refaits cote scraper, prompts v7 / v8 ; pages Equipes et Confrontation.
+- **2026-11-06** : agent « IA modele » v10 en prod (decisions sorties du LLM), puis rounds 1 + 2 le soir
+  (risques ecrits par le code, gpt-4.1-mini) ; probabilites du modele sur le Calendrier.
+- **2026-11-07** : v10c ; v2-tirs suivie dans comparaison ; 5 Elo impossibles retires ; bloc « Style de jeu » ;
+  rangement des fichiers locaux (`prompts-n8n/archive/`).
 
 ## Historique git
 
 L'historique de ce repo a ete force-push/reecrit a un moment (plusieurs versions du frontend ont
 coexiste : un ancien widget `@n8n/chat` en chat libre, remplace par la version calendrier actuelle).
+Branches `ia-modele` et `v2-modele` : entierement fusionnees dans `main` (la `ia-modele` distante porte les
+anciens commits d'avant rebase, deja dans `main` sous d'autres hash). `main` est la seule branche active.
 
 ## Fichiers locaux de prompts / workflows (non versionnes)
 
-`prompts-n8n/` (ignore par git) ne garde a la racine que la version courante : prompt et workflow de prod
-(v10c), workflow de TEST courant, derniere sauvegarde serveur avant deploiement (retour arriere). Tout le
-reste (prompts v1 -> v10b, workflows et briefs passes, anciens `PROMPT-*.md` pour Claude Code) est dans
-`prompts-n8n/archive/` — rien n'a ete supprime. A chaque nouvelle version : deplacer l'ancienne dans `archive/`.
-Le banc d'essai (`prompts-n8n/banc-essai/build_wf.py`, `iter.sh`) lit ses fichiers de base dans `archive/`.
+`prompts-n8n/` (ignore par git, `README.md` dedans) ne garde a la racine que la version courante : prompt et
+workflow de prod (v10c), workflow de TEST courant, derniere sauvegarde serveur avant deploiement (retour
+arriere), et `banc-essai/`. Tout le reste (prompts v1 -> v10b, workflows et briefs passes, anciens scripts du
+banc, anciens `PROMPT-*.md` pour Claude Code, TODO d'avant le menage du 07/11) est dans `prompts-n8n/archive/`
+— rien n'a ete supprime. **A chaque nouvelle version** : deplacer l'ancienne dans `archive/` et mettre a jour
+`BASE` / `PROMPT` dans `banc-essai/build_wf.py` et le `WF` par defaut d'`iter.sh`.
