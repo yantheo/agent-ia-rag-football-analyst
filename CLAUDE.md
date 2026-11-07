@@ -484,6 +484,18 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
 - **Reprendre une session** : lire `TODO.md`, tester localement (`python3 -m http.server 8000` a la racine,
   `?n8n=test` pour l'agent de test), `node model.tests.js` et `node lecture-contexte.js` apres toute modif.
 
+## Branche experimentale `donnees-reelles` (2026-11-07)
+
+Chantier « donnees reelles » (historique football-data 2012 -> 2026, correspondance des equipes, retro-tests)
+sur la branche `donnees-reelles`, **jamais fusionnee sans accord de l'utilisateur** : l'appli de `main` doit
+garder son essence, et toute nouvelle version doit rester comparable a v1 / v2 / v3. Detail, commandes et
+resultats : CLAUDE.md de la branche. Constats qui concernent la prod (rien n'a ete change) :
+- conseil « moins de 2,5 » trop optimiste (56 % gagnes pour 65 % annonces sur ~4 000 matchs, -6,2 % a la cote
+  de cloture) ; « plus de 2,5 » -3,3 % ; decision utilisateur en attente ;
+- v2-tirs = v2 sur 23 000 matchs (pas de passage en prod) ;
+- 1/N/2 : v1 nettement la moins bonne ; v3 probablement pas meilleure que v2 seule (Elo approche, a confirmer
+  avec l'Elo ClubElo historique).
+
 ## Chronologie
 
 - **2026-11-01** : incident webhook (credits OpenAI) ; bugs du parseur bwin (voir Bankroll).
