@@ -840,25 +840,54 @@
     0.3486
    ],
    "p2": [
-    0.8752,
-    0.1025,
-    0.0222
+    0.3556,
+    0.2641,
+    0.3803
    ],
    "pm": [
-    0.6271,
-    0.1875,
-    0.1854
+    0.3673,
+    0.2682,
+    0.3644
    ],
    "pt": [
-    0.877,
-    0.1011,
-    0.0219
+    0.3561,
+    0.2631,
+    0.3808
    ],
-   "o2": 0.5409,
-   "ot": 0.545,
-   "conseil_probas": "Pronostic solide (Espanyol favori net) → Victoire de Espanyol",
-   "fige_le": "2026-11-07T05:58",
-   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50;v2-elo-k13-tirs-sd2"
+   "o2": 0.4804,
+   "ot": 0.4847,
+   "conseil_probas": "Pronostic trop incertain (match ouvert) → Pas de pari sur le résultat",
+   "fige_le": "2026-11-07T06:35",
+   "versions": "v1-poisson-k6;v2-elo-k13;moy-v1v2-w50;v2-elo-k13-tirs-sd2",
+   "corrige": {
+    "raison": "Elo de Deportivo faux (112) dans elo-clubs.json, retiré le 2026-11-07 vers 9h : refigé AVANT le coup d envoi (16h15) avec Elo moyen du championnat (Elo dégradé)",
+    "avant_correction": {
+     "p1": [
+      0.379,
+      0.2724,
+      0.3486
+     ],
+     "p2": [
+      0.8752,
+      0.1025,
+      0.0222
+     ],
+     "pm": [
+      0.6271,
+      0.1875,
+      0.1854
+     ],
+     "pt": [
+      0.877,
+      0.1011,
+      0.0219
+     ],
+     "o2": 0.5409,
+     "ot": 0.545,
+     "conseil_probas": "Pronostic solide (Espanyol favori net) → Victoire de Espanyol",
+     "fige_le": "2026-11-07T05:58"
+    }
+   }
   },
   "2026-11-07|fortuna-nl|telstar-nl": {
    "p1": [
