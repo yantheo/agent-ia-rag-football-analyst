@@ -25,7 +25,6 @@ const lectureContexte = (() => {
   // celle du SQL ni celle du modèle (« 1,8181… » envoyé à l'IA l'autorisait à « nettoyer »
   // les autres nombres, Grenoble – Reims, 2026-11-06).
   const n = v => (Math.round(Number(v) * 10) / 10).toFixed(1).replace(/\.0$/, '').replace('.', ',');
-  const P = v => Math.round(v * 100);
   // Accord français : « 1,7 but », « 2 buts ».
   const pl = (v, mot) => `${n(v)} ${mot}${Math.abs(v) >= 2 ? 's' : ''}`;
   // Élision : « d'Annecy », « de Reims » (h laissé tel quel : « de Hambourg »).
@@ -38,12 +37,11 @@ const lectureContexte = (() => {
   const SEUIL_LIEU = 0.6;        // écart de points par match sur le lieu du match
   const SEUIL_DEFENSE = 1.6;     // buts encaissés par match
   const SEUIL_ATTAQUE = 1.8;     // buts marqués par match
-  const SEUIL_CONVERSION = 0.38; // au-dessus, régression vers ~0,30 attendue
   const SEUIL_CLASSEMENT = 6;    // écart de places (jamais entre deux championnats)
 
   /**
    * @param X équipe jugée, Y son adversaire :
-   *   { nom, ptsSur15, ptsParMatchLieu, butsMarques, butsEncaisses, conversion, position, lieu }
+   *   { nom, ptsSur15, ptsParMatchLieu, butsMarques, butsEncaisses, position, lieu } (conversion ignorée)
    *   lieu = "à domicile" ou "à l'extérieur" ; ptsParMatchLieu peut valoir null.
    * @param memeChampionnat false pour une coupe d'Europe ou une affiche inter-ligues
    */
@@ -75,22 +73,20 @@ const lectureContexte = (() => {
     if (X.butsEncaisses >= SEUIL_DEFENSE) contre.push(fait(`${X.nom} encaisse ${pl(X.butsEncaisses, 'but')} par match`,
       `la défense ${de(X.nom)}, qui encaisse ${pl(X.butsEncaisses, 'but')} par match`));
 
-    // 4. Attaques — exclusif avec le risque de conversion (tâche 3, 2026-11-06) : un taux
-    // de conversion élevé rend le ratio de buts non représentatif. On ne présente pas les
-    // buts en atout ET leur régression en risque dans le même rapport (Grenoble – Reims :
-    // « Reims marque 2 buts par match » en atout, « Reims transforme 43 % » en risque).
-    const convChaudeX = X.conversion >= SEUIL_CONVERSION;
-    const convChaudeY = Y.conversion >= SEUIL_CONVERSION;
-    if (X.butsMarques >= SEUIL_ATTAQUE && !convChaudeX) pour.push(fait(`${X.nom} marque ${pl(X.butsMarques, 'but')} par match`));
-    if (Y.butsMarques >= SEUIL_ATTAQUE && !convChaudeY) contre.push(fait(`${Y.nom} marque ${pl(Y.butsMarques, 'but')} par match`,
+    // 4. Attaques
+    if (X.butsMarques >= SEUIL_ATTAQUE) pour.push(fait(`${X.nom} marque ${pl(X.butsMarques, 'but')} par match`));
+    if (Y.butsMarques >= SEUIL_ATTAQUE) contre.push(fait(`${Y.nom} marque ${pl(Y.butsMarques, 'but')} par match`,
       `l'attaque ${de(Y.nom)}, qui marque ${pl(Y.butsMarques, 'but')} par match`));
 
-    // 5. Conversion : un taux élevé est un RISQUE pour celui qui l'affiche
-    if (convChaudeX) contre.push(fait(`${X.nom} transforme ${P(X.conversion)} % de ses tirs cadrés, au-dessus de la normale : ce rythme devrait baisser`,
-      `la réussite ${de(X.nom)} devant le but, à ${P(X.conversion)} % des tirs cadrés convertis, un rythme qui devrait baisser`));
-    if (convChaudeY) pour.push(fait(`${Y.nom} transforme ${P(Y.conversion)} % de ses tirs cadrés, au-dessus de la normale : ce rythme devrait baisser`));
+    // (Ancienne section 5, retirée le 2026-11-07 : « X transforme N % de ses tirs cadrés,
+    // au-dessus de la normale : ce rythme devrait baisser », seuil fixe 0,38. Mesure du
+    // 2026-11-07 sur 192 équipes : l'écart de conversion entre équipes est presque
+    // entièrement du bruit binomial (à ~50 tirs cadrés, ~16 % des équipes normales
+    // franchissent 0,38). La phrase décrivait l'instrument de mesure, pas l'équipe. Le
+    // retour à la moyenne relève du modèle (candidat v2-tirs dans model.js), pas du texte.
+    // Avec elle part l'exclusion « conversion chaude -> pas d'attaque en atout ».)
 
-    // 6. Classement — jamais entre deux championnats différents
+    // 5. Classement — jamais entre deux championnats différents
     if (memeChampionnat && X.position && Y.position) {
       const dP = Y.position - X.position;
       if (dP >= SEUIL_CLASSEMENT) pour.push(fait(`${X.nom} est ${X.position}e, ${Y.nom} ${Y.position}e`));
@@ -143,7 +139,7 @@ function testsLectureContexte() {
   check(b.etiquette === 'DÉFAVORABLE', 'symétrie : Gaziantep doit être DÉFAVORABLE, obtenu ' + b.etiquette);
   check(a.score === -b.score, `les scores doivent être opposés (${a.score} / ${b.score})`);
 
-  check(!a.pour.some(f => f.texte.includes('Kasımpaşa transforme')), 'la conversion de X ne peut pas être un atout pour X');
+  check(![a, b].some(x => x.pour.concat(x.contre).some(f => /transforme|tirs cadrés/.test(f.texte))), 'plus aucun fait sur la conversion');
 
   const c = lectureContexte(kasimpasa, gaziantep, false);
   check(!c.pour.concat(c.contre).some(f => /\de,/.test(f.texte)), 'aucun classement comparé entre deux championnats différents');
@@ -155,26 +151,26 @@ function testsLectureContexte() {
   check(fmt(2.25) === '2,3' || fmt(2.25) === '2,2', 'une seule décimale, obtenu ' + fmt(2.25));
   check(a.pour.some(f => f.texte === 'Gaziantep FK encaisse 1,7 but par match'), 'accord « 1,7 but » : ' + a.pour.map(f => f.texte).join(' · '));
 
-  // Conversion chaude : le ratio de buts ne figure pas en atout, le risque reste (Grenoble – Reims réel)
+  // Grenoble – Reims réel (Reims à 43 % de conversion) : plus de fait de conversion, l'attaque redevient un atout
   const reims = { nom: 'Reims', ptsSur15: 9, ptsParMatchLieu: 1.8, butsEncaisses: 1.1,
                   butsMarques: 2.0, conversion: 0.43, position: 4, lieu: "à l'extérieur" };
   const grenoble = { nom: 'Grenoble', ptsSur15: 1, ptsParMatchLieu: 0.4, butsEncaisses: 1.82,
                      butsMarques: 0.9, conversion: 0.24, position: 18, lieu: 'à domicile' };
   const r = lectureContexte(reims, grenoble, true);
-  check(!r.pour.some(f => f.texte.includes('Reims marque')), 'conversion chaude : le ratio de buts ne doit pas figurer en atout');
-  check(r.contre.some(f => f.texte.includes('transforme')), 'le risque de conversion doit rester présent');
-  check(r.etiquette === 'FAVORABLE' && r.score === 3, `Grenoble – Reims : FAVORABLE, score 3 (obtenu ${r.etiquette}, ${r.score})`);
+  check(r.pour.some(f => f.texte === 'Reims marque 2 buts par match'), 'attaque de Reims en atout : ' + r.pour.map(f => f.texte).join(' · '));
+  check(r.contreVide, 'aucun fait Contre (la conversion n\'en est plus un) : ' + r.contre.map(f => f.texte).join(' · '));
+  check(r.etiquette === 'FAVORABLE' && r.score === 5, `Grenoble – Reims : FAVORABLE, score 5 (obtenu ${r.etiquette}, ${r.score})`);
   check(r.pour.some(f => f.texte === 'Grenoble encaisse 1,8 but par match'), 'arrondi dans les phrases : ' + r.pour.map(f => f.texte).join(' · '));
-  // Symétrie : la conversion chaude de l'adversaire retire aussi son attaque de « Contre X »
+  // Symétrie : l'attaque de Reims figure en Contre Grenoble
   const r2 = lectureContexte(grenoble, reims, true);
-  check(!r2.contre.some(f => f.texte.includes('Reims marque')), 'conversion chaude de Y : son attaque ne figure pas en Contre X');
+  check(r2.contre.some(f => f.texte === 'Reims marque 2 buts par match') && r2.score === -5, 'attaque de Y en Contre X, score opposé : ' + r2.score);
 
   // Paragraphe de risque (code) : chaque fait Contre a un risque chiffré, sans conséquence ni état
   const pr = lectureContexte.paragrapheRisque;
   check(pr(a, 'Kasımpaşa', 0.43) === "Les données ne signalent pas de point faible net chez Kasımpaşa. Le risque tient au match lui-même : Kasımpaşa n'est donné qu'à 43 % par le modèle.",
     'liste Contre vide : texte fixe avec le risque de format, obtenu ' + pr(a, 'Kasımpaşa', 0.43));
-  check(pr(r, 'Reims', 0.57) === 'La réussite de Reims devant le but, à 43 % des tirs cadrés convertis, un rythme qui devrait baisser.',
-    'un fait Contre : ' + pr(r, 'Reims', 0.57));
+  check(pr(r, 'Reims', 0.57) === "Les données ne signalent pas de point faible net chez Reims. Le risque tient au match lui-même : Reims n'est donné qu'à 57 % par le modèle.",
+    'Reims sans fait Contre : ' + pr(r, 'Reims', 0.57));
   check(pr(b, 'Gaziantep FK', 0.31).split(', et ').length === 2, 'deux faits Contre au plus, joints par « , et » : ' + pr(b, 'Gaziantep FK', 0.31));
   const tous = [a, b, c, r, r2].flatMap(x => x.contre);
   check(tous.every(f => f.risque && /\d/.test(f.risque)), 'chaque risque contient un chiffre');
