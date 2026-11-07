@@ -56,7 +56,10 @@
   <p class="lead">Outil de diagnostic (pas une page publique). Pour chaque match, <b>v1</b> (<code>v1-poisson-k6</code>, référence historique) et
     <b>v2</b> (<code>v2-elo-k13</code> : Elo des clubs + Poisson, référence, production du 03/11 au 05/11) sont calculés dans la même passe, sur les mêmes données.
     <b>v3 = moyenne v1/v2</b> (<code>moy-v1v2-w50</code>, <b>en production sur Meilleurs Paris depuis le 05/11</b> ; « =v2 » : v1 incalculable, repli sur la v2 comme en prod) :
-    P(v3) = ½·P(v1) + ½·P(v2), issue par issue.</p>
+    P(v3) = ½·P(v1) + ½·P(v2), issue par issue.
+    <b>v2-tirs</b> (<code>v2-elo-k13-tirs-sd2</code>, candidat suivi depuis le 07/11, <b>pas en production</b>) : la v2 avec une attaque calculée sur
+    les tirs cadrés × conversion lissée vers celle du championnat (la conversion d'une équipe est presque entièrement du bruit). Même Elo :
+    le 1X2 bouge peu, c'est surtout le marché des buts (plus de 2,5) qui change. « +2,5 » de la v2 = celui affiché en production.</p>
   <p class="note"><b>Marché</b> : saisir les cotes 1 / N / 2 d'un match -> probabilités sans marge (méthode de la puissance) et écart
     max avec v2 / v3 en points (en or si ≥ 10 pts). Les cotes restent dans ce navigateur (<code>localStorage</code>) : « Exporter CSV »
     pour les journaliser. Un gros écart avec le marché signale d'abord une erreur probable du modèle, pas une valeur.</p>
@@ -79,6 +82,7 @@
       <th>Match</th><th>Compétition</th><th>Elo dom</th><th>Elo ext</th><th>dE</th>
       <th>v1 : favori</th><th>v2 : favori</th><th>Δ P(1)</th><th>Espérance v2</th><th>Cible Elo</th>
       <th>T v2 (buts)</th><th>v1 P(1/N/2)</th><th>v2 P(1/N/2)</th><th>v3 = moy. v1/v2 P(1/N/2)</th>
+      <th>v2-tirs P(1/N/2)</th><th>+2,5 buts v2 → tirs</th>
       <th>Cotes 1 / N / 2</th><th>Marché P(1/N/2)</th><th>Écart v2</th><th>Écart v3</th>
     </tr></thead>
     <tbody id="rows"></tbody>
@@ -94,7 +98,11 @@
     un prono saisi après le début du match est marqué « après coup » et exclu du bilan ; une fois le match commencé, un prono valide est verrouillé.
     Restent dans ce navigateur (export CSV pour les garder).</p>
   <div class="scroll"><table class="bilan"><thead><tr><th>Modèle</th><th>Matchs</th><th>Brier</th><th>Brier Europe</th><th>Brier championnats</th><th>Log-loss</th><th>Favoris justes</th></tr></thead><tbody id="bilan"></tbody></table></div>
-  <div class="scroll" style="margin-top:12px"><table><thead><tr><th>Match</th><th>Score</th><th>Mon prono % (1 / N / 2)</th><th>Issue</th><th>v1</th><th>v2</th><th>v3 = moy. v1/v2</th><th>Marché</th><th>Mon prono</th><th>Prédictions</th></tr></thead><tbody id="res-rows"></tbody></table></div>
+  <h3>Marché des buts (plus de 2,5) : v2 (production) / v2-tirs</h3>
+  <p class="note">Paris selon la règle de la production : plus de 2,5 si la probabilité affichée est ≥ 60 %, moins de 2,5 si ≤ 40 %, sinon pas de pari.
+    Seuls les matchs dont les deux versions sont figées (ou tous recalculés) comptent.</p>
+  <div class="scroll"><table class="bilan"><thead><tr><th>Modèle</th><th>Matchs</th><th>Brier +2,5</th><th>Log-loss</th><th>Paris buts gagnés</th></tr></thead><tbody id="bilan-buts"></tbody></table></div>
+  <div class="scroll" style="margin-top:12px"><table><thead><tr><th>Match</th><th>Score</th><th>Mon prono % (1 / N / 2)</th><th>Issue</th><th>v1</th><th>v2</th><th>v3 = moy. v1/v2</th><th>v2-tirs</th><th>+2,5 buts v2 / tirs</th><th>Marché</th><th>Mon prono</th><th>Prédictions</th></tr></thead><tbody id="res-rows"></tbody></table></div>
 
   <h2>Classements du pré-filtre (probabilité du favori décroissante)</h2>
   <p class="note">Ce que Meilleurs Paris enverrait à l'IA dans cet ordre. Flèche = gain/perte de rang de v1 à v2.</p>
@@ -113,7 +121,7 @@
   </div>
 </main>
 
-<script src="model.js?v=2026-11-06f"></script>
+<script src="model.js?v=2026-11-07a"></script>
 <script>
 (function () {
   'use strict';
@@ -165,7 +173,7 @@
     const [matches, teams, eloData, mapping] = await Promise.all([
       sb('calendrier', `date_match=gte.${dateStr}&date_match=lt.${next}&select=*&order=heure.asc`),
       // Mêmes données que meilleurs-paris.html (pas de filtre de fraîcheur) pour que la v1 soit identique.
-      sb('classements_foot', 'select=team_id,championnat,buts_pour,buts_contre,matchs_joues'),
+      sb('classements_foot', 'select=team_id,championnat,buts_pour,buts_contre,matchs_joues,tirs_cadres'),
       json('elo-clubs.json'),
       json('elo-mapping.json'),
     ]);
@@ -176,6 +184,7 @@
 
     const iV1 = Modele.v1.buildTeamIndices(teams, Modele.v1.computeLeagueAverages(teams));
     const ctx = Modele.v2.prepare(teams, eloData, mapping);
+    const ctxT = Modele.v2tirs.prepare(teams, eloData, mapping);
     const cotes = loadCotes();
     Modele.v2.eloCoverage(ctx, matches.flatMap(m => [m.team_id_domicile, m.team_id_exterieur]));
 
@@ -184,17 +193,20 @@
       const p2 = Modele.v2.matchProbabilities(ctx, m.team_id_domicile, m.team_id_exterieur);
       // v3 = même calcul que la prod (Modele.v3) : moyenne v1/v2, repli explicite sur la v2 sans v1.
       const pm = p1 && p2 ? Modele.moyenneV1V2.combiner(p1, p2) : p2 ? Object.assign({}, p2, { v3Repli: true }) : null;
+      const pt = Modele.v2tirs.matchProbabilities(ctxT, m.team_id_domicile, m.team_id_exterieur);
+      const b2 = Modele.marcheButs(p2), bt = Modele.marcheButs(pt);
       const f1 = fav(p1, m), f2 = fav(p2, m), fm = fav(pm, m);
       const key = rowKey(dateStr, m), c = cotes[key] || null;
       // Gel automatique : match pas encore commencé, jamais figé -> on enregistre les prédictions actuelles.
       if (!fichier[key] && !figeesLocales[key] && Date.parse(m.date_match) > Date.now() && (p1 || p2)) {
-        figeesLocales[key] = { p1: toA(p1), p2: toA(p2), pm: toA(pm), fige_le: new Date().toISOString(),
-          versions: `${Modele.v1.VERSION};${Modele.v2.VERSION};${Modele.moyenneV1V2.VERSION}` };
+        figeesLocales[key] = { p1: toA(p1), p2: toA(p2), pm: toA(pm), pt: toA(pt),
+          o2: b2 ? +b2.pOver.toFixed(4) : null, ot: bt ? +bt.pOver.toFixed(4) : null, fige_le: new Date().toISOString(),
+          versions: `${Modele.v1.VERSION};${Modele.v2.VERSION};${Modele.moyenneV1V2.VERSION};${Modele.v2tirs.VERSION}` };
         nouvelles++;
       }
       const fz = fichier[key] || figeesLocales[key] || null;
-      const fige = fz ? { p1: toP(fz.p1), p2: toP(fz.p2), pm: toP(fz.pm), source: fichier[key] ? 'fichier' : 'navigateur', le: fz.fige_le } : null;
-      return { m, p1, p2, pm, f1, f2, fm, key, fige, score: scores[key] || null, prono: pronos[key] || null, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
+      const fige = fz ? { p1: toP(fz.p1), p2: toP(fz.p2), pm: toP(fz.pm), pt: toP(fz.pt), o2: fz.o2 ?? null, ot: fz.ot ?? null, source: fichier[key] ? 'fichier' : 'navigateur', le: fz.fige_le } : null;
+      return { m, p1, p2, pm, pt, b2, bt, f1, f2, fm, key, fige, score: scores[key] || null, prono: pronos[key] || null, cotes: c, mk: c ? Modele.marche.demarginer(c) : null,
         flip: !!(f1 && f2 && f1.side !== f2.side), flipM: !!(f2 && fm && f2.side !== fm.side) };
     });
     if (nouvelles) save(FIGEES_KEY, figeesLocales);
@@ -226,8 +238,18 @@
   const issue = sc => sc[0] > sc[1] ? 0 : sc[0] === sc[1] ? 1 : 2;
   const arr = p => [p.pHome, p.pDraw, p.pAway];
   // Prédictions utilisées pour le bilan : figées si disponibles, sinon recalcul actuel.
-  const predsBilan = r => r.fige ? { v1: r.fige.p1, v2: r.fige.p2, v3: r.fige.pm, recalc: false }
-                                 : { v1: r.p1, v2: r.p2, v3: r.pm, recalc: true };
+  // v2-tirs / +2,5 : absents des prédictions figées avant le 07/11 -> null (jamais un recalcul mélangé à du figé).
+  const predsBilan = r => r.fige ? { v1: r.fige.p1, v2: r.fige.p2, v3: r.fige.pm, vt: r.fige.pt, o2: r.fige.o2, ot: r.fige.ot, recalc: false }
+                                 : { v1: r.p1, v2: r.p2, v3: r.pm, vt: r.pt, o2: r.b2 ? r.b2.pOver : null, ot: r.bt ? r.bt.pOver : null, recalc: true };
+  const pariButs = pOver => pOver == null ? null : Math.round(pOver * 100) >= 60 ? 'plus' : Math.round(pOver * 100) <= 40 ? 'moins' : null;
+  function butsCell(r) {
+    const P = predsBilan(r);
+    if (P.o2 == null) return '<td class="n muted">—</td>';
+    const over = r.score ? r.score[0] + r.score[1] > 2 : null;
+    const one = x => { const pari = pariButs(x); const ok = over == null || !pari ? '' : (pari === 'plus') === over ? ' <span class="ok">✓</span>' : ' <span class="ko">✗</span>';
+      return `${pct(x)}${pari ? ` <span class="muted">(${pari})</span>` : ''}${ok}`; };
+    return `<td class="n">${one(P.o2)} / ${P.ot == null ? '—' : one(P.ot)}</td>`;
+  }
   function evalP(p, o) {
     if (!p) return null;
     const a = arr(p), brier = a.reduce((s, x, i) => s + (x - (i === o ? 1 : 0)) ** 2, 0);
@@ -242,10 +264,10 @@
     const pronoCell = o => !r.prono ? '<td class="n muted">—</td>'
       : !pronoValide(r) ? '<td class="n warn" title="Saisi après le coup d\'envoi : exclu du bilan">après coup</td>'
       : o == null ? '<td class="n muted">saisi ✓</td>' : cell(evalP(pronoP(r), o));
-    if (!r.score) return '<td class="n muted">—</td>' + '<td class="n muted">—</td>'.repeat(4) + pronoCell(null) + `<td class="muted">${r.fige ? 'figées (' + r.fige.source + ')' : 'recalculées'}</td>`;
+    if (!r.score) return '<td class="n muted">—</td>' + '<td class="n muted">—</td>'.repeat(4) + butsCell(r) + '<td class="n muted">—</td>' + pronoCell(null) + `<td class="muted">${r.fige ? 'figées (' + r.fige.source + ')' : 'recalculées'}</td>`;
     const o = issue(r.score), P = predsBilan(r);
     const lbl = ['1 (' + esc(r.m.equipe_domicile) + ')', 'N', '2 (' + esc(r.m.equipe_exterieur) + ')'][o];
-    return `<td>${lbl}</td>${cell(evalP(P.v1, o))}${cell(evalP(P.v2, o))}${cell(evalP(P.v3, o))}${cell(r.mk ? evalP(r.mk, o) : null)}${pronoCell(o)}` +
+    return `<td>${lbl}</td>${cell(evalP(P.v1, o))}${cell(evalP(P.v2, o))}${cell(evalP(P.v3, o))}${cell(evalP(P.vt, o))}${butsCell(r)}${cell(r.mk ? evalP(r.mk, o) : null)}${pronoCell(o)}` +
       `<td class="${P.recalc ? 'warn' : 'muted'}">${P.recalc ? 'recalculées' : 'figées (' + r.fige.source + ')'}</td>`;
   }
   function renderBilan() {
@@ -265,9 +287,25 @@
       ? '<tr><td colspan="7" class="muted">Aucun score saisi pour cette date.</td></tr>'
       : line('v1', common, r => predsBilan(r).v1) + line('v2', common, r => predsBilan(r).v2) +
         line('<b>v3 = moy. v1/v2 (production)</b>', common, r => predsBilan(r).v3) +
+        line('v2-tirs (candidat, matchs où elle est figée)', common.filter(r => predsBilan(r).vt), r => predsBilan(r).vt) +
         line('Marché (matchs avec cotes)', done.filter(r => r.mk), r => r.mk) +
         line('<b>Mon prono</b> (saisi avant le match)', done.filter(pronoValide), pronoP) +
         (recalc ? `<tr><td colspan="7" class="warn">${recalc} match(s) sans prédiction figée : bilan recalculé avec les stats actuelles, à prendre avec prudence.</td></tr>` : '');
+    // Buts : matchs où v2 ET v2-tirs ont un +2,5 (figé, ou tout recalculé).
+    const bb = done.filter(r => { const P = predsBilan(r); return P.o2 != null && P.ot != null; });
+    const lineB = (name, get) => {
+      if (!bb.length) return `<tr><td>${name}</td><td class="n">0</td>${'<td class="n muted">—</td>'.repeat(3)}</tr>`;
+      let br = 0, ll = 0, n = 0, ok = 0;
+      bb.forEach(r => { const x = get(predsBilan(r)), y = r.score[0] + r.score[1] > 2 ? 1 : 0, pari = pariButs(x);
+        br += (x - y) ** 2; ll += -Math.log(Math.max(y ? x : 1 - x, 1e-6));
+        if (pari) { n++; if ((pari === 'plus') === !!y) ok++; } });
+      return `<tr><td>${name}</td><td class="n">${bb.length}</td><td class="n"><b>${(br / bb.length).toFixed(3)}</b></td><td class="n">${(ll / bb.length).toFixed(3)}</td><td class="n">${ok} / ${n}</td></tr>`;
+    };
+    const overs = bb.filter(r => r.score[0] + r.score[1] > 2).length;
+    document.getElementById('bilan-buts').innerHTML = !bb.length
+      ? '<tr><td colspan="5" class="muted">Aucun match avec score et +2,5 des deux versions (figées à partir du 07/11).</td></tr>'
+      : lineB('<b>v2 (production)</b>', P => P.o2) + lineB('v2-tirs (candidat)', P => P.ot) +
+        `<tr><td colspan="5" class="muted">Plus de 2,5 buts dans ${overs} match(s) sur ${bb.length}.</td></tr>`;
   }
   function onScoreInput(ev) {
     const tr = ev.target.closest('tr[data-key]');
@@ -298,7 +336,7 @@
     document.getElementById('res-rows').innerHTML = current.rows.map(r =>
       `<tr data-key="${esc(r.key)}"><td class="keep"><b>${esc(r.m.equipe_domicile)}</b> – <b>${esc(r.m.equipe_exterieur)}</b>${isEurope(r.m, r.p2) ? `<span class="tag x">${cl(r.m)}</span>` : ''}</td>
         <td class="score keep">${sc(r, 0)} – ${sc(r, 1)}</td><td class="score prono keep">${pr(r, 0)} ${pr(r, 1)} ${pr(r, 2)}</td>${resCells(r)}</tr>`).join('') ||
-      '<tr><td colspan="10" class="muted">Aucun match ce jour-là.</td></tr>';
+      '<tr><td colspan="12" class="muted">Aucun match ce jour-là.</td></tr>';
     renderBilan();
   }
 
@@ -327,13 +365,13 @@
     const head = ['date', 'heure', 'championnat', 'domicile', 'exterieur', 'team_id_dom', 'team_id_ext',
       'cote_1', 'cote_n', 'cote_2', 'marge', 'marche_1', 'marche_n', 'marche_2',
       'v1_1', 'v1_n', 'v1_2', 'v2_1', 'v2_n', 'v2_2', 'moy_1', 'moy_n', 'moy_2', 'buts_dom', 'buts_ext', 'predictions', 'prono_1', 'prono_n', 'prono_2', 'prono_valide',
-      'versions', 'methode_demarginage', 'elo_clubelo_du'];
+      'versions', 'methode_demarginage', 'elo_clubelo_du', 'tirs_1', 'tirs_n', 'tirs_2', 'over25_v2', 'over25_tirs'];
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = rows.map(r => [current.dateStr, r.m.heure, r.m.championnat, r.m.equipe_domicile, r.m.equipe_exterieur,
       r.m.team_id_domicile, r.m.team_id_exterieur, ...(r.cotes || ['', '', '']), r.mk ? f(r.mk.marge) : '', ...P(r.mk), ...P(predsBilan(r).v1), ...P(predsBilan(r).v2), ...P(predsBilan(r).v3),
       r.score ? r.score[0] : '', r.score ? r.score[1] : '', r.fige ? 'figees' : 'recalculees', ...P(pronoP(r)), r.prono ? pronoValide(r) : '',
       `${Modele.v1.VERSION};${Modele.v2.VERSION};${Modele.moyenneV1V2.VERSION}`, Modele.marche.METHODE,
-      current.eloData.date_classement_clubelo].map(q).join(','));
+      current.eloData.date_classement_clubelo, ...P(predsBilan(r).vt), f(predsBilan(r).o2), f(predsBilan(r).ot)].map(q).join(','));
     const blob = new Blob(['\ufeff' + [head.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -380,10 +418,12 @@
         <td class="n">${p2 ? p2.T.toFixed(2) : '—'}</td>
  <td class="n muted">${trio(p1)}</td><td class="n">${trio(p2)}</td>
         <td class="n">${trio(pm)}${pm && pm.v3Repli ? ' <span class="muted" title="v1 incalculable : la v3 reprend la v2 (comme sur Meilleurs Paris)">=v2</span>' : ''}</td>
+        <td class="n">${trio(r.pt)}</td>
+        <td class="n">${r.b2 ? pct(r.b2.pOver) : '—'} → ${r.bt ? pct(r.bt.pOver) : '—'}</td>
         <td class="odds">${odd(0)}${odd(1)}${odd(2)}</td>
         ${marketCells(r).replace(/<td class="/g, '<td class="mkc ')}
       </tr>`;
-    }).join('') || '<tr><td colspan="18" class="muted">Aucun match ce jour-là.</td></tr>';
+    }).join('') || '<tr><td colspan="20" class="muted">Aucun match ce jour-là.</td></tr>';
 
     renderMarketSummary();
     renderResults();

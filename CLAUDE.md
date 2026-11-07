@@ -384,6 +384,17 @@ Brier v2 0,543, v3 0,551, v1 0,569 — trop peu pour conclure, la décision repo
   points réels vs attendus (mesure la chance : partir des buts l'ignore déjà), domicile/extérieur par
   équipe (6-7 matchs = bruit). Ces stats relèvent de l'analyse IA (contexte), pas du modèle.
 
+**v2-tirs (`Modele.v2tirs`, `v2-elo-k13-tirs-sd2`) — candidat suivi depuis le 2026-11-07, PAS en prod.** v2 dont
+l'attaque = tirs cadrés × conversion lissée vers celle du championnat (K = c(1−c)/0,02² ≈ 550 tirs). Mesure du
+2026-11-07 (192 équipes) : écart réel de conversion entre équipes ~2 pts (0 dans 6 championnats sur 10, le reste
+= bruit binomial) ; lien avec l'Elo faible (+1,5 pt pour +250 Elo, et biaisé vers le haut car l'Elo contient la
+saison) -> cible = conversion du championnat, sans terme de niveau. Agit sur T (marché des buts), presque pas
+sur le 1X2. Rétro-test reconstruit du 06/11 (15 matchs) : Brier +2,5 0,239 vs 0,256, paris buts 7/9 vs 3/6 —
+trop peu pour décider. `comparaison.html` l'affiche (1X2 + « +2,5 v2 → tirs ») avec un bilan « Marché des buts » ;
+`predictions-figees.json` stocke depuis le 07/11 `pt` (v2-tirs), `o2` / `ot` (P(+2,5) v2 = prod / v2-tirs) et
+`conseil_probas`. Conséquence pour `lecture-contexte.js` : la phrase « transforme X % de ses tirs cadrés… ce rythme
+devrait baisser » (seuil fixe 0,38) signale surtout du bruit (à ~50 tirs, ~16 % des équipes normales le franchissent).
+
 **Ce qu'il ne faut pas attendre** : comparer v1 et v2 par Brier score apparie demande ~600 matchs
 logges (6 a 8 semaines) ; la calibration par tranches ~400 matchs par tranche ; detecter un avantage
 reel contre un bookmaker, plusieurs milliers de paris. Le pari n'est pas l'instrument de validation du

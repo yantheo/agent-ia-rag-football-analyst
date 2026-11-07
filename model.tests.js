@@ -188,6 +188,25 @@
     check('Lignes : adversaire de l\'équipe jugée', Lk.adversaire_jugee === 'Gaziantep FK' && L.adversaire_jugee === 'Stuttgart' && Lo.adversaire_jugee === null);
     check('payloadModele(null) = null (match non calculable)', M.payloadModele(null, 'A', 'B') === null);
 
+    // v2-tirs. Calcul à la main : championnat de 2 équipes, 50 tirs cadrés chacune
+    // (5/match × 10), 20 et 10 buts -> c = 30/100 = 0,3, K = 0,3·0,7/0,02² = 525.
+    // A : 50·(20 + 157,5)/575 = 15,4348 buts attendus ; mL = 30/20 = 1,5 (vrais buts) ;
+    // att A = (15,4348 + 13·1,5)/23/1,5 = 1,01260. Défense inchangée : (10+19,5)/23/1,5 = 0,85507.
+    const tt = [
+      { team_id: 'A', championnat: 'L', buts_pour: 20, buts_contre: 10, matchs_joues: 10, tirs_cadres: 5 },
+      { team_id: 'B', championnat: 'L', buts_pour: 10, buts_contre: 20, matchs_joues: 10, tirs_cadres: 5 },
+      { team_id: 'C', championnat: 'L2', buts_pour: 20, buts_contre: 10, matchs_joues: 10, tirs_cadres: null },
+    ];
+    const eloT = { equipes: { A: { elo: 1600 }, B: { elo: 1600 }, C: { elo: 1600 } }, moyennes_championnats: {} };
+    const cT = M.v2tirs.prepare(tt, eloT, { equipes: {} });
+    check('v2-tirs : attaque lissée sur les tirs (A = 1,0126)', near(cT.indices.A.att, 1.01260, 0.0005), cT.indices.A.att);
+    check('v2-tirs : défense inchangée (A = 0,8551)', near(cT.indices.A.def, 0.85507, 0.0005), cT.indices.A.def);
+    check('v2-tirs : sans tirs cadrés, buts réels (C = indice v2)', near(cT.indices.C.att, M.v2.prepare(tt, eloT, { equipes: {} }).indices.C.att, 1e-9));
+    check('v2-tirs : version propre', M.v2tirs.matchProbabilities(cT, 'A', 'B').version === 'v2-elo-k13-tirs-sd2');
+    // Marché des buts : μ = 2,5 -> P(≥3) = 1 − e^−2,5(1 + 2,5 + 3,125) = 0,45619 -> pas de pari ; μ = 3,2 -> 0,62010 -> plus.
+    check('marcheButs : P(+2,5) à μ = 2,5', near(M.marcheButs({ lambdaHome: 1.5, lambdaAway: 1.0 }).pOver, 0.45619, 0.0001));
+    check('marcheButs : pari plus à 62 %, aucun à 46 %', M.marcheButs({ lambdaHome: 2, lambdaAway: 1.2 }).pari === 'plus' && M.marcheButs({ lambdaHome: 1.5, lambdaAway: 1.0 }).pari === null);
+
     return results;
   }
 

@@ -319,6 +319,51 @@
   })();
 
   // ===========================================================================
+  // v2-tirs — "v2-elo-k13-tirs-sd2" : CANDIDAT SUIVI dans comparaison.html, PAS en
+  // production (ajout du 2026-11-07). Identique à la v2 (même s, même 1X2 à T près),
+  // sauf l'indice d'ATTAQUE : buts marqués remplacés par
+  //   tirs cadrés × conversion lissée vers celle du championnat,
+  //   conv lissée = (buts + K·c) / (tirs + K),  K = c(1−c) / SD_CONV²  (≈ 550 tirs).
+  // Mesure du 2026-11-07 (192 équipes, 10 championnats) : l'écart de conversion entre
+  // équipes est presque entièrement du bruit binomial (écart réel ~2 pts, 0 dans 6
+  // championnats sur 10) ; le lien avec le niveau est faible (+1,5 pt pour +250 Elo),
+  // donc cible = conversion du championnat, sans terme Elo. À ~50 tirs cadrés, le taux
+  // observé ne pèse que ~8 %. Défense inchangée (buts encaissés : pas de tirs concédés
+  // en base). mL = vraie moyenne de buts du championnat. Tirs = tirs_cadres/match × J
+  // (estimation du scraper). Équipe sans tirs_cadres : ses buts réels.
+  // ===========================================================================
+  const v2tirs = (function () {
+    const VERSION = 'v2-elo-k13-tirs-sd2';
+    const SD_CONV = 0.02;
+    function butsAttendus(teams) {
+      const lg = {};
+      teams.forEach(t => {
+        if (!(t.tirs_cadres > 0) || !t.matchs_joues) return;
+        const L = lg[t.championnat] || (lg[t.championnat] = { buts: 0, tirs: 0 });
+        L.buts += t.buts_pour || 0;
+        L.tirs += t.tirs_cadres * t.matchs_joues;
+      });
+      return teams.map(t => {
+        const L = lg[t.championnat];
+        if (!(t.tirs_cadres > 0) || !t.matchs_joues || !L || !L.tirs) return t;
+        const c = L.buts / L.tirs, K = c * (1 - c) / (SD_CONV * SD_CONV);
+        const n = t.tirs_cadres * t.matchs_joues;
+        return Object.assign({}, t, { buts_pour: n * ((t.buts_pour || 0) + K * c) / (n + K) });
+      });
+    }
+    function prepare(teams, eloData, mapping) {
+      const ctx = v2.prepare(teams, eloData, mapping);
+      ctx.indices = v2.buildTeamIndices(butsAttendus(teams), v1.computeLeagueAverages(teams));
+      return ctx;
+    }
+    function matchProbabilities(ctx, homeId, awayId) {
+      const p = v2.matchProbabilities(ctx, homeId, awayId);
+      return p ? Object.assign(p, { version: VERSION }) : null;
+    }
+    return { VERSION, SD_CONV, butsAttendus, prepare, matchProbabilities };
+  })();
+
+  // ===========================================================================
   // Bloc "modele" envoyé à l'agent IA (webhook n8n) avec la demande d'analyse,
   // prompt v9 « IA modèle » : les chiffres viennent du modèle, l'IA les commente
   // (CONFIRME / NUANCE / CONTREDIT) sans en inventer. Ne modifie aucune formule :
@@ -358,6 +403,15 @@
   const SEUIL_DEVANT = 40;      // points de %, comparé au pourcentage affiché
   const SEUIL_OVER = 60, SEUIL_UNDER = 40; // pari sur les buts si Over affiché >= 60 % ou <= 40 %
   const pc = x => `${Math.round(x * 100)} %`;
+  // Marché des buts d'une prédiction (λ de la v2 ou de la v2-tirs) + pari selon la
+  // même règle que lignesVerdict (Over affiché >= 60 % ou <= 40 %). Pour comparaison.html.
+  function marcheButs(p) {
+    if (!p || p.lambdaHome == null) return null;
+    const mu = p.lambdaHome + p.lambdaAway;
+    const pOver = 1 - (poissonPmf(mu, 0) + poissonPmf(mu, 1) + poissonPmf(mu, 2));
+    const pari = pctAffiche(pOver) >= SEUIL_OVER ? 'plus' : pctAffiche(pOver) <= SEUIL_UNDER ? 'moins' : null;
+    return { pOver, pari };
+  }
   function lignesVerdict(p, nomDom, nomExt) {
     const max = Math.max(p.pHome, p.pDraw, p.pAway);
     const niveau = niveauFavori(max);
@@ -438,9 +492,10 @@
     v3,
     poissonPmf,
     poissonOutcomes,
-    payloadModele, niveauFavori, risqueNul, lignesVerdict,
+    payloadModele, niveauFavori, risqueNul, lignesVerdict, marcheButs,
     v1,
     v2,
+    v2tirs,
     marche,
     // Raccourci demandé : Modele.v1_poisson(home, away) avec les indices de
     // Modele.v1.buildTeamIndices.
