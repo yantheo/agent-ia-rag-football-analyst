@@ -125,6 +125,10 @@
         .rank { color: var(--text-muted); font-size: 0.75rem; margin-left: 6px; font-family: 'JetBrains Mono', monospace; }
         .rank.top { color: var(--green-primary); }
         .rank.bottom { color: #fca5a5; }
+        .card.wide { grid-column: 1 / -1; }
+        .style-sum { padding: 12px 16px; font-size: 0.9rem; color: var(--text-secondary); border-bottom: 1px solid rgba(45, 59, 53, 0.6); }
+        .card td.v .chip { margin-right: 8px; }
+        .style-note { padding: 10px 16px; font-size: 0.75rem; color: var(--text-muted); }
         .pill-res { display: inline-block; width: 22px; text-align: center; font-weight: 700; border-radius: 6px; margin-left: 2px; font-size: 0.78rem; }
         .pill-res.V { background: #166534; } .pill-res.N { background: #854d0e; } .pill-res.D { background: #991b1b; }
         .score-res { display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 0.75rem; margin: 1px; }
@@ -272,7 +276,82 @@
     return l.map((p, i) => `<tr><td class="k">${i ? '' : title}</td><td class="v txt">${esc(p.nom)} <span class="rank">${esc(p.stats)}</span></td></tr>`);
   }
 
-  function render(t, league, todayMatch) {
+  // ---- Style de jeu (2026-11-07) ------------------------------------------
+  // Descriptif seulement (jamais dans le modèle). Possession, passes, dribbles et tirs
+  // reflètent d'abord le NIVEAU (possession vs points/match : corrélation 0,54 sur 181
+  // équipes) : chaque axe est donc comparé à ce qu'on attend d'une équipe de ce niveau
+  // dans ce championnat (régression sur l'Elo ClubElo, pondération égale). Équipe sans
+  // Elo : niveau estimé d'après ses points par match (même régression inversée).
+  // Possession et précision des passes = un seul axe « contrôle » (corrélation 0,84).
+  const STYLE_AXES = [
+    { key: 'controle', titre: 'Contrôle du ballon', parts: [
+      { label: 'possession', get: x => x.possession_en_pourcentage, fmt: v => Math.round(v) + ' %' },
+      { label: 'passes réussies', get: x => x.precision_passes_en_pourcentage, fmt: v => Math.round(v) + ' %' }] },
+    { key: 'percussion', titre: 'Percussion (dribbles)', parts: [
+      { label: 'dribbles réussis par match', get: x => x.dribbles_reussis, fmt: v => v.toFixed(1).replace('.', ',') }] },
+    { key: 'volume', titre: 'Volume de tirs cadrés', parts: [
+      { label: 'tirs cadrés par match', get: x => x.tirs_cadres, fmt: v => v.toFixed(1).replace('.', ',') }] },
+  ];
+  const ok = v => v != null && v !== '' && !Number.isNaN(+v);
+  function fit(xs, ys) { // moindres carrés y = a + b·x
+    const n = xs.length, mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+    let sxx = 0, sxy = 0; xs.forEach((x, i) => { sxx += (x - mx) ** 2; sxy += (x - mx) * (ys[i] - my); });
+    const b = sxx ? sxy / sxx : 0; return { a: my - b * mx, b };
+  }
+  function styleProfile(t, league, eloBrut) {
+    const ppm = x => x.matchs_joues ? x.points / x.matchs_joues : null;
+    // Garde-fou : l'instantané du 2026-11-02 contient des Elo impossibles (Lorient 157,
+    // Atalanta 210…, erreur de lecture de la page ClubElo). Hors 1000-2500 : ignoré.
+    const elo = Object.fromEntries(Object.entries(eloBrut).filter(([, v]) => v && v.elo > 1000 && v.elo < 2500));
+    // Niveau : Elo, ou Elo estimé d'après les points par match pour les équipes absentes de ClubElo.
+    const avecElo = league.filter(x => elo[x.team_id] && ok(ppm(x)));
+    if (avecElo.length < 8) return null;
+    const inv = fit(avecElo.map(ppm), avecElo.map(x => elo[x.team_id].elo));
+    const niveau = x => elo[x.team_id] ? elo[x.team_id].elo : ok(ppm(x)) ? inv.a + inv.b * ppm(x) : null;
+    const axes = STYLE_AXES.map(ax => {
+      const pool = league.filter(x => niveau(x) != null && ax.parts.every(pt => ok(pt.get(x))));
+      if (pool.length < 8 || !pool.includes(t)) return { ax, z: null };
+      // Score de l'axe = moyenne des z-scores de ses composantes dans le championnat
+      const stats = ax.parts.map(pt => { const v = pool.map(x => +pt.get(x)), m = v.reduce((a, b) => a + b, 0) / v.length;
+        return { m, sd: Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / v.length) || 1 }; });
+      const score = x => ax.parts.reduce((a, pt, i) => a + (+pt.get(x) - stats[i].m) / stats[i].sd, 0) / ax.parts.length;
+      const f = fit(pool.map(niveau), pool.map(score));
+      const res = pool.map(x => score(x) - (f.a + f.b * niveau(x)));
+      const sdRes = Math.sqrt(res.reduce((a, b) => a + b * b, 0) / res.length) || 1;
+      const z = (score(t) - (f.a + f.b * niveau(t))) / sdRes;
+      // Valeurs attendues pour son niveau, composante par composante (affichage)
+      const details = ax.parts.map(pt => { const g = fit(pool.map(niveau), pool.map(x => +pt.get(x)));
+        return { label: pt.label, val: pt.fmt(+pt.get(t)), att: pt.fmt(g.a + g.b * niveau(t)) }; });
+      return { ax, z, details };
+    });
+    return { axes, eloEstime: !elo[t.team_id] };
+  }
+  const verdict = z => z == null ? null : z >= 1 ? ['nettement au-dessus', ''] : z >= 0.5 ? ['au-dessus', ''] : z <= -1 ? ['nettement en dessous', 'neg'] : z <= -0.5 ? ['en dessous', 'neg'] : ['dans la norme', 'warn'];
+  const PHRASES = {
+    controle: ['garde le ballon plus que son niveau ne le laisse attendre', 'laisse le ballon plus que son niveau ne le laisse attendre'],
+    percussion: ['fait beaucoup d\'efforts individuels (dribbles)', 'dribble peu'],
+    volume: ['cadre beaucoup de tirs pour son niveau', 'cadre peu de tirs pour son niveau'],
+  };
+  function styleCard(t, prof) {
+    if (!prof) return `<div class="card wide"><div class="card-title">Style de jeu</div><div class="style-sum">Pas assez de données pour ce championnat.</div></div>`;
+    const marques = prof.axes.filter(a => a.z != null && Math.abs(a.z) >= 1).sort((a, b) => Math.abs(b.z) - Math.abs(a.z));
+    const resume = marques.length
+      ? `${esc(t.equipe)} ${marques.map(a => PHRASES[a.ax.key][a.z > 0 ? 0 : 1]).join(', ').replace(/, ([^,]*)$/, ' et $1')}.`
+      : `Pas de trait marqué : sur les trois axes, ${esc(t.equipe)} joue comme on l'attend d'une équipe de son niveau dans ce championnat.`;
+    const rows = prof.axes.map(a => {
+      if (a.z == null) return `<tr><td class="k">${a.ax.titre}</td><td class="v txt">—</td></tr>`;
+      const [mot, cls] = verdict(a.z);
+      const det = a.details.map(d => `${d.label} ${d.val} <span class="rank">(attendu ${d.att})</span>`).join(' · ');
+      return `<tr><td class="k">${a.ax.titre}</td><td class="v txt"><span class="chip ${cls}">${mot}</span>${det}</td></tr>`;
+    });
+    return `<div class="card wide"><div class="card-title">Style de jeu</div><div class="style-sum">${resume}</div>
+      <table><tbody>${rows.join('')}</tbody></table>
+      <div class="style-note">Chaque axe est comparé à ce qu'on attend d'une équipe de ce niveau (Elo ClubElo${prof.eloEstime ? ' — absent pour cette équipe : niveau estimé d\'après ses points par match' : ''}) dans ce championnat,
+        car avoir le ballon ou tirer beaucoup dépend d'abord de la force de l'équipe. « Nettement » = parmi les écarts les plus marqués du championnat (plus d'un écart-type).
+        Descriptif seulement : ces statistiques ne servent pas aux probabilités. Pressing, jeu direct, centres ou bloc bas ne sont pas mesurables avec ces données.</div></div>`;
+  }
+
+  function render(t, league, todayMatch, elo) {
     const j = t.matchs_joues || 0;
     const ppm = j ? t.points / j : null;
     const diff = (t.buts_pour ?? 0) - (t.buts_contre ?? 0);
@@ -346,6 +425,7 @@
           row('Âge moyen de l\'effectif', num(t.age_moyen_effectif, 1), null),
         ])}
         ${card('Joueurs clés', [...playersRows('Buteurs', t.meilleurs_buteurs), ...playersRows('Passeurs', t.meilleurs_passeurs)])}
+        ${styleCard(t, styleProfile(t, league, elo))}
       </div>
       <p class="note">Rang = place de l'équipe dans son championnat (${league.length} équipes) sur la stat, 1<sup>er</sup> = le meilleur
         (pour les buts encaissés et les cartons : le moins). Buteurs et passeurs : probablement toutes compétitions (page principale du club).</p>`;
@@ -381,11 +461,15 @@
       if (!t) { $('content').innerHTML = `<div class="state err">Équipe introuvable : ${esc(teamId)}</div>`; return; }
       const today = new Date().toLocaleDateString('sv-SE');
       const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
-      const [league, matches] = await Promise.all([
+      const [league, matches, eloData] = await Promise.all([
         sb('classements_foot', `championnat=eq.${encodeURIComponent(t.championnat)}&select=*`),
         sb('calendrier', `date_match=gte.${today}&date_match=lt.${tomorrow}&or=(team_id_domicile.eq.${encodeURIComponent(teamId)},team_id_exterieur.eq.${encodeURIComponent(teamId)})&select=equipe_domicile,equipe_exterieur,heure`).catch(() => []),
+        fetch('elo-clubs.json').then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
-      render(t, league.filter(fresh), matches[0] || null);
+      const lg = league.filter(fresh);
+      // L'objet t doit appartenir à la liste du championnat (comparaisons par référence dans styleProfile)
+      const tt = lg.find(x => x.team_id === t.team_id) || t;
+      render(tt, lg.includes(tt) ? lg : lg.concat(tt), matches[0] || null, (eloData && eloData.equipes) || {});
     } catch (e) {
       console.error(e);
       $('content').innerHTML = `<div class="state err">Erreur de chargement : ${esc(e.message)}</div>`;
