@@ -106,8 +106,13 @@ const lectureContexte = (() => {
    */
   function paragrapheRisque(ctx, nom, proba) {
     if (ctx.contreVide) {
+      // « n'est donné qu'à » seulement sous 50 % (affiché) : « qu'à 80 % » sonnait faux
+      // (Rome – Sassuolo, 2026-11-07). Au-dessus, la part restante, chiffrée.
+      const v = proba != null ? Math.round(proba * 100) : null;
       return `Les données ne signalent pas de point faible net chez ${nom}.`
-        + (proba != null ? ` Le risque tient au match lui-même : ${nom} n'est donné qu'à ${Math.round(proba * 100)} % par le modèle.` : '');
+        + (v == null ? ''
+          : v < 50 ? ` Le risque tient au match lui-même : ${nom} n'est donné qu'à ${v} % par le modèle.`
+          : ` Le risque tient au match lui-même : le modèle donne ${v} % de victoire à ${nom}, il reste ${100 - v} % pour le nul ou une défaite.`);
     }
     const r = ctx.contre.slice(0, 2).map(f => f.risque);
     const corps = r.length === 2 ? `${r[0]}, et ${r[1]}` : r[0];
@@ -169,8 +174,11 @@ function testsLectureContexte() {
   const pr = lectureContexte.paragrapheRisque;
   check(pr(a, 'Kasımpaşa', 0.43) === "Les données ne signalent pas de point faible net chez Kasımpaşa. Le risque tient au match lui-même : Kasımpaşa n'est donné qu'à 43 % par le modèle.",
     'liste Contre vide : texte fixe avec le risque de format, obtenu ' + pr(a, 'Kasımpaşa', 0.43));
-  check(pr(r, 'Reims', 0.57) === "Les données ne signalent pas de point faible net chez Reims. Le risque tient au match lui-même : Reims n'est donné qu'à 57 % par le modèle.",
-    'Reims sans fait Contre : ' + pr(r, 'Reims', 0.57));
+  check(pr(r, 'Reims', 0.57) === 'Les données ne signalent pas de point faible net chez Reims. Le risque tient au match lui-même : le modèle donne 57 % de victoire à Reims, il reste 43 % pour le nul ou une défaite.',
+    'Reims sans fait Contre, 57 % : ' + pr(r, 'Reims', 0.57));
+  check(pr(r, 'Rome', 0.80).endsWith('le modèle donne 80 % de victoire à Rome, il reste 20 % pour le nul ou une défaite.'), 'Rome à 80 % : ' + pr(r, 'Rome', 0.80));
+  check(pr(r, 'Reims', 0.496).includes('il reste 50 %') && pr(r, 'Reims', 0.494).includes("n'est donné qu'à 49 %"), 'bascule sur le pourcentage affiché (49 % : « qu\'à », 50 % : part restante)');
+  check(pr(r, 'Reims', null) === 'Les données ne signalent pas de point faible net chez Reims.', 'sans probabilité : phrase seule');
   check(pr(b, 'Gaziantep FK', 0.31).split(', et ').length === 2, 'deux faits Contre au plus, joints par « , et » : ' + pr(b, 'Gaziantep FK', 0.31));
   const tous = [a, b, c, r, r2].flatMap(x => x.contre);
   check(tous.every(f => f.risque && /\d/.test(f.risque)), 'chaque risque contient un chiffre');
