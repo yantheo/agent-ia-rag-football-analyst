@@ -13,6 +13,9 @@ donnees personnelles (ex: historique de paris reel — voir `.gitignore`).
 Pages actuelles :
 - **`index.html`** — Calendrier du jour, comparaison stats, bouton "Analyser" un match. Vue match : bloc
   « Probabilités du modèle » (`Modele.v3`, meme rendu que `confrontation.html`, `renderModelBox`).
+  Menu lateral des championnats du jour (meme style que `championnats.html`, ajout du 2026-11-07) : « Tous les
+  championnats » par defaut, filtre cote client sur les `.league-group` (pas de nouvelle requete), choix dans le
+  hash (`index.html#Serie%20A`).
 - **`bankroll.html`** — Suivi de paris personnel (import bwin, saisie manuelle), 100% `localStorage`,
   aucune communication avec un backend.
 - **`meilleurs-paris.html`** — Pre-filtre statistique local (gratuit, `Modele.v3`) des matchs du jour, puis

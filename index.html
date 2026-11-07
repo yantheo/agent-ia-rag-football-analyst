@@ -72,6 +72,46 @@
         .view { display: none; }
         .view.active { display: block; }
 
+        /* ---------- Layout : menu championnats a gauche (meme style que championnats.html) ---------- */
+        .layout { display: flex; gap: 28px; align-items: flex-start; }
+        .league-menu {
+            position: sticky; top: 16px; margin-top: 32px;
+            flex: 0 0 230px; width: 230px;
+            max-height: calc(100vh - 32px); overflow-y: auto;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 14px 10px;
+        }
+        .league-menu h3 {
+            font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 600; padding: 0 10px 10px;
+        }
+        .league-menu ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .league-menu li.sep { height: 1px; background: var(--border); margin: 6px 10px; }
+        .league-menu button {
+            width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            background: none; border: 1px solid transparent; border-radius: 10px;
+            color: var(--text-secondary); font: inherit; font-size: 0.88rem; text-align: left;
+            padding: 8px 10px; cursor: pointer; transition: all 0.15s;
+        }
+        .league-menu button:hover { background: var(--bg-secondary); }
+        .league-menu button.active {
+            border-color: var(--green-primary); color: var(--green-primary); background: var(--green-dark); font-weight: 600;
+        }
+        .league-menu .count { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+        .league-menu:empty, .league-menu.hidden { display: none; }
+        .league-content { flex: 1; min-width: 0; }
+
+        @media (max-width: 860px) {
+            .layout { flex-direction: column; align-items: stretch; gap: 0; }
+            .league-menu {
+                position: static; width: 100%; flex-basis: auto; max-height: none; margin-top: 20px;
+                overflow-x: auto; overflow-y: hidden; padding: 8px;
+            }
+            .league-menu h3, .league-menu .count, .league-menu li.sep { display: none; }
+            .league-menu ul { flex-direction: row; gap: 6px; }
+            .league-menu button { white-space: nowrap; }
+        }
+
         /* Calendar Page */
         .page-title {
             padding: 32px 0 20px; text-align: left;
@@ -344,8 +384,14 @@
         <!-- VIEW: Calendar -->
         <div id="view-calendar" class="view active">
             <div class="container">
+              <div class="layout">
+                <aside class="league-menu hidden" id="league-menu" aria-label="Championnats">
+                    <h3>Championnats</h3>
+                    <ul id="league-list"></ul>
+                </aside>
+                <section class="league-content">
                 <div class="page-title">
-                    <h2>Matchs du jour</h2>
+                    <h2 id="calendar-heading">Matchs du jour</h2>
                     <p>Selectionnez un match pour voir la confrontation et lancer l'analyse IA</p>
                     <span class="date" id="today-date"></span>
                 </div>
@@ -355,6 +401,8 @@
                         <p>Chargement des matchs...</p>
                     </div>
                 </div>
+                </section>
+              </div>
             </div>
         </div>
 
@@ -556,7 +604,7 @@
                 for (const [league, data] of Object.entries(grouped)) {
                     const flag = FLAG_MAP[data.country] || '';
                     html += `
-                        <div class="league-group">
+                        <div class="league-group" data-league="${escapeAttr(league)}">
                             <div class="league-header">
                                 <span class="flag">${flag}</span>
                                 <h3>${league}</h3>
@@ -586,6 +634,7 @@
                 }
 
                 container.innerHTML = html;
+                renderLeagueMenu(grouped, matches.length);
             } catch (err) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -594,6 +643,48 @@
                     </div>`;
             }
         }
+
+        // --- MENU CHAMPIONNATS (meme principe que championnats.html / buteurs-passeurs.html) ---
+        // Tous les championnats par defaut ; filtre cote client (pas de nouvelle requete).
+        // Le championnat choisi est dans le hash (index.html#Ligue%201), partageable.
+        const ALL_LEAGUES = '';
+        function renderLeagueMenu(grouped, total) {
+            const item = (value, label, count) => `
+                <li><button type="button" data-league="${escapeAttr(value)}">
+                    <span>${escapeAttr(label)}</span><span class="count">${count}</span>
+                </button></li>`;
+            const leagues = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'fr'));
+            document.getElementById('league-list').innerHTML =
+                item(ALL_LEAGUES, 'Tous les championnats', total) +
+                '<li class="sep" aria-hidden="true"></li>' +
+                leagues.map(lg => item(lg, `${FLAG_MAP[grouped[lg].country] || ''} ${lg}`.trim(), grouped[lg].matches.length)).join('');
+            document.getElementById('league-menu').classList.remove('hidden');
+            selectLeague(decodeURIComponent(location.hash.slice(1)), false);
+        }
+
+        function selectLeague(league, updateHash = true) {
+            const groups = document.querySelectorAll('#matches-container .league-group');
+            if (league !== ALL_LEAGUES && ![...groups].some(g => g.dataset.league === league)) league = ALL_LEAGUES;
+            groups.forEach(g => { g.style.display = (league === ALL_LEAGUES || g.dataset.league === league) ? '' : 'none'; });
+            document.querySelectorAll('#league-list button').forEach(btn =>
+                btn.classList.toggle('active', btn.dataset.league === league));
+            document.getElementById('calendar-heading').textContent = league ? `Matchs du jour — ${league}` : 'Matchs du jour';
+            // Mobile : barre horizontale, on fait defiler jusqu'au bouton actif (sans faire defiler la page)
+            const menu = document.getElementById('league-menu');
+            const active = menu.querySelector('button.active');
+            if (active && menu.scrollWidth > menu.clientWidth) {
+                menu.scrollLeft += active.getBoundingClientRect().left - menu.getBoundingClientRect().left - 8;
+            }
+            if (updateHash) {
+                history.replaceState(null, '', league === ALL_LEAGUES ? location.pathname + location.search : '#' + encodeURIComponent(league));
+            }
+        }
+
+        document.getElementById('league-list').addEventListener('click', e => {
+            const btn = e.target.closest('button[data-league]');
+            if (btn) selectLeague(btn.dataset.league);
+        });
+        window.addEventListener('hashchange', () => selectLeague(decodeURIComponent(location.hash.slice(1)), false));
 
         // --- MATCH DETAIL ---
         async function openMatch(match) {
