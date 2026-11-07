@@ -501,6 +501,19 @@ predictions figees). Donc : v1 / v2 / v3 restent intactes dans `model.js`, chaqu
     gagnes pour 65 % annonces, rendement -3,3 % ; « moins » 56 % pour 65 % annonces, rendement -6,2 %.
     Resultats identiques sur les 5 dernieres saisons seules.
 
+- `tools/retro_test_1x2.js` : v1 / v2 / v3 en 1/N/2 (model.js tel quel), 40 219 matchs 2014/15 -> 2025/26, avec un
+  **Elo maison** (API ClubElo en panne le 2026-11-07) : K 20, terrain 65, matchs de championnat seulement,
+  parametres fixes a priori. Controle contre elo-clubs.json : correlation 0,91-0,99 mais ~1,3x plus etale
+  (`ELO_ECHELLE=0.75` le ramene a l'echelle ClubElo). **Resultats (approximation de la prod)** :
+  - **v1 nettement la moins bonne** dans tous les cas (vs v2 : +0,009 a +0,011 de Brier, z 10-15 ; tres
+    mauvaise en debut de saison). Robuste.
+  - **v3 vs v2 depend de l'echelle de l'Elo** : Elo brut (trop etale) -> v3 legerement meilleure (-0,0008,
+    z -2,0) car la moyenne avec v1 tempere une v2 trop sure d'elle ; Elo a l'echelle ClubElo -> **v2 seule
+    meilleure** (v3 +0,0015, z 4,1 ; 5 dernieres saisons +0,0006, z 1,0 ; debut de saison +0,0047, z 4,4).
+    Coherent avec les soirees reelles (Brier v2 0,543 < v3 0,551 < v1 0,569). A confirmer avec ClubElo.
+  - Regle « favori net >= 60 % » : bien calibree (v3 annonce 68,5 %, gagne 71 %), rendement ~ -1 % a la cote de
+    cloture pour v1 / v2 / v3 (≈ la marge, pas d'avantage). Marche : 0,5812 contre 0,5953 (v2) au mieux.
+
 **Constats sur les sources (2026-11-07)** :
 - football-data 2026/27 : 10 championnats, tirs cadres, **xG** (nouveau, source non indiquee : a identifier),
   cotes bwin, **cloture Betfair Exchange** ; **plus de Pinnacle** (present jusqu'en 2025/26 -> mesure contre
