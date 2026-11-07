@@ -529,9 +529,33 @@ predictions figees). Donc : v1 / v2 / v3 restent intactes dans `model.js`, chaqu
   10h (forme deja a jour, totaux non). Changer l'heure du scrape n'y peut rien -> controle « chaque equipe de la
   veille a un match de plus », sinon relance / signalement.
 
-**Plan** : 1) import football-data (historique + saison, hors Supabase) -> retro-test v2 / v2-tirs / lissage
-adapte sur des milliers de matchs, mesure contre la cloture ; 2) footmercato pages de match (joueurs, compos,
-absences) ; 3) stats joueurs en championnat, P(buteur | titulaire).
+**Bilan de la journee du 2026-11-07 (ce que l'historique a appris)** :
+- Aucune amelioration exploitable pour parier : v2-tirs = v2, aucun modele ne bat la cote de cloture.
+- Mais trois constats sur l'appli EN PROD (rien n'a ete change en prod) :
+  1. le modele des buts est trop sur de lui ; le conseil « moins de 2,5 » gagne 56 % pour 65 % annonces
+     (-6,2 % a la cloture) -> **decision utilisateur en attente** (le retirer, ou une version mieux calibree) ;
+  2. la v1 est nettement la moins bonne en 1/N/2 ;
+  3. la v3 ne fait probablement pas mieux que la v2 seule (a confirmer avec l'Elo ClubElo historique).
+- L'historique sert de **laboratoire** (une idee testee en quelques secondes sur ~45 000 matchs), pas de
+  fonctionnalite : rien n'est ajoute au site.
+
+**Reprendre la branche** (depuis la racine du repo) :
+```
+git switch donnees-reelles
+python3 tools/import_football_data.py      # (re)telecharge football-data -> donnees/ (ignore par git)
+python3 tools/build_fd_mapping.py          # correspondance team_id -> football-data (promus en debut de saison)
+node tools/retro_test.js                   # plus / moins de 2,5 : v2, v2-tirs, lissages
+node tools/retro_test_1x2.js               # 1/N/2 : v1, v2, v3 (Elo maison) ; ELO_ECHELLE=0.75 = echelle ClubElo
+```
+Rapports : `donnees/rapports/*.md` (locaux). `donnees/` doit etre reconstruit sur une autre machine (import).
+
+**Prochaines etapes (dans l'ordre, a valider par l'utilisateur)** :
+1. Refaire `retro_test_1x2.js` avec l'Elo historique ClubElo quand l'API repondra (http://api.clubelo.com/,
+   en panne le 2026-11-07 ; ne pas contourner la protection anti-robots du site) : trancher v3 contre v2.
+2. Version « buts calibres » (lissage plus fort, ex. K 50, eventuellement melangee au taux du championnat) :
+   nouvelle `version_modele` testee ici, comparee a v2 sur le +/- 2,5 et sur la regle de conseil.
+3. Plus tard, seulement si les probabilites buteur sont voulues : pages de match footmercato (joueurs, compos,
+   absences), stats joueurs en championnat (corrige B1), P(buteur | titulaire).
 
 ## Etat actuel (2026-11-07)
 
