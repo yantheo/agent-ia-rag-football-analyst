@@ -487,6 +487,20 @@ predictions figees). Donc : v1 / v2 / v3 restent intactes dans `model.js`, chaqu
   absente en 2026/27 ; cloture Pinnacle +/- 2,5 a partir de 2019/20 seulement ; cloture Betfair Exchange a
   partir de 2024/25 ; xG en 2026/27 seulement ; Super Lig 2022/23 a 92 % (saison interrompue en fevrier 2023).
 
+- `tools/retro_test.js` (Node, reutilise model.js tel quel ; rapport dans `donnees/rapports/`) : 46 817 matchs
+  2012/13 -> 2025/26, chaque match predit avec les stats de la saison AVANT sa date ; K choisi sur 2012-2019,
+  mesure sur 2019-2026. **Resultats du 2026-11-07 (plus / moins de 2,5)** :
+  - **v2-tirs = v2** (Brier 0,2477 vs 0,2476, z 0,5) : l'hypothese « les tirs cadres sont plus fiables que les
+    buts » ne se verifie pas sur ce marche. v1-tirs en 1X2 : -0,0009 (z -1,5), faible, meme sens sur toutes les
+    periodes. => ne PAS passer la v2-tirs en prod.
+  - **Le modele des buts est trop sur de lui** : annonce 33 % -> 40 % observes, 72 % -> 65,5 %. Un lissage plus
+    fort aide (K 50 : -0,0011, z -4,3) ; reduire le lissage (hypothese « double lissage ») degrade.
+  - **A peine mieux qu'une reference naive** (taux de +2,5 du championnat a date : 0,2480 vs 0,2476), et moins
+    bon qu'elle en debut de saison. Marche de cloture : 0,2392, ecart moyen au marche ~6 pts.
+  - **Regle de conseil de l'appli** (+2,5 si >= 60 %, -2,5 si <= 40 %) a la cote de cloture : « plus » 61 %
+    gagnes pour 65 % annonces, rendement -3,3 % ; « moins » 56 % pour 65 % annonces, rendement -6,2 %.
+    Resultats identiques sur les 5 dernieres saisons seules.
+
 **Constats sur les sources (2026-11-07)** :
 - football-data 2026/27 : 10 championnats, tirs cadres, **xG** (nouveau, source non indiquee : a identifier),
   cotes bwin, **cloture Betfair Exchange** ; **plus de Pinnacle** (present jusqu'en 2025/26 -> mesure contre
