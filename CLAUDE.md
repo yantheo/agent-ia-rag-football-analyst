@@ -479,6 +479,14 @@ predictions figees). Donc : v1 / v2 / v3 restent intactes dans `model.js`, chaqu
   Paris FC, Ath Madrid -> Real Madrid...). Statut `valide_main` jamais ecrase, et controle lui aussi. Relancer en
   debut de saison (promus) : `python3 tools/build_fd_mapping.py <code saison, ex. 2728>`.
 
+- `tools/import_football_data.py` -> `donnees/football-data/<saison>/<division>.csv` (CSV bruts, dossier
+  ignore par git) + `inventaire.json` (matchs, dates, remplissage des colonnes, sha256). Import du 2026-11-07 :
+  **15 saisons (2012/13 -> 2026/27) x 10 championnats = 150 fichiers, 52 017 matchs, 18 Mo**. Saisons
+  terminees telechargees une fois ; la saison en cours a chaque lancement. Remplissage : tirs cadres ~100 %
+  partout ; cloture Pinnacle 1X2 ~100 % jusqu'en 2024/25, ~33-55 % en 2025/26 (arret en cours de saison),
+  absente en 2026/27 ; cloture Pinnacle +/- 2,5 a partir de 2019/20 seulement ; cloture Betfair Exchange a
+  partir de 2024/25 ; xG en 2026/27 seulement ; Super Lig 2022/23 a 92 % (saison interrompue en fevrier 2023).
+
 **Constats sur les sources (2026-11-07)** :
 - football-data 2026/27 : 10 championnats, tirs cadres, **xG** (nouveau, source non indiquee : a identifier),
   cotes bwin, **cloture Betfair Exchange** ; **plus de Pinnacle** (present jusqu'en 2025/26 -> mesure contre

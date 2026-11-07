@@ -8,3 +8,6 @@ prompts-n8n/
 
 # Cache Python
 __pycache__/
+
+# Donnees importees en local (volumineuses, reproductibles : tools/import_football_data.py)
+donnees/
