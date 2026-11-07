@@ -503,8 +503,8 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
 
 L'historique de ce repo a ete force-push/reecrit a un moment (plusieurs versions du frontend ont
 coexiste : un ancien widget `@n8n/chat` en chat libre, remplace par la version calendrier actuelle).
-Branches `ia-modele` et `v2-modele` : entierement fusionnees dans `main` (la `ia-modele` distante porte les
-anciens commits d'avant rebase, deja dans `main` sous d'autres hash). `main` est la seule branche active.
+Branches `ia-modele` et `v2-modele` fusionnees dans `main` puis supprimees (local + GitHub) le 2026-11-07.
+`main` est la seule branche.
 
 ## Fichiers locaux de prompts / workflows (non versionnes)
 
