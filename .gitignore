@@ -6,3 +6,7 @@ parse_bwin.py
 
 # Sauvegardes locales des prompts / workflows n8n (jamais commitees)
 prompts-n8n/
+PROMPT-agent-v10.md
+
+# Cache Python
+__pycache__/
