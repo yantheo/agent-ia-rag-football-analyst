@@ -433,6 +433,16 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
   par n8n) ; seuils de `lectureContexte` relatifs au championnat (aujourd'hui absolus) ; Elo rafraichi chaque
   jour.
 
+## Etat au 2026-11-07
+
+- **Prod n8n = v10c** (deployee le 2026-11-07 au matin, test puis prod) : `lecture-contexte.js` sans le fait
+  « transforme N % de ses tirs cadres… ce rythme devrait baisser » (bruit, declenche sur 18 matchs sur 43 le 07/11)
+  ni l'exclusion attaque / conversion ; paragraphe de risque « n'est donne qu'a N % » seulement sous 50 % affiche,
+  au-dessus « le modele donne N % de victoire a X, il reste M % pour le nul ou une defaite ». Prompt v10c : exemple 1
+  sans conversion, « devrait » interdit sans exception. Effet mesure sur les 43 matchs du 07/11 : 6 etiquettes
+  FAVORABLE <-> MITIGE, 0 conseil change. Sauvegarde serveur : `backup_football-analyze_2026-11-07_v10-avant-v10c.json`.
+- `comparaison.html` suit la v2-tirs et le marche des buts ; 43 matchs du 07/11 figes dans `predictions-figees.json`.
+
 ## Etat au 2026-11-06 (soir)
 
 - **Prod (deployee le 2026-11-06 au soir)** : IA modele v10 + correctifs des rounds 1 et 2, **gpt-4.1-mini**
