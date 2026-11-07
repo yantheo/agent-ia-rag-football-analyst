@@ -442,6 +442,13 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
   sans conversion, « devrait » interdit sans exception. Effet mesure sur les 43 matchs du 07/11 : 6 etiquettes
   FAVORABLE <-> MITIGE, 0 conseil change. Sauvegarde serveur : `backup_football-analyze_2026-11-07_v10-avant-v10c.json`.
 - `comparaison.html` suit la v2-tirs et le marche des buts ; 43 matchs du 07/11 figes dans `predictions-figees.json`.
+- **Bug corrige le 2026-11-07 : 5 Elo impossibles dans `elo-clubs.json`** depuis le snapshot du 2026-11-03 (Deportivo
+  112, Lorient 157, Atalanta 210, Gil Vicente 423, Benfica 554 : erreur de lecture de la page ClubElo, aucune erreur
+  levee). Effet en prod v3 : Espanyol – Deportivo 63/19/19 au lieu de 37/27/36. Retires (Elo moyen du championnat,
+  prediction « Elo approximatif ») ; valeurs gardees dans `elo_invalides_retires`. `build_elo_snapshot.py` refuse
+  desormais un Elo hors 1000-2500. **A refaire** : snapshot complet quand ClubElo repond (403 Cloudflare / API 502
+  le 07/11). Les predictions figees de ces equipes (03/11 -> 07/11) restent biaisees : a signaler dans les bilans.
+- `equipe.html` : bloc « Style de jeu » (controle / percussion / volume de tirs, rapportes au niveau), descriptif.
 
 ## Etat au 2026-11-06 (soir)
 

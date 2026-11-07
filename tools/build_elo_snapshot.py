@@ -77,7 +77,13 @@ def main():
         if name not in clubs:
             missing_in_page.append((team_id, name))
             continue
-        teams[team_id] = {"clubelo": name, "elo": clubs[name]["elo"]}
+        elo = clubs[name]["elo"]
+        # Garde-fou (2026-11-07) : le snapshot du 2026-11-03 contenait Lorient 157, Atalanta 210,
+        # Benfica 554... (erreur de lecture de la page), sans aucune erreur. Un Elo de club est
+        # entre ~1300 et ~2100 : hors 1000-2500, on refuse d'ecrire le fichier.
+        if not 1000 < elo < 2500:
+            sys.exit(f"Elo impossible pour {team_id} ({name}) : {elo} -> la lecture de la page ClubElo est fausse")
+        teams[team_id] = {"clubelo": name, "elo": elo}
 
     if missing_in_page:
         # Un nom present dans le mapping mais absent de la page : ne pas produire un
