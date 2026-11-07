@@ -413,7 +413,8 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
   sinon pas de pari ; + plus/moins de 2,5 buts si P(Over) >= 60 % / <= 40 %). **Couplage asymetrique** : un
   contexte DEFAVORABLE degrade d'un cran (solide -> fragile -> pas de pari), FAVORABLE / MITIGE ne changent
   rien — une etiquette fausse ne peut que faire manquer un pari, jamais en creer un.
-- **Workflow n8n** (local : `prompts-n8n/workflow_football-analyze_2026-11-06_v10-prod.json`, sauvegarde v8
+- **Workflow n8n** (local : prod actuelle `prompts-n8n/workflow_football-analyze_2026-11-07_v10c-prod.json`, versions
+  precedentes dans `prompts-n8n/archive/` ; sauvegarde v8
   sur le serveur `backup_football-analyze_2026-11-06_v8-avant-v10.json`) : Webhook -> Postgres (requete fixe
   AVANT l'IA, plus d'outil : 1 seul appel LLM) -> Code « Preparer » (`lectureContexte` : listes Pour / Contre et
   etiquette FAVORABLE / MITIGE / DEFAVORABLE calculees ; message a l'IA sans jsonb brut) -> AI Agent sans outil
@@ -496,3 +497,11 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
 
 L'historique de ce repo a ete force-push/reecrit a un moment (plusieurs versions du frontend ont
 coexiste : un ancien widget `@n8n/chat` en chat libre, remplace par la version calendrier actuelle).
+
+## Fichiers locaux de prompts / workflows (non versionnes)
+
+`prompts-n8n/` (ignore par git) ne garde a la racine que la version courante : prompt et workflow de prod
+(v10c), workflow de TEST courant, derniere sauvegarde serveur avant deploiement (retour arriere). Tout le
+reste (prompts v1 -> v10b, workflows et briefs passes, anciens `PROMPT-*.md` pour Claude Code) est dans
+`prompts-n8n/archive/` — rien n'a ete supprime. A chaque nouvelle version : deplacer l'ancienne dans `archive/`.
+Le banc d'essai (`prompts-n8n/banc-essai/build_wf.py`, `iter.sh`) lit ses fichiers de base dans `archive/`.

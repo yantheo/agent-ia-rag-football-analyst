@@ -1,12 +1,10 @@
 .env
 bilan-paris.html
-PROMPT-reprise-claude-code.md
-PROMPT-integration-calculatrice.md
 parse_bwin.py
+PROMPT-*.md
 
 # Sauvegardes locales des prompts / workflows n8n (jamais commitees)
 prompts-n8n/
-PROMPT-agent-v10.md
 
 # Cache Python
 __pycache__/
