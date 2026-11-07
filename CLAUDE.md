@@ -463,6 +463,41 @@ sortir les decisions du LLM (comme la forme decodee en SQL).
 - Meilleurs Paris : badge « Contexte : FAVORABLE / MITIGE / DEFAVORABLE » (lu dans le rapport, ancien format
   « Indice de confiance » encore lu pour le cache).
 
+## Branche `donnees-reelles` (experimentale, ouverte le 2026-11-07) — NE PAS fusionner sans accord
+
+**Regle de l'utilisateur** : l'appli de `main` (v1 / v2 / v3, agent IA v10c) lui plait telle quelle. Le chantier
+« donnees reelles » est lourd et ne doit pas en perdre l'essence : il vit sur cette branche, `main` reste
+intacte (GitHub Pages ne publie que `main`). Tout changement est permis ici, a une condition : **pouvoir comparer
+chaque nouvelle version aux v1, v2 et v3** (memes matchs, memes mesures : Brier / log-loss, ecart au marche,
+predictions figees). Donc : v1 / v2 / v3 restent intactes dans `model.js`, chaque nouveauté = une nouvelle
+`version_modele` a cote, affichee dans `comparaison.html` ou un outil equivalent.
+
+**Fait** :
+- `tools/build_fd_mapping.py` -> `fd-mapping.json` : correspondance team_id -> nom football-data.co.uk pour les
+  192 equipes, prouvee par une empreinte chiffree (J / buts pour / contre, domicile et exterieur) et par les
+  affiches du calendrier, PAS par les noms (la ressemblance de noms se trompait ~1 fois sur 5 : Paris SG ->
+  Paris FC, Ath Madrid -> Real Madrid...). Statut `valide_main` jamais ecrase, et controle lui aussi. Relancer en
+  debut de saison (promus) : `python3 tools/build_fd_mapping.py <code saison, ex. 2728>`.
+
+**Constats sur les sources (2026-11-07)** :
+- football-data 2026/27 : 10 championnats, tirs cadres, **xG** (nouveau, source non indiquee : a identifier),
+  cotes bwin, **cloture Betfair Exchange** ; **plus de Pinnacle** (present jusqu'en 2025/26 -> mesure contre
+  Pinnacle sur l'historique, contre Betfair sur la saison en cours). Retard de 1 a 5 jours.
+- Pages de match footmercato (`/live/<id>`, `/live/<id>/formation`, `/live/<id>/stats`, HTML sans JS) :
+  buteurs + passeurs + minute, compos, remplacements (-> minutes), absences avec cause, stats de saison par
+  joueur LIMITEES au championnat (corrige B1 : PSG Ferran Torres 4 buts en L1 contre 7 en base). Tirs d'equipe
+  ambigus au parsing : les prendre chez football-data.
+- **team_id instables** : `generate_slug(nom affiche)` cote backend -> un renommage footmercato change l'id
+  (`go-ahead-nl` -> `gae-nl`, `zwolle-nl` -> `pec-nl` en cours de saison, 4 matchs d'aout). Cible : id tire de
+  l'URL du club ; en attendant, table ancien id -> nouveau pour l'historique.
+- **Classement footmercato parfois en retard** : Derby - Bolton 3-1 du 06/11 absent du classement le 07/11 a
+  10h (forme deja a jour, totaux non). Changer l'heure du scrape n'y peut rien -> controle « chaque equipe de la
+  veille a un match de plus », sinon relance / signalement.
+
+**Plan** : 1) import football-data (historique + saison, hors Supabase) -> retro-test v2 / v2-tirs / lissage
+adapte sur des milliers de matchs, mesure contre la cloture ; 2) footmercato pages de match (joueurs, compos,
+absences) ; 3) stats joueurs en championnat, P(buteur | titulaire).
+
 ## Etat actuel (2026-11-07)
 
 - **En production** : modele **v3** (Calendrier, Confrontation, Meilleurs Paris) ; agent IA **v10c**

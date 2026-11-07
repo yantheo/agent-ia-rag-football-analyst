@@ -1,0 +1,7526 @@
+{
+ "_doc": "Correspondance team_id -> nom football-data.co.uk, construite par tools/build_fd_mapping.py (empreinte chiffree dom/ext + affiches du calendrier, PAS les noms). statut : auto / a_verifier / valide_main (pose a la main, jamais ecrase). Saison 2627.",
+ "genere_le": "2026-11-07",
+ "ligues": {
+  "E0": "Premier League",
+  "E1": "Championship",
+  "SP1": "Liga",
+  "I1": "Serie A",
+  "D1": "Bundesliga",
+  "F1": "Ligue 1 McDonald's",
+  "F2": "Ligue 2",
+  "N1": "Eredivisie",
+  "P1": "Liga Portugal Betclic",
+  "T1": "Süper Lig"
+ },
+ "equipes": {
+  "academico-pt": {
+   "fd": "Academico Viseu",
+   "ligue": "P1",
+   "equipe": "Académico",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      5,
+      9,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      5,
+      9,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "ado-nl": {
+   "fd": "Den Haag",
+   "ligue": "N1",
+   "equipe": "ADO",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      8,
+      12
+     ],
+     "ext": [
+      6,
+      5,
+      12
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      8,
+      12
+     ],
+     "ext": [
+      6,
+      5,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "ajax-nl": {
+   "fd": "Ajax",
+   "ligue": "N1",
+   "equipe": "Ajax",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      12,
+      9
+     ],
+     "ext": [
+      5,
+      18,
+      4
+     ]
+    },
+    "affiches": "10/11",
+    "affiches_absentes": [
+     "09/08/2026 Zwolle - Ajax"
+    ],
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      12,
+      9
+     ],
+     "ext": [
+      5,
+      18,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "alanya-tr": {
+   "fd": "Alanyaspor",
+   "ligue": "T1",
+   "equipe": "Alanya",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      4,
+      4
+     ],
+     "ext": [
+      6,
+      5,
+      12
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      4,
+      4
+     ],
+     "ext": [
+      6,
+      5,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "alaves-esp": {
+   "fd": "Alaves",
+   "ligue": "SP1",
+   "equipe": "Alavés",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      11,
+      6
+     ],
+     "ext": [
+      5,
+      4,
+      11
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      11,
+      6
+     ],
+     "ext": [
+      6,
+      4,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "alverca-pt": {
+   "fd": "Alverca",
+   "ligue": "P1",
+   "equipe": "Alverca",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      6
+     ],
+     "ext": [
+      5,
+      8,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      6
+     ],
+     "ext": [
+      5,
+      8,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "amed-tr": {
+   "fd": "Amedspor",
+   "ligue": "T1",
+   "equipe": "Amed",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      19,
+      4
+     ],
+     "ext": [
+      4,
+      6,
+      7
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      19,
+      4
+     ],
+     "ext": [
+      4,
+      6,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "angers-fr": {
+   "fd": "Angers",
+   "ligue": "F1",
+   "equipe": "Angers",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      9
+     ],
+     "ext": [
+      4,
+      4,
+      8
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      9
+     ],
+     "ext": [
+      4,
+      4,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "annecy-fr": {
+   "fd": "Annecy",
+   "ligue": "F2",
+   "equipe": "Annecy",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      8
+     ],
+     "ext": [
+      6,
+      9,
+      7
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      8
+     ],
+     "ext": [
+      7,
+      9,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "arouca-pt": {
+   "fd": "Arouca",
+   "ligue": "P1",
+   "equipe": "Arouca",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      9,
+      3
+     ],
+     "ext": [
+      5,
+      4,
+      4
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      9,
+      3
+     ],
+     "ext": [
+      6,
+      4,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "arsenal-eng": {
+   "fd": "Arsenal",
+   "ligue": "E0",
+   "equipe": "Arsenal",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      9,
+      2
+     ],
+     "ext": [
+      5,
+      5,
+      3
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      9,
+      2
+     ],
+     "ext": [
+      5,
+      5,
+      3
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "asse-fr": {
+   "fd": "St Etienne",
+   "ligue": "F2",
+   "equipe": "ASSE",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      13,
+      2
+     ],
+     "ext": [
+      6,
+      10,
+      9
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      13,
+      2
+     ],
+     "ext": [
+      6,
+      10,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "aston-villa-eng": {
+   "fd": "Aston Villa",
+   "ligue": "E0",
+   "equipe": "Aston Villa",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      4,
+      4,
+      6
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      4,
+      4,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "atalanta-it": {
+   "fd": "Atalanta",
+   "ligue": "I1",
+   "equipe": "Atalanta",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      11,
+      11
+     ],
+     "ext": [
+      4,
+      5,
+      9
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      11,
+      11
+     ],
+     "ext": [
+      4,
+      5,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "atletico-esp": {
+   "fd": "Ath Madrid",
+   "ligue": "SP1",
+   "equipe": "Atlético",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      11,
+      3
+     ],
+     "ext": [
+      6,
+      11,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      11,
+      3
+     ],
+     "ext": [
+      6,
+      11,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "augsbourg-de": {
+   "fd": "Augsburg",
+   "ligue": "D1",
+   "equipe": "Augsbourg",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      9,
+      7
+     ],
+     "ext": [
+      3,
+      9,
+      8
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      9,
+      7
+     ],
+     "ext": [
+      3,
+      9,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "auxerre-fr": {
+   "fd": "Auxerre",
+   "ligue": "F1",
+   "equipe": "Auxerre",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      5,
+      5
+     ],
+     "ext": [
+      5,
+      8,
+      18
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      5,
+      5
+     ],
+     "ext": [
+      5,
+      8,
+      18
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "az-nl": {
+   "fd": "AZ Alkmaar",
+   "ligue": "N1",
+   "equipe": "AZ",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      9,
+      5
+     ],
+     "ext": [
+      6,
+      11,
+      8
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      9,
+      5
+     ],
+     "ext": [
+      6,
+      11,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "barcelone-esp": {
+   "fd": "Barcelona",
+   "ligue": "SP1",
+   "equipe": "Barcelone",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      24,
+      7
+     ],
+     "ext": [
+      5,
+      22,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      24,
+      7
+     ],
+     "ext": [
+      5,
+      22,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "basaksehir-tr": {
+   "fd": "Buyuksehyr",
+   "ligue": "T1",
+   "equipe": "Basaksehir",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      16,
+      7
+     ],
+     "ext": [
+      4,
+      1,
+      9
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      16,
+      7
+     ],
+     "ext": [
+      4,
+      1,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "bayern-munich-de": {
+   "fd": "Bayern Munich",
+   "ligue": "D1",
+   "equipe": "Bayern Munich",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      20,
+      4
+     ],
+     "ext": [
+      4,
+      7,
+      4
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      20,
+      4
+     ],
+     "ext": [
+      4,
+      7,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "benfica-pt": {
+   "fd": "Benfica",
+   "ligue": "P1",
+   "equipe": "Benfica",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      10,
+      4
+     ],
+     "ext": [
+      5,
+      17,
+      4
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      10,
+      4
+     ],
+     "ext": [
+      5,
+      17,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "besiktas-tr": {
+   "fd": "Besiktas",
+   "ligue": "T1",
+   "equipe": "Besiktas",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      14,
+      3
+     ],
+     "ext": [
+      5,
+      6,
+      9
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      14,
+      3
+     ],
+     "ext": [
+      5,
+      6,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "betis-esp": {
+   "fd": "Betis",
+   "ligue": "SP1",
+   "equipe": "Betis",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      12,
+      8
+     ],
+     "ext": [
+      5,
+      6,
+      7
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      12,
+      8
+     ],
+     "ext": [
+      5,
+      6,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "bilbao-esp": {
+   "fd": "Ath Bilbao",
+   "ligue": "SP1",
+   "equipe": "Bilbao",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      11,
+      5
+     ],
+     "ext": [
+      4,
+      3,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      11,
+      5
+     ],
+     "ext": [
+      4,
+      3,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "birmingham-eng": {
+   "fd": "Birmingham",
+   "ligue": "E1",
+   "equipe": "Birmingham",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      17,
+      7
+     ],
+     "ext": [
+      7,
+      9,
+      6
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      17,
+      7
+     ],
+     "ext": [
+      7,
+      9,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "blackburn-eng": {
+   "fd": "Blackburn",
+   "ligue": "E1",
+   "equipe": "Blackburn",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      12,
+      9
+     ],
+     "ext": [
+      7,
+      8,
+      13
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      12,
+      9
+     ],
+     "ext": [
+      7,
+      8,
+      13
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "bologne-it": {
+   "fd": "Bologna",
+   "ligue": "I1",
+   "equipe": "Bologne",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      8
+     ],
+     "ext": [
+      5,
+      8,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      8
+     ],
+     "ext": [
+      5,
+      8,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "bolton-eng": {
+   "fd": "Bolton",
+   "ligue": "E1",
+   "equipe": "Bolton",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      9,
+      15
+     ],
+     "ext": [
+      7,
+      10,
+      11
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      9,
+      15
+     ],
+     "ext": [
+      7,
+      10,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "boulogne-fr": {
+   "fd": "Boulogne",
+   "ligue": "F2",
+   "equipe": "Boulogne",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      4,
+      5
+     ],
+     "ext": [
+      6,
+      3,
+      3
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      7,
+      5
+     ],
+     "ext": [
+      6,
+      3,
+      3
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "bournemouth-eng": {
+   "fd": "Bournemouth",
+   "ligue": "E0",
+   "equipe": "Bournemouth",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      4
+     ],
+     "ext": [
+      4,
+      7,
+      9
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      4
+     ],
+     "ext": [
+      4,
+      7,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "braga-pt": {
+   "fd": "Sp Braga",
+   "ligue": "P1",
+   "equipe": "Braga",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      5
+     ],
+     "ext": [
+      5,
+      5,
+      6
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      5
+     ],
+     "ext": [
+      5,
+      5,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "breme-de": {
+   "fd": "Werder Bremen",
+   "ligue": "D1",
+   "equipe": "Brême",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      10,
+      5
+     ],
+     "ext": [
+      4,
+      7,
+      9
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      10,
+      5
+     ],
+     "ext": [
+      4,
+      7,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "brentford-eng": {
+   "fd": "Brentford",
+   "ligue": "E0",
+   "equipe": "Brentford",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      10,
+      3
+     ],
+     "ext": [
+      4,
+      6,
+      6
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      10,
+      3
+     ],
+     "ext": [
+      4,
+      6,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "brest-fr": {
+   "fd": "Brest",
+   "ligue": "F1",
+   "equipe": "Brest",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      8,
+      6
+     ],
+     "ext": [
+      5,
+      8,
+      6
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      8,
+      6
+     ],
+     "ext": [
+      5,
+      8,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "brighton-eng": {
+   "fd": "Brighton",
+   "ligue": "E0",
+   "equipe": "Brighton",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      13,
+      1
+     ],
+     "ext": [
+      5,
+      11,
+      6
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      13,
+      1
+     ],
+     "ext": [
+      5,
+      11,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "bristol-city-eng": {
+   "fd": "Bristol City",
+   "ligue": "E1",
+   "equipe": "Bristol City",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      4,
+      8
+     ],
+     "ext": [
+      7,
+      12,
+      11
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      4,
+      8
+     ],
+     "ext": [
+      7,
+      12,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "burnley-eng": {
+   "fd": "Burnley",
+   "ligue": "E1",
+   "equipe": "Burnley",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      8,
+      10
+     ],
+     "ext": [
+      7,
+      10,
+      16
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      8,
+      10
+     ],
+     "ext": [
+      7,
+      10,
+      16
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "cagliari-it": {
+   "fd": "Cagliari",
+   "ligue": "I1",
+   "equipe": "Cagliari",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      2,
+      4
+     ],
+     "ext": [
+      6,
+      7,
+      11
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      2,
+      4
+     ],
+     "ext": [
+      6,
+      7,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "cambuur-nl": {
+   "fd": "Cambuur",
+   "ligue": "N1",
+   "equipe": "Cambuur",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      12,
+      15
+     ],
+     "ext": [
+      5,
+      11,
+      7
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      12,
+      15
+     ],
+     "ext": [
+      5,
+      11,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "cardiff-eng": {
+   "fd": "Cardiff",
+   "ligue": "E1",
+   "equipe": "Cardiff",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      16,
+      9
+     ],
+     "ext": [
+      7,
+      6,
+      14
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      16,
+      9
+     ],
+     "ext": [
+      7,
+      6,
+      14
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "casa-pia-pt": {
+   "fd": "Casa Pia",
+   "ligue": "P1",
+   "equipe": "Casa Pia",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      1,
+      15
+     ],
+     "ext": [
+      5,
+      4,
+      4
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      1,
+      15
+     ],
+     "ext": [
+      5,
+      4,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "celta-vigo-esp": {
+   "fd": "Celta",
+   "ligue": "SP1",
+   "equipe": "Celta Vigo",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      9,
+      6
+     ],
+     "ext": [
+      5,
+      1,
+      4
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      9,
+      6
+     ],
+     "ext": [
+      5,
+      1,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "charlton-eng": {
+   "fd": "Charlton",
+   "ligue": "E1",
+   "equipe": "Charlton",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      5,
+      6
+     ],
+     "ext": [
+      7,
+      6,
+      16
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      5,
+      6
+     ],
+     "ext": [
+      7,
+      6,
+      16
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "chelsea-eng": {
+   "fd": "Chelsea",
+   "ligue": "E0",
+   "equipe": "Chelsea",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      13,
+      8
+     ],
+     "ext": [
+      4,
+      6,
+      7
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      13,
+      8
+     ],
+     "ext": [
+      4,
+      6,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "clermont-fr": {
+   "fd": "Clermont",
+   "ligue": "F2",
+   "equipe": "Clermont",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      3,
+      6
+     ],
+     "ext": [
+      5,
+      7,
+      9
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      3,
+      6
+     ],
+     "ext": [
+      5,
+      7,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "cologne-de": {
+   "fd": "FC Koln",
+   "ligue": "D1",
+   "equipe": "Cologne",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      4
+     ],
+     "ext": [
+      4,
+      3,
+      8
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      4
+     ],
+     "ext": [
+      4,
+      3,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "come-it": {
+   "fd": "Como",
+   "ligue": "I1",
+   "equipe": "Côme",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      5,
+      1
+     ],
+     "ext": [
+      6,
+      13,
+      7
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      5,
+      1
+     ],
+     "ext": [
+      6,
+      13,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "corum-tr": {
+   "fd": "Corum",
+   "ligue": "T1",
+   "equipe": "Çorum",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      4
+     ],
+     "ext": [
+      6,
+      15,
+      12
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      4
+     ],
+     "ext": [
+      6,
+      15,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "coventry-eng": {
+   "fd": "Coventry",
+   "ligue": "E0",
+   "equipe": "Coventry",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      9
+     ],
+     "ext": [
+      4,
+      2,
+      7
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      9
+     ],
+     "ext": [
+      5,
+      3,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "crystal-palace-eng": {
+   "fd": "Crystal Palace",
+   "ligue": "E0",
+   "equipe": "Crystal Palace",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      10
+     ],
+     "ext": [
+      5,
+      3,
+      11
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      10
+     ],
+     "ext": [
+      5,
+      3,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "deportivo-esp": {
+   "fd": "La Coruna",
+   "ligue": "SP1",
+   "equipe": "Deportivo",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      8,
+      6
+     ],
+     "ext": [
+      5,
+      7,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      8,
+      6
+     ],
+     "ext": [
+      5,
+      7,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "derby-eng": {
+   "fd": "Derby",
+   "ligue": "E1",
+   "equipe": "Derby",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      4,
+      14
+     ],
+     "ext": [
+      7,
+      7,
+      15
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      4,
+      14
+     ],
+     "ext": [
+      7,
+      7,
+      15
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "dijon-fr": {
+   "fd": "Dijon",
+   "ligue": "F2",
+   "equipe": "Dijon",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      10,
+      10
+     ],
+     "ext": [
+      6,
+      10,
+      9
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      11,
+      10
+     ],
+     "ext": [
+      6,
+      10,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "dortmund-de": {
+   "fd": "Dortmund",
+   "ligue": "D1",
+   "equipe": "Dortmund",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      8,
+      2
+     ],
+     "ext": [
+      4,
+      6,
+      4
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      8,
+      2
+     ],
+     "ext": [
+      4,
+      6,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "dunkerque-fr": {
+   "fd": "Dunkerque",
+   "ligue": "F2",
+   "equipe": "Dunkerque",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      8,
+      7
+     ],
+     "ext": [
+      5,
+      6,
+      10
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      11,
+      7
+     ],
+     "ext": [
+      5,
+      6,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "elche-esp": {
+   "fd": "Elche",
+   "ligue": "SP1",
+   "equipe": "Elche",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      4,
+      12
+     ],
+     "ext": [
+      6,
+      10,
+      6
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      4,
+      12
+     ],
+     "ext": [
+      6,
+      10,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "elversberg-de": {
+   "fd": "Elversberg",
+   "ligue": "D1",
+   "equipe": "Elversberg",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      12,
+      8
+     ],
+     "ext": [
+      4,
+      4,
+      8
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      12,
+      8
+     ],
+     "ext": [
+      4,
+      4,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "erzurumspor-tr": {
+   "fd": "Erzurumspor",
+   "ligue": "T1",
+   "equipe": "Erzurumspor",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      7
+     ],
+     "ext": [
+      5,
+      4,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      7
+     ],
+     "ext": [
+      5,
+      4,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "espanyol-esp": {
+   "fd": "Espanol",
+   "ligue": "SP1",
+   "equipe": "Espanyol",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      6,
+      7,
+      7
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      6,
+      7,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "estoril-pt": {
+   "fd": "Estoril",
+   "ligue": "P1",
+   "equipe": "Estoril",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      3,
+      8
+     ],
+     "ext": [
+      5,
+      2,
+      11
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      3,
+      8
+     ],
+     "ext": [
+      5,
+      2,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "estrela-pt": {
+   "fd": "Estrela",
+   "ligue": "P1",
+   "equipe": "Estrela",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      9
+     ],
+     "ext": [
+      5,
+      9,
+      10
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      9
+     ],
+     "ext": [
+      5,
+      9,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "everton-eng": {
+   "fd": "Everton",
+   "ligue": "E0",
+   "equipe": "Everton",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      5,
+      4
+     ],
+     "ext": [
+      5,
+      4,
+      5
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      8,
+      5
+     ],
+     "ext": [
+      5,
+      4,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "excelsior-nl": {
+   "fd": "Excelsior",
+   "ligue": "N1",
+   "equipe": "Excelsior",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      19
+     ],
+     "ext": [
+      6,
+      11,
+      9
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      19
+     ],
+     "ext": [
+      6,
+      11,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "eyup-tr": {
+   "fd": "Eyupspor",
+   "ligue": "T1",
+   "equipe": "Eyüp",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      2,
+      9
+     ],
+     "ext": [
+      5,
+      1,
+      19
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      2,
+      9
+     ],
+     "ext": [
+      5,
+      1,
+      19
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "famalicao-pt": {
+   "fd": "Famalicao",
+   "ligue": "P1",
+   "equipe": "Famalicão",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      3,
+      7
+     ],
+     "ext": [
+      6,
+      11,
+      7
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      4,
+      7
+     ],
+     "ext": [
+      6,
+      11,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "fenerbahce-tr": {
+   "fd": "Fenerbahce",
+   "ligue": "T1",
+   "equipe": "Fenerbahce",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      17,
+      6
+     ],
+     "ext": [
+      5,
+      7,
+      4
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      17,
+      6
+     ],
+     "ext": [
+      5,
+      7,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "feyenoord-nl": {
+   "fd": "Feyenoord",
+   "ligue": "N1",
+   "equipe": "Feyenoord",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      12,
+      5
+     ],
+     "ext": [
+      6,
+      21,
+      7
+     ]
+    },
+    "affiches": "10/11",
+    "affiches_absentes": [
+     "16/08/2026 Feyenoord - Go Ahead Eagles"
+    ],
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      12,
+      5
+     ],
+     "ext": [
+      6,
+      21,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "fiorentina-it": {
+   "fd": "Fiorentina",
+   "ligue": "I1",
+   "equipe": "Fiorentina",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      11
+     ],
+     "ext": [
+      5,
+      10,
+      12
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      11
+     ],
+     "ext": [
+      5,
+      10,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "fortuna-nl": {
+   "fd": "For Sittard",
+   "ligue": "N1",
+   "equipe": "Fortuna",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      9
+     ],
+     "ext": [
+      6,
+      12,
+      9
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      9
+     ],
+     "ext": [
+      6,
+      12,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "francfort-de": {
+   "fd": "Ein Frankfurt",
+   "ligue": "D1",
+   "equipe": "Francfort",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      7,
+      7
+     ],
+     "ext": [
+      4,
+      6,
+      11
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      7,
+      7
+     ],
+     "ext": [
+      4,
+      6,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "fribourg-de": {
+   "fd": "Freiburg",
+   "ligue": "D1",
+   "equipe": "Fribourg",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      12,
+      5
+     ],
+     "ext": [
+      4,
+      6,
+      5
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      12,
+      5
+     ],
+     "ext": [
+      4,
+      6,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "frosinone-it": {
+   "fd": "Frosinone",
+   "ligue": "I1",
+   "equipe": "Frosinone",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      16,
+      6
+     ],
+     "ext": [
+      4,
+      8,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      16,
+      6
+     ],
+     "ext": [
+      4,
+      8,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "fulham-eng": {
+   "fd": "Fulham",
+   "ligue": "E0",
+   "equipe": "Fulham",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      7
+     ],
+     "ext": [
+      5,
+      3,
+      4
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      7
+     ],
+     "ext": [
+      5,
+      3,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "gae-nl": {
+   "fd": "Go Ahead Eagles",
+   "ligue": "N1",
+   "equipe": "GAE",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      14,
+      8
+     ],
+     "ext": [
+      6,
+      9,
+      19
+     ]
+    },
+    "affiches": "8/10",
+    "affiches_absentes": [
+     "08/08/2026 Go Ahead Eagles - Willem II",
+     "16/08/2026 Feyenoord - Go Ahead Eagles"
+    ],
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      14,
+      8
+     ],
+     "ext": [
+      6,
+      9,
+      19
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "galatasaray-tr": {
+   "fd": "Galatasaray",
+   "ligue": "T1",
+   "equipe": "Galatasaray",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      11,
+      6
+     ],
+     "ext": [
+      5,
+      12,
+      6
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      11,
+      6
+     ],
+     "ext": [
+      5,
+      12,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "gaziantep-fk-tr": {
+   "fd": "Gaziantep",
+   "ligue": "T1",
+   "equipe": "Gaziantep FK",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      3,
+      9
+     ],
+     "ext": [
+      5,
+      6,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      3,
+      11
+     ],
+     "ext": [
+      5,
+      6,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "genclerbirligi-tr": {
+   "fd": "Genclerbirligi",
+   "ligue": "T1",
+   "equipe": "Gençlerbirliği",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      11,
+      7
+     ],
+     "ext": [
+      4,
+      1,
+      11
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      11,
+      7
+     ],
+     "ext": [
+      4,
+      1,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "genoa-it": {
+   "fd": "Genoa",
+   "ligue": "I1",
+   "equipe": "Genoa",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      7,
+      8
+     ],
+     "ext": [
+      4,
+      3,
+      6
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      7,
+      8
+     ],
+     "ext": [
+      4,
+      3,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "getafe-esp": {
+   "fd": "Getafe",
+   "ligue": "SP1",
+   "equipe": "Getafe",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      8,
+      4
+     ],
+     "ext": [
+      5,
+      0,
+      12
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      8,
+      4
+     ],
+     "ext": [
+      5,
+      0,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "gil-vicente-pt": {
+   "fd": "Gil Vicente",
+   "ligue": "P1",
+   "equipe": "Gil Vicente",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      4,
+      3
+     ],
+     "ext": [
+      4,
+      4,
+      4
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      4,
+      3
+     ],
+     "ext": [
+      4,
+      4,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "goztepe-tr": {
+   "fd": "Goztep",
+   "ligue": "T1",
+   "equipe": "Goztepe",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      7
+     ],
+     "ext": [
+      6,
+      15,
+      10
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      7
+     ],
+     "ext": [
+      6,
+      15,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "grenoble-fr": {
+   "fd": "Grenoble",
+   "ligue": "F2",
+   "equipe": "Grenoble",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      3,
+      8
+     ],
+     "ext": [
+      6,
+      7,
+      12
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      6,
+      10
+     ],
+     "ext": [
+      6,
+      7,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "groningen-nl": {
+   "fd": "Groningen",
+   "ligue": "N1",
+   "equipe": "Groningen",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      13,
+      14
+     ],
+     "ext": [
+      5,
+      13,
+      10
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      13,
+      14
+     ],
+     "ext": [
+      5,
+      13,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "guingamp-fr": {
+   "fd": "Guingamp",
+   "ligue": "F2",
+   "equipe": "Guingamp",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      11,
+      9
+     ],
+     "ext": [
+      5,
+      5,
+      6
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      11,
+      9
+     ],
+     "ext": [
+      6,
+      5,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "hambourg-de": {
+   "fd": "Hamburg",
+   "ligue": "D1",
+   "equipe": "Hambourg",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      3,
+      3,
+      6
+     ],
+     "ext": [
+      5,
+      4,
+      13
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      7
+     ],
+     "ext": [
+      5,
+      4,
+      13
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "heerenveen-nl": {
+   "fd": "Heerenveen",
+   "ligue": "N1",
+   "equipe": "Heerenveen",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      8,
+      5
+     ],
+     "ext": [
+      5,
+      11,
+      8
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      8,
+      5
+     ],
+     "ext": [
+      5,
+      11,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "hoffenheim-de": {
+   "fd": "Hoffenheim",
+   "ligue": "D1",
+   "equipe": "Hoffenheim",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      9,
+      7
+     ],
+     "ext": [
+      4,
+      5,
+      9
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      9,
+      7
+     ],
+     "ext": [
+      4,
+      5,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "hull-eng": {
+   "fd": "Hull",
+   "ligue": "E0",
+   "equipe": "Hull",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      5
+     ],
+     "ext": [
+      4,
+      4,
+      5
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      5
+     ],
+     "ext": [
+      4,
+      4,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "inter-milan-it": {
+   "fd": "Inter",
+   "ligue": "I1",
+   "equipe": "Inter Milan",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      17,
+      7
+     ],
+     "ext": [
+      5,
+      9,
+      6
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      17,
+      7
+     ],
+     "ext": [
+      5,
+      9,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "ipswich-eng": {
+   "fd": "Ipswich",
+   "ligue": "E0",
+   "equipe": "Ipswich",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      5,
+      5
+     ],
+     "ext": [
+      5,
+      9,
+      13
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      5,
+      5
+     ],
+     "ext": [
+      5,
+      9,
+      13
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "juventus-it": {
+   "fd": "Juventus",
+   "ligue": "I1",
+   "equipe": "Juventus",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      4
+     ],
+     "ext": [
+      5,
+      6,
+      6
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      4
+     ],
+     "ext": [
+      5,
+      6,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "kasmpasa-tr": {
+   "fd": "Kasimpasa",
+   "ligue": "T1",
+   "equipe": "Kasımpaşa",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      9,
+      6
+     ],
+     "ext": [
+      5,
+      6,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      9,
+      6
+     ],
+     "ext": [
+      6,
+      8,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "kocaelispor-tr": {
+   "fd": "Kocaelispor",
+   "ligue": "T1",
+   "equipe": "Kocaelispor",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      2
+     ],
+     "ext": [
+      5,
+      5,
+      7
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      2
+     ],
+     "ext": [
+      5,
+      5,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "konyaspor-tr": {
+   "fd": "Konyaspor",
+   "ligue": "T1",
+   "equipe": "Konyaspor",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      4,
+      7
+     ],
+     "ext": [
+      4,
+      2,
+      6
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      4,
+      7
+     ],
+     "ext": [
+      4,
+      2,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "laval-fr": {
+   "fd": "Laval",
+   "ligue": "F2",
+   "equipe": "Laval",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      8,
+      10
+     ],
+     "ext": [
+      5,
+      6,
+      11
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      8,
+      10
+     ],
+     "ext": [
+      5,
+      6,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "lazio-it": {
+   "fd": "Lazio",
+   "ligue": "I1",
+   "equipe": "Lazio",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      10,
+      5
+     ],
+     "ext": [
+      5,
+      14,
+      3
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      10,
+      5
+     ],
+     "ext": [
+      5,
+      14,
+      3
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "le-havre-fr": {
+   "fd": "Le Havre",
+   "ligue": "F1",
+   "equipe": "Le Havre",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      3,
+      11
+     ],
+     "ext": [
+      4,
+      6,
+      9
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      3,
+      11
+     ],
+     "ext": [
+      4,
+      6,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "le-mans-fr": {
+   "fd": "Le Mans",
+   "ligue": "F1",
+   "equipe": "Le Mans",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      8
+     ],
+     "ext": [
+      5,
+      5,
+      10
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      8
+     ],
+     "ext": [
+      5,
+      5,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "lecce-it": {
+   "fd": "Lecce",
+   "ligue": "I1",
+   "equipe": "Lecce",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      12
+     ],
+     "ext": [
+      5,
+      6,
+      9
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      12
+     ],
+     "ext": [
+      5,
+      6,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "leeds-eng": {
+   "fd": "Leeds",
+   "ligue": "E0",
+   "equipe": "Leeds",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      3
+     ],
+     "ext": [
+      5,
+      3,
+      5
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      3
+     ],
+     "ext": [
+      5,
+      3,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "leipzig-de": {
+   "fd": "RB Leipzig",
+   "ligue": "D1",
+   "equipe": "Leipzig",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      18,
+      0
+     ],
+     "ext": [
+      4,
+      4,
+      11
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      18,
+      0
+     ],
+     "ext": [
+      4,
+      4,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "lens-fr": {
+   "fd": "Lens",
+   "ligue": "F1",
+   "equipe": "Lens",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      9,
+      5
+     ],
+     "ext": [
+      5,
+      7,
+      8
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      9,
+      5
+     ],
+     "ext": [
+      5,
+      7,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "levante-esp": {
+   "fd": "Levante",
+   "ligue": "SP1",
+   "equipe": "Levante",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      13,
+      12
+     ],
+     "ext": [
+      6,
+      3,
+      9
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      13,
+      12
+     ],
+     "ext": [
+      6,
+      3,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "leverkusen-de": {
+   "fd": "Leverkusen",
+   "ligue": "D1",
+   "equipe": "Leverkusen",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      10,
+      5
+     ],
+     "ext": [
+      4,
+      8,
+      11
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      10,
+      5
+     ],
+     "ext": [
+      4,
+      8,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "lille-fr": {
+   "fd": "Lille",
+   "ligue": "F1",
+   "equipe": "Lille",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      3
+     ],
+     "ext": [
+      4,
+      5,
+      3
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      3
+     ],
+     "ext": [
+      4,
+      5,
+      3
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "lincoln-eng": {
+   "fd": "Lincoln",
+   "ligue": "E1",
+   "equipe": "Lincoln",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      8,
+      16
+     ],
+     "ext": [
+      7,
+      6,
+      8
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      8,
+      16
+     ],
+     "ext": [
+      7,
+      6,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "liverpool-eng": {
+   "fd": "Liverpool",
+   "ligue": "E0",
+   "equipe": "Liverpool",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      4,
+      6
+     ],
+     "ext": [
+      4,
+      7,
+      3
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      4,
+      6
+     ],
+     "ext": [
+      4,
+      7,
+      3
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "lorient-fr": {
+   "fd": "Lorient",
+   "ligue": "F1",
+   "equipe": "Lorient",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      6
+     ],
+     "ext": [
+      4,
+      2,
+      2
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      6
+     ],
+     "ext": [
+      4,
+      2,
+      2
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "lyon-fr": {
+   "fd": "Lyon",
+   "ligue": "F1",
+   "equipe": "Lyon",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      12,
+      3
+     ],
+     "ext": [
+      4,
+      3,
+      4
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      12,
+      3
+     ],
+     "ext": [
+      4,
+      3,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "malaga-esp": {
+   "fd": "Malaga",
+   "ligue": "SP1",
+   "equipe": "Malaga",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      10
+     ],
+     "ext": [
+      6,
+      3,
+      11
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      10
+     ],
+     "ext": [
+      6,
+      3,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "man-city-eng": {
+   "fd": "Man City",
+   "ligue": "E0",
+   "equipe": "Man City",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      11,
+      7
+     ],
+     "ext": [
+      4,
+      9,
+      3
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      11,
+      7
+     ],
+     "ext": [
+      4,
+      9,
+      3
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "man-united-eng": {
+   "fd": "Man United",
+   "ligue": "E0",
+   "equipe": "Man United",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      7
+     ],
+     "ext": [
+      5,
+      4,
+      8
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      7
+     ],
+     "ext": [
+      5,
+      4,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "maritimo-pt": {
+   "fd": "Maritimo",
+   "ligue": "P1",
+   "equipe": "Marítimo",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      4,
+      9
+     ],
+     "ext": [
+      5,
+      5,
+      12
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      4,
+      9
+     ],
+     "ext": [
+      5,
+      5,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "marseille-fr": {
+   "fd": "Marseille",
+   "ligue": "F1",
+   "equipe": "Marseille",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      13,
+      8
+     ],
+     "ext": [
+      4,
+      7,
+      5
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      13,
+      8
+     ],
+     "ext": [
+      4,
+      7,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "mayence-de": {
+   "fd": "Mainz",
+   "ligue": "D1",
+   "equipe": "Mayence",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      6,
+      10
+     ],
+     "ext": [
+      4,
+      11,
+      7
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      6,
+      10
+     ],
+     "ext": [
+      4,
+      11,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "metz-fr": {
+   "fd": "Metz",
+   "ligue": "F2",
+   "equipe": "Metz",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      13,
+      10
+     ],
+     "ext": [
+      5,
+      4,
+      7
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      13,
+      10
+     ],
+     "ext": [
+      6,
+      7,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "mgladbach-de": {
+   "fd": "M'gladbach",
+   "ligue": "D1",
+   "equipe": "M'gladbach",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      7,
+      10
+     ],
+     "ext": [
+      4,
+      4,
+      12
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      7,
+      10
+     ],
+     "ext": [
+      5,
+      5,
+      15
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "middlesbrough-eng": {
+   "fd": "Middlesbrough",
+   "ligue": "E1",
+   "equipe": "Middlesbrough",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      17,
+      9
+     ],
+     "ext": [
+      7,
+      13,
+      10
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      17,
+      9
+     ],
+     "ext": [
+      7,
+      13,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "milan-it": {
+   "fd": "Milan",
+   "ligue": "I1",
+   "equipe": "Milan",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      13,
+      7
+     ],
+     "ext": [
+      5,
+      8,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      13,
+      7
+     ],
+     "ext": [
+      5,
+      8,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "millwall-eng": {
+   "fd": "Millwall",
+   "ligue": "E1",
+   "equipe": "Millwall",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      15,
+      9
+     ],
+     "ext": [
+      7,
+      8,
+      15
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      15,
+      9
+     ],
+     "ext": [
+      7,
+      8,
+      15
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "monaco-fr": {
+   "fd": "Monaco",
+   "ligue": "F1",
+   "equipe": "Monaco",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      7,
+      4
+     ],
+     "ext": [
+      5,
+      5,
+      6
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      7,
+      4
+     ],
+     "ext": [
+      5,
+      5,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "montpellier-fr": {
+   "fd": "Montpellier",
+   "ligue": "F2",
+   "equipe": "Montpellier",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      2
+     ],
+     "ext": [
+      6,
+      10,
+      4
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      8,
+      5
+     ],
+     "ext": [
+      6,
+      10,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "monza-it": {
+   "fd": "Monza",
+   "ligue": "I1",
+   "equipe": "Monza",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      9,
+      8
+     ],
+     "ext": [
+      6,
+      8,
+      16
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      9,
+      8
+     ],
+     "ext": [
+      6,
+      8,
+      16
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "moreirense-pt": {
+   "fd": "Moreirense",
+   "ligue": "P1",
+   "equipe": "Moreirense",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      9
+     ],
+     "ext": [
+      5,
+      6,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      9
+     ],
+     "ext": [
+      5,
+      6,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "nacional-pt": {
+   "fd": "Nacional",
+   "ligue": "P1",
+   "equipe": "Nacional",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      10
+     ],
+     "ext": [
+      5,
+      4,
+      9
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      10
+     ],
+     "ext": [
+      5,
+      4,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "nancy-fr": {
+   "fd": "Nancy",
+   "ligue": "F2",
+   "equipe": "Nancy",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      3
+     ],
+     "ext": [
+      6,
+      11,
+      6
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      6,
+      3
+     ],
+     "ext": [
+      6,
+      11,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "nantes-fr": {
+   "fd": "Nantes",
+   "ligue": "F2",
+   "equipe": "Nantes",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      6,
+      10
+     ],
+     "ext": [
+      5,
+      6,
+      8
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      6,
+      10
+     ],
+     "ext": [
+      5,
+      6,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "naples-it": {
+   "fd": "Napoli",
+   "ligue": "I1",
+   "equipe": "Naples",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      8,
+      5
+     ],
+     "ext": [
+      6,
+      9,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      8,
+      5
+     ],
+     "ext": [
+      6,
+      9,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "nec-nl": {
+   "fd": "Nijmegen",
+   "ligue": "N1",
+   "equipe": "NEC",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      9,
+      12
+     ],
+     "ext": [
+      5,
+      8,
+      7
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      9,
+      12
+     ],
+     "ext": [
+      5,
+      8,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "newcastle-eng": {
+   "fd": "Newcastle",
+   "ligue": "E0",
+   "equipe": "Newcastle",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      4,
+      6,
+      8
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      4,
+      6,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "nice-fr": {
+   "fd": "Nice",
+   "ligue": "F1",
+   "equipe": "Nice",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      10,
+      5
+     ],
+     "ext": [
+      4,
+      3,
+      7
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      10,
+      5
+     ],
+     "ext": [
+      4,
+      3,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "norwich-eng": {
+   "fd": "Norwich",
+   "ligue": "E1",
+   "equipe": "Norwich",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      13,
+      12
+     ],
+     "ext": [
+      7,
+      14,
+      12
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      13,
+      12
+     ],
+     "ext": [
+      7,
+      14,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "nottingham-eng": {
+   "fd": "Nott'm Forest",
+   "ligue": "E0",
+   "equipe": "Nottingham",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      0,
+      3
+     ],
+     "ext": [
+      5,
+      6,
+      9
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      0,
+      3
+     ],
+     "ext": [
+      5,
+      6,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "osasuna-esp": {
+   "fd": "Osasuna",
+   "ligue": "SP1",
+   "equipe": "Osasuna",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      4,
+      3
+     ],
+     "ext": [
+      6,
+      7,
+      19
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      4,
+      3
+     ],
+     "ext": [
+      6,
+      7,
+      19
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "paderborn-de": {
+   "fd": "Paderborn",
+   "ligue": "D1",
+   "equipe": "Paderborn",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      4,
+      4
+     ],
+     "ext": [
+      4,
+      2,
+      5
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      4,
+      4
+     ],
+     "ext": [
+      4,
+      2,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "paris-fc-fr": {
+   "fd": "Paris FC",
+   "ligue": "F1",
+   "equipe": "Paris FC",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      12,
+      5
+     ],
+     "ext": [
+      4,
+      4,
+      5
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      12,
+      5
+     ],
+     "ext": [
+      4,
+      4,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "parme-it": {
+   "fd": "Parma",
+   "ligue": "I1",
+   "equipe": "Parme",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      3,
+      6
+     ],
+     "ext": [
+      5,
+      5,
+      9
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      3,
+      6
+     ],
+     "ext": [
+      5,
+      5,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "pau-fr": {
+   "fd": "Pau FC",
+   "ligue": "F2",
+   "equipe": "Pau",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      8,
+      6
+     ],
+     "ext": [
+      5,
+      8,
+      5
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      8,
+      6
+     ],
+     "ext": [
+      5,
+      8,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "pec-nl": {
+   "fd": "Zwolle",
+   "ligue": "N1",
+   "equipe": "PEC",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      6,
+      14
+     ],
+     "ext": [
+      5,
+      6,
+      9
+     ]
+    },
+    "affiches": "9/11",
+    "affiches_absentes": [
+     "09/08/2026 Zwolle - Ajax",
+     "16/08/2026 Twente - Zwolle"
+    ],
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      6,
+      14
+     ],
+     "ext": [
+      6,
+      7,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "porto-pt": {
+   "fd": "Porto",
+   "ligue": "P1",
+   "equipe": "Porto",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      13,
+      2
+     ],
+     "ext": [
+      5,
+      12,
+      2
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      13,
+      2
+     ],
+     "ext": [
+      5,
+      12,
+      2
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "portsmouth-eng": {
+   "fd": "Portsmouth",
+   "ligue": "E1",
+   "equipe": "Portsmouth",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      13,
+      11
+     ],
+     "ext": [
+      7,
+      6,
+      5
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      13,
+      11
+     ],
+     "ext": [
+      7,
+      6,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "preston-eng": {
+   "fd": "Preston",
+   "ligue": "E1",
+   "equipe": "Preston",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      7,
+      13
+     ],
+     "ext": [
+      7,
+      5,
+      17
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      7,
+      13
+     ],
+     "ext": [
+      7,
+      5,
+      17
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "psg-fr": {
+   "fd": "Paris SG",
+   "ligue": "F1",
+   "equipe": "PSG",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      3,
+      6,
+      3
+     ],
+     "ext": [
+      6,
+      15,
+      7
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      3,
+      6,
+      3
+     ],
+     "ext": [
+      6,
+      15,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "psv-nl": {
+   "fd": "PSV Eindhoven",
+   "ligue": "N1",
+   "equipe": "PSV",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      21,
+      5
+     ],
+     "ext": [
+      5,
+      14,
+      8
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      21,
+      5
+     ],
+     "ext": [
+      5,
+      14,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "qpr-eng": {
+   "fd": "QPR",
+   "ligue": "E1",
+   "equipe": "QPR",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      14,
+      6
+     ],
+     "ext": [
+      7,
+      8,
+      11
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      14,
+      6
+     ],
+     "ext": [
+      7,
+      8,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "real-madrid-esp": {
+   "fd": "Real Madrid",
+   "ligue": "SP1",
+   "equipe": "Real Madrid",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      17,
+      3
+     ],
+     "ext": [
+      6,
+      11,
+      7
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      17,
+      3
+     ],
+     "ext": [
+      6,
+      11,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "real-sociedad-esp": {
+   "fd": "Sociedad",
+   "ligue": "SP1",
+   "equipe": "Real Sociedad",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      7
+     ],
+     "ext": [
+      6,
+      13,
+      13
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      7
+     ],
+     "ext": [
+      6,
+      13,
+      13
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "red-star-fr": {
+   "fd": "Red Star",
+   "ligue": "F2",
+   "equipe": "Red Star",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      3,
+      9
+     ],
+     "ext": [
+      6,
+      11,
+      7
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      3,
+      9
+     ],
+     "ext": [
+      7,
+      11,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "reims-fr": {
+   "fd": "Reims",
+   "ligue": "F2",
+   "equipe": "Reims",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      15,
+      9
+     ],
+     "ext": [
+      5,
+      7,
+      3
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      15,
+      9
+     ],
+     "ext": [
+      6,
+      9,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "rennes-fr": {
+   "fd": "Rennes",
+   "ligue": "F1",
+   "equipe": "Rennes",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      13,
+      5
+     ],
+     "ext": [
+      4,
+      7,
+      14
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      13,
+      5
+     ],
+     "ext": [
+      4,
+      7,
+      14
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "rio-ave-pt": {
+   "fd": "Rio Ave",
+   "ligue": "P1",
+   "equipe": "Rio Ave",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      15
+     ],
+     "ext": [
+      5,
+      3,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      15
+     ],
+     "ext": [
+      5,
+      3,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "rize-tr": {
+   "fd": "Rizespor",
+   "ligue": "T1",
+   "equipe": "Rize",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      3,
+      10
+     ],
+     "ext": [
+      6,
+      8,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      3,
+      10
+     ],
+     "ext": [
+      6,
+      8,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "rodez-fr": {
+   "fd": "Rodez",
+   "ligue": "F2",
+   "equipe": "Rodez",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      9,
+      11
+     ],
+     "ext": [
+      5,
+      8,
+      11
+     ]
+    },
+    "affiches": "0/0",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      9,
+      11
+     ],
+     "ext": [
+      5,
+      8,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "rome-it": {
+   "fd": "Roma",
+   "ligue": "I1",
+   "equipe": "Rome",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      14,
+      5
+     ],
+     "ext": [
+      5,
+      14,
+      5
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      14,
+      5
+     ],
+     "ext": [
+      5,
+      14,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "samsunspor-tr": {
+   "fd": "Samsunspor",
+   "ligue": "T1",
+   "equipe": "Samsunspor",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      15
+     ],
+     "ext": [
+      5,
+      5,
+      11
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      15
+     ],
+     "ext": [
+      5,
+      5,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "santa-clara-pt": {
+   "fd": "Santa Clara",
+   "ligue": "P1",
+   "equipe": "Santa Clara",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      8,
+      4
+     ],
+     "ext": [
+      5,
+      7,
+      2
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      8,
+      4
+     ],
+     "ext": [
+      5,
+      7,
+      2
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "santander-esp": {
+   "fd": "Santander",
+   "ligue": "SP1",
+   "equipe": "Santander",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      11,
+      11
+     ],
+     "ext": [
+      5,
+      4,
+      18
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      11,
+      11
+     ],
+     "ext": [
+      5,
+      4,
+      18
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "sassuolo-it": {
+   "fd": "Sassuolo",
+   "ligue": "I1",
+   "equipe": "Sassuolo",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      10,
+      14
+     ],
+     "ext": [
+      5,
+      6,
+      12
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      10,
+      14
+     ],
+     "ext": [
+      5,
+      6,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "schalke-04-de": {
+   "fd": "Schalke 04",
+   "ligue": "D1",
+   "equipe": "Schalke 04",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      0,
+      3
+     ],
+     "ext": [
+      4,
+      4,
+      6
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      0,
+      3
+     ],
+     "ext": [
+      4,
+      4,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "seville-esp": {
+   "fd": "Sevilla",
+   "ligue": "SP1",
+   "equipe": "Séville",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      7
+     ],
+     "ext": [
+      6,
+      10,
+      12
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      7,
+      7
+     ],
+     "ext": [
+      6,
+      10,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "sheff-utd-eng": {
+   "fd": "Sheffield United",
+   "ligue": "E1",
+   "equipe": "Sheff Utd",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      9,
+      7
+     ],
+     "ext": [
+      7,
+      11,
+      10
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      9,
+      7
+     ],
+     "ext": [
+      7,
+      11,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "sochaux-fr": {
+   "fd": "Sochaux",
+   "ligue": "F2",
+   "equipe": "Sochaux",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      4,
+      7
+     ],
+     "ext": [
+      6,
+      4,
+      7
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      4,
+      7
+     ],
+     "ext": [
+      7,
+      4,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "southampton-eng": {
+   "fd": "Southampton",
+   "ligue": "E1",
+   "equipe": "Southampton",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      20,
+      5
+     ],
+     "ext": [
+      7,
+      9,
+      9
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      20,
+      5
+     ],
+     "ext": [
+      7,
+      9,
+      9
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "sparta-nl": {
+   "fd": "Sparta Rotterdam",
+   "ligue": "N1",
+   "equipe": "Sparta",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      9,
+      14
+     ],
+     "ext": [
+      5,
+      11,
+      12
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      9,
+      14
+     ],
+     "ext": [
+      5,
+      11,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "sporting-pt": {
+   "fd": "Sp Lisbon",
+   "ligue": "P1",
+   "equipe": "Sporting",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      11,
+      7
+     ],
+     "ext": [
+      5,
+      12,
+      4
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      11,
+      7
+     ],
+     "ext": [
+      5,
+      12,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "stoke-eng": {
+   "fd": "Stoke",
+   "ligue": "E1",
+   "equipe": "Stoke",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      12,
+      6
+     ],
+     "ext": [
+      7,
+      10,
+      11
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      12,
+      6
+     ],
+     "ext": [
+      7,
+      10,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "strasbourg-fr": {
+   "fd": "Strasbourg",
+   "ligue": "F1",
+   "equipe": "Strasbourg",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      9,
+      6
+     ],
+     "ext": [
+      5,
+      8,
+      13
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      9,
+      6
+     ],
+     "ext": [
+      6,
+      9,
+      16
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "stuttgart-de": {
+   "fd": "Stuttgart",
+   "ligue": "D1",
+   "equipe": "Stuttgart",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      3,
+      6,
+      5
+     ],
+     "ext": [
+      5,
+      8,
+      10
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      3,
+      6,
+      5
+     ],
+     "ext": [
+      5,
+      8,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "sunderland-eng": {
+   "fd": "Sunderland",
+   "ligue": "E0",
+   "equipe": "Sunderland",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      1,
+      4
+     ],
+     "ext": [
+      5,
+      6,
+      13
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      4,
+      1,
+      4
+     ],
+     "ext": [
+      5,
+      6,
+      13
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "swansea-eng": {
+   "fd": "Swansea",
+   "ligue": "E1",
+   "equipe": "Swansea",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      11,
+      3
+     ],
+     "ext": [
+      7,
+      10,
+      13
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      11,
+      3
+     ],
+     "ext": [
+      7,
+      10,
+      13
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "telstar-nl": {
+   "fd": "Telstar",
+   "ligue": "N1",
+   "equipe": "Telstar",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      12,
+      17
+     ],
+     "ext": [
+      5,
+      4,
+      6
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      12,
+      17
+     ],
+     "ext": [
+      5,
+      4,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "torino-it": {
+   "fd": "Torino",
+   "ligue": "I1",
+   "equipe": "Torino",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      10
+     ],
+     "ext": [
+      5,
+      7,
+      6
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      10
+     ],
+     "ext": [
+      5,
+      7,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "tottenham-eng": {
+   "fd": "Tottenham",
+   "ligue": "E0",
+   "equipe": "Tottenham",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      6
+     ],
+     "ext": [
+      4,
+      3,
+      4
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      6
+     ],
+     "ext": [
+      4,
+      3,
+      4
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "toulouse-fr": {
+   "fd": "Toulouse",
+   "ligue": "F1",
+   "equipe": "Toulouse",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      4,
+      3,
+      5
+     ],
+     "ext": [
+      5,
+      9,
+      8
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      6
+     ],
+     "ext": [
+      5,
+      9,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "trabzon-tr": {
+   "fd": "Trabzonspor",
+   "ligue": "T1",
+   "equipe": "Trabzon",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      15,
+      1
+     ],
+     "ext": [
+      5,
+      9,
+      7
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      15,
+      1
+     ],
+     "ext": [
+      5,
+      9,
+      7
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "troyes-fr": {
+   "fd": "Troyes",
+   "ligue": "F1",
+   "equipe": "Troyes",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      5,
+      11
+     ],
+     "ext": [
+      4,
+      2,
+      5
+     ]
+    },
+    "affiches": "9/9",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      5,
+      11
+     ],
+     "ext": [
+      4,
+      2,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "twente-nl": {
+   "fd": "Twente",
+   "ligue": "N1",
+   "equipe": "Twente",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      10,
+      5
+     ],
+     "ext": [
+      6,
+      18,
+      5
+     ]
+    },
+    "affiches": "10/11",
+    "affiches_absentes": [
+     "16/08/2026 Twente - Zwolle"
+    ],
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      10,
+      5
+     ],
+     "ext": [
+      6,
+      18,
+      5
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "udinese-it": {
+   "fd": "Udinese",
+   "ligue": "I1",
+   "equipe": "Udinese",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      4,
+      14
+     ],
+     "ext": [
+      4,
+      7,
+      9
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      4,
+      14
+     ],
+     "ext": [
+      5,
+      8,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 1
+    },
+    "empreinte": "identiques (dom seulement)"
+   }
+  },
+  "union-berlin-de": {
+   "fd": "Union Berlin",
+   "ligue": "D1",
+   "equipe": "Union Berlin",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      3,
+      1,
+      12
+     ]
+    },
+    "affiches": "8/8",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      3,
+      1,
+      12
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "utrecht-nl": {
+   "fd": "Utrecht",
+   "ligue": "N1",
+   "equipe": "Utrecht",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      9,
+      15
+     ],
+     "ext": [
+      6,
+      10,
+      16
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      9,
+      15
+     ],
+     "ext": [
+      6,
+      10,
+      16
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "valence-esp": {
+   "fd": "Valencia",
+   "ligue": "SP1",
+   "equipe": "Valence",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      6,
+      3,
+      11
+     ],
+     "ext": [
+      5,
+      5,
+      6
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      3,
+      11
+     ],
+     "ext": [
+      5,
+      5,
+      6
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "vallecano-esp": {
+   "fd": "Vallecano",
+   "ligue": "SP1",
+   "equipe": "Vallecano",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      9,
+      7
+     ],
+     "ext": [
+      5,
+      6,
+      13
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      9,
+      7
+     ],
+     "ext": [
+      5,
+      6,
+      13
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "venezia-it": {
+   "fd": "Venezia",
+   "ligue": "I1",
+   "equipe": "Venezia",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      3,
+      10
+     ],
+     "ext": [
+      5,
+      3,
+      10
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      5,
+      11
+     ],
+     "ext": [
+      5,
+      3,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "villarreal-esp": {
+   "fd": "Villarreal",
+   "ligue": "SP1",
+   "equipe": "Villarreal",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      6,
+      9,
+      8
+     ]
+    },
+    "affiches": "11/11",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      6,
+      7
+     ],
+     "ext": [
+      6,
+      9,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "vitoria-sc-pt": {
+   "fd": "Guimaraes",
+   "ligue": "P1",
+   "equipe": "Vitória SC",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      7,
+      2
+     ],
+     "ext": [
+      5,
+      3,
+      8
+     ]
+    },
+    "affiches": "10/10",
+    "supabase_dom_ext": {
+     "dom": [
+      5,
+      7,
+      2
+     ],
+     "ext": [
+      5,
+      3,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "watford-eng": {
+   "fd": "Watford",
+   "ligue": "E1",
+   "equipe": "Watford",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      9,
+      9
+     ],
+     "ext": [
+      7,
+      4,
+      14
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      9,
+      9
+     ],
+     "ext": [
+      7,
+      4,
+      14
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "west-bromwich-eng": {
+   "fd": "West Brom",
+   "ligue": "E1",
+   "equipe": "West Bromwich",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      10,
+      7
+     ],
+     "ext": [
+      7,
+      10,
+      8
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      10,
+      7
+     ],
+     "ext": [
+      7,
+      10,
+      8
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "west-ham-eng": {
+   "fd": "West Ham",
+   "ligue": "E1",
+   "equipe": "West Ham",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      18,
+      11
+     ],
+     "ext": [
+      7,
+      18,
+      10
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      18,
+      11
+     ],
+     "ext": [
+      7,
+      18,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "willem-ii-nl": {
+   "fd": "Willem II",
+   "ligue": "N1",
+   "equipe": "Willem II",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      5,
+      4,
+      16
+     ],
+     "ext": [
+      6,
+      6,
+      23
+     ]
+    },
+    "affiches": "10/11",
+    "affiches_absentes": [
+     "08/08/2026 Go Ahead Eagles - Willem II"
+    ],
+    "supabase_dom_ext": {
+     "dom": [
+      6,
+      5,
+      17
+     ],
+     "ext": [
+      6,
+      6,
+      23
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 1,
+     "ext": 0
+    },
+    "empreinte": "identiques (ext seulement)"
+   }
+  },
+  "wolverhampton-eng": {
+   "fd": "Wolves",
+   "ligue": "E1",
+   "equipe": "Wolverhampton",
+   "meme_nom": false,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      13,
+      7
+     ],
+     "ext": [
+      7,
+      12,
+      10
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      13,
+      7
+     ],
+     "ext": [
+      7,
+      12,
+      10
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  },
+  "wrexham-eng": {
+   "fd": "Wrexham",
+   "ligue": "E1",
+   "equipe": "Wrexham",
+   "meme_nom": true,
+   "statut": "auto",
+   "preuve": {
+    "fd_dom_ext": {
+     "dom": [
+      7,
+      12,
+      8
+     ],
+     "ext": [
+      7,
+      5,
+      11
+     ]
+    },
+    "affiches": "1/1",
+    "supabase_dom_ext": {
+     "dom": [
+      7,
+      12,
+      8
+     ],
+     "ext": [
+      7,
+      5,
+      11
+     ]
+    },
+    "matchs_depuis_maj_fd": {
+     "dom": 0,
+     "ext": 0
+    },
+    "empreinte": "identiques"
+   }
+  }
+ }
+}
